@@ -8,15 +8,15 @@ The repository holds the generally usable state of each tool. Anything specific 
 
 | Tool | Domain | What it does | Status | Version |
 | :-- | :-- | :-- | :-- | :-- |
-| `bac-common` | library | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary | available | v0.1.0 |
+| `bac-common` | library | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary | available | v0.1.1 |
 | `bac-convention-check` | repo | Lints a tree against the BAC guides (typography, naming, licensing, packaging, flags); runs in this repo's CI | available | v0.2.0 |
 | `bac-csr-ingest` | resources | Ingests documents and links into the CubeSat Resources site: extraction, LLM classification, review, upload, index, commit | available | v0.4.0 |
-| `bac-issue-print` | repo | Prints a Codeberg issue with all comments as Markdown | planned | – |
+| `bac-issue-print` | repo | Prints a Codeberg issue with all comments as Markdown | available | v0.1.0 |
 | `bac-kicad-generate-artifacts` | KiCad | Produces the release bundle for a KiCad project: render, pinout, schematic PDF, BOM, iBOM, Gerbers, drills, STEP, QR marker, ZIP | planned | – |
-| `bac-kicad-hlabels` | KiCad | Emits hierarchical-label blocks for a list of net names, ready to paste into a schematic | planned | – |
+| `bac-kicad-hlabels` | KiCad | Emits hierarchical-label blocks for a list of net names, ready to paste into a schematic | available | v0.1.0 |
 | `bac-kicad-symlint` | KiCad | Lints and fixes text sizes and footprint references in KiCad symbol and footprint libraries, preserving file formatting | planned | – |
-| `bac-markdown-to-youtube` | content | Converts Markdown to YouTube description markup | planned | – |
-| `bac-media-convert` | media | Batch conversions: square WebP for the shop, constant-frame-rate MP4 from variable-rate WebM | planned | – |
+| `bac-markdown-to-youtube` | content | Converts Markdown to YouTube description markup | available | v0.2.0 |
+| `bac-media-convert` | media | Batch conversions: square WebP for the shop, constant-frame-rate MP4 from variable-rate WebM | available | v0.1.0 |
 | `bac-reference-gallery` | design | Design-reference pages for the BAC guides plus a PNG/PDF renderer; home of the shared `tokens.css` | planned | – |
 | `bac-shop-product-cropper` | media | Interactive crop of product photos with size-targeted WebP export | planned | – |
 | `bac-update-content-plan` | content | Renders the content plan from a Google Sheet into the docs repository and commits it | planned | – |
@@ -30,8 +30,8 @@ Related, maintained elsewhere: [`bac-page`](https://github.com/buildacubesat/bac
 Each tool is its own `uv` project and installs independently:
 
 ```sh
-uv tool install ./tools/bac-kicad-symlint
-bac-kicad-symlint --init
+uv tool install ./tools/bac-issue-print
+bac-issue-print --init
 ```
 
 The Blender extension is installed from a zip built in `blender/bac-vse-tools`. The ops suite is described in `ops/README.md`.
@@ -69,6 +69,7 @@ Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool n
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.4.0 | 2026-09-04 | Four small tools on the scaffold: `bac-markdown-to-youtube` v0.2.0 (rewritten conversion), `bac-issue-print` v0.1.0 (ported from shell, pagination, token), `bac-kicad-hlabels` v0.1.0 (flags, `--gap-on-blank`), `bac-media-convert` v0.1.0 (`webp-square`, `cfr`; the two shell loops retired). `bac-common` v0.1.1: `.env` is searched from the working directory, `run_typer` puts Typer tools inside the error boundary. |
 | 0.3.0 | 2026-09-02 | `bac-convention-check` v0.2.0 ported to Python with TOML rule sets; runs on the repository in CI. |
 | 0.2.0 | 2026-09-02 | `bac-csr-ingest` v0.4.0: first tool on `bac-common`; classifier trust boundary, upload guard, phase order. Root pytest runs in importlib mode so tools may share test module names. |
 | 0.1.0 | 2026-09-02 | Repository skeleton: uv workspace, CI, `bac-common` v0.1.0 lifted from the CSR Ingest reference implementation. Tools follow in the homogenization plan's order. |

@@ -19,6 +19,10 @@ members = [
     "bac-common",
     "bac-convention-check",
     "bac-csr-ingest",
+    "bac-issue-print",
+    "bac-kicad-hlabels",
+    "bac-markdown-to-youtube",
+    "bac-media-convert",
 ]
 
 [manifest.dependency-groups]
@@ -112,7 +116,7 @@ wheels = [
 
 [[package]]
 name = "bac-common"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "lib/bac-common" }
 dependencies = [
     { name = "python-dotenv" },
@@ -211,6 +215,104 @@ requires-dist = [
     { name = "typer", specifier = ">=0.12" },
 ]
 provides-extras = ["extract"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-issue-print"
+version = "0.1.0"
+source = { editable = "tools/bac-issue-print" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "python-dotenv" },
+    { name = "rich" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "rich", specifier = ">=13.7" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-kicad-hlabels"
+version = "0.1.0"
+source = { editable = "tools/bac-kicad-hlabels" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "rich" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "rich", specifier = ">=13.7" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-markdown-to-youtube"
+version = "0.2.0"
+source = { editable = "tools/bac-markdown-to-youtube" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "rich" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "rich", specifier = ">=13.7" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-media-convert"
+version = "0.1.0"
+source = { editable = "tools/bac-media-convert" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "pillow" },
+    { name = "rich" },
+    { name = "typer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "pillow", specifier = ">=10.4" },
+    { name = "rich", specifier = ">=13.7" },
+    { name = "typer", specifier = ">=0.12" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8.0" }]
