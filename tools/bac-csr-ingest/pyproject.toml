@@ -1,0 +1,47 @@
+[project]
+name = "bac-csr-ingest"
+version = "0.4.0"
+description = "Ingest documents and links into the CubeSat Resources site and keep resources.yml in sync with its CSR-RESOURCES blocks."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "bac-common>=0.1",
+    "typer>=0.12",
+    "rich>=13.7",
+    "InquirerPy>=0.3.4",
+    "python-dotenv>=1.0",
+    "pydantic>=2.8",
+    "pyyaml>=6.0",
+    "python-slugify>=8.0",
+    "requests>=2.32",
+    "google-cloud-storage>=2.16",
+    "openai>=1.40",
+    "anthropic>=0.34",
+    "pypdf>=4.3",
+]
+
+[project.optional-dependencies]
+# Docling gives much better text extraction (layout, OCR) but pulls in torch.
+# Without it the tool falls back to pypdf and plain-text reading.
+extract = ["docling>=2.0"]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+bac-csr-ingest = "bac_csr_ingest.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bac_csr_ingest"]
+
+[tool.uv.sources]
+bac-common = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"

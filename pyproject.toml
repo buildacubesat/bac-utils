@@ -1,0 +1,41 @@
+# bac-utils – workspace root
+# Build a CubeSat – utilities monorepo. Each tool under lib/, tools/ and ops/
+# is its own uv project; this file only ties them together for `uv sync`,
+# `uv run pytest` and CI. Install a single tool with
+#   uv tool install ./tools/<name>
+
+[tool.uv.workspace]
+members = ["lib/*", "tools/*", "ops/*"]
+
+[tool.uv.sources]
+bac-common = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["blender"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+# B008: Typer declares options via function calls in defaults by design.
+ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# Prompt text and test fixtures are literal strings; wrapping them changes them.
+"**/llm.py" = ["E501"]
+"**/tests/*" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["bac_common", "bac_suite_db"]
+
+[tool.pytest.ini_options]
+testpaths = ["lib", "tools", "ops"]
+# importlib mode lets every tool keep its own tests/test_cli.py without
+# module-name collisions when the whole workspace runs in one session.
+addopts = "-q --import-mode=importlib"

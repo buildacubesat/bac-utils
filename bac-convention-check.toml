@@ -1,0 +1,14 @@
+# bac-convention-check.toml
+# Build a CubeSat – bac-convention-check configuration for the bac-utils repository
+
+rules = ["guide"]
+max_hits = 40
+
+[exclude]
+# The bundled rule sets contain the very patterns they look for, the
+# checker's README names them, and its test fixtures violate every rule once.
+"*" = [
+  "tools/bac-convention-check/src/bac_convention_check/rules/*.toml",
+  "tools/bac-convention-check/README.md",
+  "tools/bac-convention-check/tests/**",
+]

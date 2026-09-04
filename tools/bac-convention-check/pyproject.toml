@@ -1,0 +1,31 @@
+[project]
+name = "bac-convention-check"
+version = "0.2.0"
+description = "Scan a repository for drift from the Build a CubeSat conventions: typography, naming, licensing, packaging, and optional firmware review heuristics."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "bac-common>=0.1",
+    "rich>=13.7",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+bac-convention-check = "bac_convention_check.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bac_convention_check"]
+
+[tool.uv.sources]
+bac-common = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"

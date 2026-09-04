@@ -1,0 +1,241 @@
+# bac-convention-check – rule set "guide"
+# Build a CubeSat – conventions from the BAC Project & Tooling Guide v0.11 and
+# the BAC Interface Design Guide v0.1. Ids: A typography, B naming, F retired
+# names, H secrets and formats, L licensing, P packaging, V versioning,
+# R READMEs, U URLs, S terminology.
+#
+# Rules without `include` apply to every text file. `drop` discards matching
+# lines; `keep` keeps only matching lines. A line may opt out with
+# `convention-check: allow <ID>`; a project excludes paths per rule in
+# bac-convention-check.toml.
+
+[[rules]]
+id = "A1"
+severity = "blocking"
+title = "Em dash present (only the en dash is permitted)"
+kind = "regex"
+pattern = "—"
+note = "Replace with the Gedankenstrich (–)."
+
+[[rules]]
+id = "A2"
+severity = "blocking"
+title = "Lowercase x used for multiplication or dimensions"
+kind = "regex"
+pattern = "[0-9] ?x ?[0-9]"
+include = ["*.md", "*.txt", "*.rst"]
+drop = "(^|[^0-9a-z_])0x[0-9a-f]|[0-9]x[0-9]+ ?(px|em)"
+note = "Use × (2× INA260, 100×100×227 mm)."
+
+[[rules]]
+id = "A3"
+severity = "blocking"
+title = "Decorative emoji (semantic glyphs ✓ ✗ ! → · are exempt)"
+kind = "regex"
+pattern = "[\U0001F000-\U0001FAFF\u2B00-\u2BFF\uFE0F\u2705\u274C\u26A0\u2757\u2795]"
+note = "Only ✓ ✗ ! → and · carry meaning in BAC output."
+
+[[rules]]
+id = "A4"
+severity = "blocking"
+title = "Curly apostrophe or single quote"
+kind = "regex"
+pattern = "[’‘]"
+note = "Use the straight apostrophe (')."
+
+[[rules]]
+id = "A5"
+severity = "advisory"
+title = "Curly double quotes"
+kind = "regex"
+pattern = "[“”]"
+include = ["*.md", "*.txt", "*.rst", "*.py", "*.toml"]
+note = "Straight quotes keep prose and code consistent."
+
+[[rules]]
+id = "A6"
+severity = "advisory"
+title = "ß in German text (use ss)"
+kind = "regex"
+pattern = "ß"
+include = ["*.md", "*.txt", "*.rst", "*.html"]
+
+[[rules]]
+id = "A7"
+severity = "advisory"
+title = "Comma thousands separator on a CHF or metric value"
+kind = "regex"
+pattern = "\\d,\\d{3}(?:[.,]\\d+)?\\s*(CHF|mm|g|kg|km)\\b|CHF\\s*\\d{1,3}(,\\d{3})+"
+include = ["*.md", "*.txt", "*.rst", "*.html", "*.py"]
+note = "CHF and metric values use ' (12'059 CHF); USD keeps the comma."
+
+[[rules]]
+id = "B1"
+severity = "blocking"
+title = "Mixed-case BAC (always fully capitalised in prose; lowercase bac in code)"
+kind = "regex"
+pattern = "\\b(Bac|BaC|bAC)\\b"
+
+[[rules]]
+id = "B2"
+severity = "blocking"
+title = "buildacubesat used as a display name"
+kind = "regex"
+pattern = "buildacubesat"
+include = ["*.md", "*.txt", "*.rst"]
+drop = "codeberg\\.org|github\\.com|\\.space|bac\\.page|https?://|@|/buildacubesat"
+note = "buildacubesat is a URL slug or identifier, never a display name."
+
+[[rules]]
+id = "B3"
+severity = "blocking"
+title = "Mixed-case bac in a file or directory name"
+kind = "path"
+pattern = "(^|/)[^/]*(Bac|BaC|bAC)[^/]*$"
+note = "Filenames use lowercase bac."
+
+[[rules]]
+id = "F1"
+severity = "blocking"
+title = "Retired guide or token names"
+kind = "regex"
+pattern = "internal tools design (language|guide)|design system specification|moon 2\\.0|--bac-amber|\\bamber\\b"
+ignore_case = true
+include = ["*.md", "*.css", "*.py", "*.toml", "*.txt", "*.html"]
+note = "Project & Tooling Guide, Interface Design Guide, Identity Guide; warnings use BAC Yellow, not amber."
+
+[[rules]]
+id = "H1"
+severity = "blocking"
+title = "Possible hardcoded secret"
+kind = "regex"
+pattern = "(api[_-]?key|token|secret|password|passwd)\\s*[:=]\\s*.[^\"' ]{8,}"
+ignore_case = true
+include = ["*.py", "*.sh", "*.toml", "*.cfg", "*.conf", "*.ini", "*.json", "*.c", "*.h", "*.cpp", ".env*"]
+drop = "example|placeholder|\\$\\{|os\\.getenv|getenv\\(|environ|<[a-z_]+>|xxx|redacted|your[_-]|secret\\("
+note = "Secrets live in .env, loaded with python-dotenv; commit .env.example without values."
+
+[[rules]]
+id = "H2"
+severity = "advisory"
+title = "YAML outside framework-required paths"
+kind = "path"
+pattern = "\\.ya?ml$"
+exclude = [
+  ".github/**", ".forgejo/**", ".gitlab-ci.yml", ".pre-commit-config.yaml", "mkdocs.yml",
+  "**/zephyr/**", "**/west*/**", "**/fprime/**", "**/f-prime/**", "**/meta-*/**", "**/conda*/**",
+]
+note = "TOML for hand-edited config, CSV for tables, JSON for machine exchange."
+
+[[rules]]
+id = "L1"
+severity = "blocking"
+title = "Source file without an SPDX MIT header in its first lines"
+kind = "require"
+pattern = "SPDX-License-Identifier:\\s*MIT"
+include = ["*.py", "*.sh"]
+head_lines = 5
+note = "Add `# SPDX-License-Identifier: MIT` at the top."
+
+[[rules]]
+id = "L2"
+severity = "blocking"
+title = "pyproject.toml without an MIT license field"
+kind = "builtin"
+builtin = "pyproject_license"
+
+[[rules]]
+id = "L3"
+severity = "advisory"
+title = "pyproject.toml license not in the guide's table form"
+kind = "builtin"
+builtin = "pyproject_license_form"
+
+[[rules]]
+id = "P1"
+severity = "blocking"
+title = "pyproject.toml requires-python below 3.11 or missing"
+kind = "builtin"
+builtin = "pyproject_python"
+
+[[rules]]
+id = "P2"
+severity = "advisory"
+title = "pyproject.toml build backend is not hatchling"
+kind = "builtin"
+builtin = "pyproject_backend"
+
+[[rules]]
+id = "P3"
+severity = "advisory"
+title = "Dependency with an upper bound, exact pin, or no minimum"
+kind = "builtin"
+builtin = "pyproject_pins"
+
+[[rules]]
+id = "P4"
+severity = "blocking"
+title = "Project name without the bac- prefix"
+kind = "builtin"
+builtin = "pyproject_name"
+
+[[rules]]
+id = "P5"
+severity = "advisory"
+title = "Script entry point not shaped bac-toolname = bac_toolname.cli:main"
+kind = "builtin"
+builtin = "pyproject_scripts"
+
+[[rules]]
+id = "V1"
+severity = "blocking"
+title = "CLI module without a --version flag"
+kind = "require"
+pattern = "--version|make_parser\\(|add_standard_flags\\("
+include = ["**/cli.py"]
+note = "Every BAC tool supports -v/--version; bac_common.cli.make_parser adds it."
+
+[[rules]]
+id = "V2"
+severity = "advisory"
+title = "Version number encoded in a file name"
+kind = "path"
+pattern = "(^|/)[^/]*[-_.]v?\\d+\\.\\d+(\\.\\d+)?(?=[-_.][^/]*$|$)"
+note = "Use a version field inside the file or git history; names follow {project}-{descriptor}-{YYYY-MM-DD}."
+
+[[rules]]
+id = "R1"
+severity = "blocking"
+title = "README without a version history section"
+kind = "require"
+pattern = "(?i)^#+\\s*(\\d+(\\.\\d+)*\\.?\\s*)?(version|revision) history"
+include = ["README.md", "**/README.md"]
+note = "Every documentation file carries a version or revision history."
+
+[[rules]]
+id = "R2"
+severity = "advisory"
+title = "README that never names Build a CubeSat"
+kind = "require"
+pattern = "Build a CubeSat"
+include = ["README.md", "**/README.md"]
+note = "Use the full name on first reference, BAC thereafter."
+
+[[rules]]
+id = "U1"
+severity = "advisory"
+title = "GitHub URL for a BAC repository that is hosted on Codeberg"
+kind = "regex"
+pattern = "github\\.com/buildacubesat(-project)?/(?!bac\\.page\\b|CubeSat-Resources\\b|bac-utils\\b)"
+note = "Codeberg is the primary forge; GitHub only for bac.page, CubeSat-Resources and bac-utils."
+
+[[rules]]
+id = "S1"
+severity = "advisory"
+title = "Master/slave terminology"
+kind = "regex"
+pattern = "\\b(master|slave)s?\\b"
+ignore_case = true
+include = ["*.md", "*.txt", "*.rst", "*.py", "*.c", "*.h", "*.cpp", "*.hpp", "*.html", "*.kicad_sch", "*.kicad_pcb"]
+drop = "git|branch|origin/"
+note = "Main or Primary, and Secondary."

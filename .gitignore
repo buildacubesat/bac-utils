@@ -1,0 +1,28 @@
+# Secrets and machine-specific configuration – never commit these.
+.env
+.env.*
+!.env.example
+*.toml.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Tool outputs that are always regenerable
+exports/
+out/
+*.fixed
+*.bak
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
