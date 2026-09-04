@@ -12,3 +12,5 @@ max_hits = 40
   "tools/bac-convention-check/README.md",
   "tools/bac-convention-check/tests/**",
 ]
+# The Codeberg owner slug is an identifier in this README, not a display name.
+B2 = ["tools/bac-issue-print/README.md"]
