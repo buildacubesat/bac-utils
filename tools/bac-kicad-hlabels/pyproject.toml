@@ -1,0 +1,31 @@
+[project]
+name = "bac-kicad-hlabels"
+version = "0.1.0"
+description = "Emit KiCad hierarchical-label blocks for a list of net names, staggered so they do not overlap."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "bac-common>=0.1",
+    "rich>=13.7",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+bac-kicad-hlabels = "bac_kicad_hlabels.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bac_kicad_hlabels"]
+
+[tool.uv.sources]
+bac-common = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
