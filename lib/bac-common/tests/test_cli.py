@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 from __future__ import annotations
 
+import pytest
 from demo_tool import TOOL, VERSION, main
 
 from bac_common import cli
@@ -152,3 +153,35 @@ def test_parser_without_optional_flags():
     assert "-v, --version" in text
     for absent in ("--init", "--dry-run", "--env-file", "--config", "--list"):
         assert absent not in text, absent
+
+
+def test_run_typer_exit_paths():
+    typer = pytest.importorskip("typer")
+    from bac_common.errors import ConfigError
+
+    app = typer.Typer(add_completion=False, rich_markup_mode=None, pretty_exceptions_enable=False)
+
+    @app.command()
+    def go(mode: str = typer.Argument("ok")) -> None:
+        """Demo."""
+        if mode == "exit3":
+            raise typer.Exit(3)
+        if mode == "interrupt":
+            raise KeyboardInterrupt
+        if mode == "config":
+            raise ConfigError("Not set up.", "Run --init.")
+        print("ran", mode)
+
+    def main(argv, debug):
+        return cli.run_typer(app, argv, "bac-typer-demo")
+
+    assert invoke(main, []).exit_code == 0
+    assert invoke(main, ["exit3"]).exit_code == 3
+    h = invoke(main, ["--help"])
+    assert h.exit_code == 0 and "Usage: bac-typer-demo" in h.stdout
+    bad = invoke(main, ["--no-such-option"])
+    assert bad.exit_code == 2 and "No such option" in bad.stderr and "Traceback" not in bad.stderr
+    i = invoke(main, ["interrupt"])
+    assert i.exit_code == 1 and "Interrupted." in i.stdout
+    c = invoke(main, ["config"])
+    assert c.exit_code == 1 and c.stderr.startswith("ERROR Not set up.\n      Run --init.")

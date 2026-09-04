@@ -1,4 +1,4 @@
-# bac-common v0.1.0
+# bac-common v0.1.1
 
 Build a CubeSat – the shared scaffold every BAC command-line tool is built on. It implements the parts of the BAC Project & Tooling Guide §3 and the BAC Interface Design Guide §10 that are the same for every tool, so a tool contains only its own logic.
 
@@ -72,4 +72,5 @@ Every message may contain Rich markup, so anything from outside the tool – fil
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.1.1 | 2026-09-04 | `load_env()` searches for `.env` from the current working directory upwards (python-dotenv's default starts at the library's own directory, so an installed tool never found the `.env` next to the user). Returns the path it loaded. `cli.run_typer(app, argv, tool)` runs a Typer app inside the boundary, so usage errors exit 2, `--help` exits 0 and Ctrl-C prints `Interrupted.` and exits 1 instead of Click's `Aborted!` and 130. |
 | 0.1.0 | 2026-09-02 | Initial release, lifted from csr_ingest v0.3.1. Compared with the source: values right-aligned in `summary()`, the spinner column removed from the progress bar in favour of one selectable status column, `esc()`/`path()` escaping and a `fields()` helper added, `--debug` stripped from anywhere in argv, Ctrl-C exits 1 instead of 130, `write_env()` writes owner-only files, `require_setup()` and `testing` added. |

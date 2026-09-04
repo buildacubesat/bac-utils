@@ -50,6 +50,19 @@ def test_load_env_explicit_overrides(tmp_path, monkeypatch):
     assert os.environ["BAC_TEST_VALUE"] == "file"
 
 
+def test_load_env_default_search_starts_at_cwd(tmp_path, monkeypatch):
+    project = tmp_path / "project" / "sub"
+    project.mkdir(parents=True)
+    (tmp_path / "project" / ".env").write_text("BAC_TEST_VALUE=fromcwd\n", encoding="utf-8")
+    monkeypatch.chdir(project)
+    assert config.load_env() == tmp_path / "project" / ".env"
+    assert os.environ["BAC_TEST_VALUE"] == "fromcwd"
+    monkeypatch.delenv("BAC_TEST_VALUE")
+    monkeypatch.chdir(tmp_path)
+    assert config.load_env() is None
+    assert "BAC_TEST_VALUE" not in os.environ
+
+
 def test_pick_precedence(monkeypatch):
     table = {"key": "toml"}
     assert config.pick("BAC_TEST_VALUE", table, "key", "default") == "toml"

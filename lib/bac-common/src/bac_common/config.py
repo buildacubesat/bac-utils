@@ -19,7 +19,7 @@ import tomllib
 from collections.abc import Mapping
 from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from .errors import ConfigError
 
@@ -48,15 +48,25 @@ def expand(value: str | os.PathLike[str]) -> Path:
     return Path(value).expanduser().resolve()
 
 
-def load_env(env_file: str | os.PathLike[str] | None = None) -> None:
-    """Load a ``.env`` file. An explicit path must exist; the default search may find nothing."""
+def load_env(env_file: str | os.PathLike[str] | None = None) -> Path | None:
+    """Load a ``.env`` file and return its path, or ``None`` when none was found.
+
+    An explicit path must exist. The default search starts in the current
+    working directory and walks up – not from this module's own directory,
+    which is what python-dotenv would do on its own and which never finds
+    anything once the tool is installed into a tool environment.
+    """
     if env_file:
         path = Path(env_file).expanduser()
         if not path.exists():
             raise ConfigError(f"Env file does not exist: {path}")
         load_dotenv(path, override=True)
-    else:
-        load_dotenv()
+        return path
+    found = find_dotenv(usecwd=True)
+    if not found:
+        return None
+    load_dotenv(found)
+    return Path(found)
 
 
 def load_toml(tool: str, config_path: str | os.PathLike[str] | None = None) -> dict:

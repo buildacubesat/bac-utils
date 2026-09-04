@@ -24,7 +24,8 @@ A minimal BAC tool looks like this::
 from anywhere in the argument list, calls ``main``, and maps every
 :class:`~bac_common.errors.BacError` to a formatted stderr line and the
 right exit code. Tools built on Typer use :func:`run` the same way and call
-``app(args=argv)`` inside ``main``.
+:func:`run_typer` inside ``main`` so that Click's own exit paths (usage
+errors, ``--help``, Ctrl-C) go through the same boundary.
 """
 
 from __future__ import annotations
@@ -44,6 +45,7 @@ __all__ = [
     "add_standard_flags",
     "strip_debug",
     "run",
+    "run_typer",
     "help_text",
 ]
 
@@ -175,6 +177,36 @@ def run(main: MainFn, argv: Sequence[str] | None = None) -> NoReturn:
         ui.error(f"Unexpected error: {ui.esc(str(exc))}", "Re-run with --debug for the full traceback.")
         raise SystemExit(1) from None
     raise SystemExit(0 if code is None else int(code))
+
+
+def run_typer(app: Callable[..., object], argv: Sequence[str], tool: str) -> int:
+    """Run a Typer app inside :func:`run` and return its exit code.
+
+    Click in its default standalone mode exits the process itself: usage
+    errors with 2, ``Aborted!`` and 130 on Ctrl-C, which bypasses the
+    boundary. Here the app runs with ``standalone_mode=False`` so that
+    ``--help`` and ``typer.Exit`` become return codes, usage errors are
+    printed by Click and return 2, Ctrl-C (which Typer turns into exit code
+    130) becomes ``KeyboardInterrupt`` for :func:`run` to report, and every
+    :class:`BacError` propagates unchanged.
+    """
+    import typer  # bac-common does not depend on Typer; the calling tool does
+
+    try:
+        code = app(args=list(argv), prog_name=tool, standalone_mode=False)
+    except typer.Abort:
+        raise KeyboardInterrupt from None
+    except Exception as exc:
+        # Click's own exception family (Typer vendors Click, so it is matched
+        # by shape): it knows how to print itself and which code to exit with.
+        show, exit_code = getattr(exc, "show", None), getattr(exc, "exit_code", None)
+        if callable(show) and isinstance(exit_code, int):
+            show()
+            return exit_code
+        raise
+    if code == 130:
+        raise KeyboardInterrupt
+    return code if isinstance(code, int) else 0
 
 
 def help_text(parser: argparse.ArgumentParser, width: int = 80) -> str:
