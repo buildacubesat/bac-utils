@@ -32,7 +32,7 @@ ignore = ["B008"]
 "**/tests/*" = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["bac_common", "bac_suite_db"]
+known-first-party = ["bac_common", "bac_kicad_common", "bac_suite_db"]
 
 [tool.pytest.ini_options]
 testpaths = ["lib", "tools", "ops"]

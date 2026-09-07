@@ -1,0 +1,27 @@
+[project]
+name = "bac-kicad-common"
+version = "0.1.0"
+description = "Shared KiCad library logic for Build a CubeSat tools: TOML field rules, property splicing, library layout, backups."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "bac-common>=0.2",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bac_kicad_common"]
+
+[tool.uv.sources]
+bac-common = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
