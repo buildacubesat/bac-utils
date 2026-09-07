@@ -1,0 +1,47 @@
+(kicad_pcb
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(general
+		(thickness 1.6)
+		(legacy_teardrops no)
+	)
+	(paper "A4")
+	(layers
+		(0 "F.Cu" signal)
+		(31 "B.Cu" signal)
+	)
+	(footprint "bac:TI-TPSM5D1806RDBR"
+		(layer "F.Cu")
+		(uuid "7f000000-0000-4000-8000-000000000010")
+		(at 100 100)
+		(property "Reference" "U1"
+			(at 0 -5 0)
+			(layer "F.SilkS")
+			(uuid "7f000000-0000-4000-8000-000000000011")
+			(effects
+				(font
+					(size 0.8 0.8)
+					(thickness 0.1)
+				)
+			)
+		)
+	)
+	(footprint "bac:TI-TPSM5D1806RDBR"
+		(layer "F.Cu")
+		(uuid "7f000000-0000-4000-8000-000000000020")
+		(at 120 100)
+		(property "Reference" "U2"
+			(at 0 -5 0)
+			(layer "F.SilkS")
+			(uuid "7f000000-0000-4000-8000-000000000021")
+			(effects
+				(font
+					(size 0.8 0.8)
+					(thickness 0.1)
+				)
+			)
+		)
+	)
+	(embedded_fonts no)
+)

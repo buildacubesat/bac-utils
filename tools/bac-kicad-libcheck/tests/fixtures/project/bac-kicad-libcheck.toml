@@ -1,0 +1,20 @@
+# bac-kicad-libcheck.toml
+# Build a CubeSat – library project verification (test fixture)
+
+[project]
+schematic = "library.kicad_sch"
+board = "library.kicad_pcb"
+
+[[symbol_library]]
+nickname = "bac"
+path = "libs/bac.kicad_symdir"
+
+[[footprint_library]]
+nickname = "bac"
+path = "libs/bac.pretty"
+
+[model_paths]
+BAC_LIB_DIR = "."
+
+[kicad]
+cli = "kicad-cli"

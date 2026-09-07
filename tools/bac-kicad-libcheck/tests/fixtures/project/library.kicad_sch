@@ -1,0 +1,80 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "6e000000-0000-4000-8000-000000000001")
+	(paper "A4")
+	(lib_symbols)
+	(symbol
+		(lib_id "bac:bac R")
+		(at 101.6 50.8 0)
+		(unit 1)
+		(uuid "6e000000-0000-4000-8000-000000000010")
+		(property "Reference" "R1"
+			(at 104.14 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "R"
+			(at 104.14 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "library"
+				(path "/6e000000-0000-4000-8000-000000000001"
+					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "bac:bac R")
+		(at 127 50.8 0)
+		(unit 1)
+		(uuid "6e000000-0000-4000-8000-000000000020")
+		(property "Reference" "R2"
+			(at 129.54 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "library"
+				(path "/6e000000-0000-4000-8000-000000000001"
+					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "other:Widget")
+		(at 152.4 50.8 0)
+		(unit 1)
+		(uuid "6e000000-0000-4000-8000-000000000030")
+		(property "Reference" "U9"
+			(at 154.94 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

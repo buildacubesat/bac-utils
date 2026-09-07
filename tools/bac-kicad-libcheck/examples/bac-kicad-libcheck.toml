@@ -1,0 +1,31 @@
+# bac-kicad-libcheck.toml
+# Build a CubeSat – library project verification. Paths are relative to this
+# file. Nicknames must match the project's library tables: they are what
+# appears in every lib_id.
+
+[project]
+schematic = "LibraryProject.kicad_sch"
+board = "LibraryProject.kicad_pcb"
+
+[[symbol_library]]
+nickname = "bac"
+path = "libs/bac.kicad_symdir"
+
+[[footprint_library]]
+nickname = "bac"
+path = "libs/bac.pretty"
+
+# ${VAR} in (model …) paths resolves here first, then in the environment;
+# ${KIPRJMOD} is this directory.
+[model_paths]
+BAC_LIB_DIR = "."
+
+[kicad]
+cli = "kicad-cli"
+# The ERC/DRC violation types that mean "placed item differs from its library
+# copy". Check the note the run prints if these never appear in a report.
+erc_types = ["lib_symbol_mismatch", "lib_symbol_issues"]
+drc_types = ["lib_footprint_mismatch", "lib_footprint_issues"]
+
+[models]
+extensions = [".step", ".stp", ".wrl"]
