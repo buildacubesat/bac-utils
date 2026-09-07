@@ -1,0 +1,24 @@
+# Build a CubeSat – example field rules for bac-kicad-symfields.
+# Every symbol carries the sourcing fields, hidden, at the small property size.
+# Empty values are placeholders: the field exists so the symbol fields table
+# shows it, and a later rule or a person fills it.
+title = "Sourcing fields on every symbol"
+target = "symbol"
+
+[[field]]
+name = "Manufacturer"
+value = ""
+size = 0.762
+
+[[field]]
+name = "Manufacturer PN"
+value = ""
+size = 0.762
+
+[[field]]
+name = "BOM"
+value = ""
+
+[[field]]
+name = "DNP"
+value = ""

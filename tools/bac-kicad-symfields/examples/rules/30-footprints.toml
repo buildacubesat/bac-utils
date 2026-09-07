@@ -1,0 +1,16 @@
+# Build a CubeSat – example field rules for footprints.
+# Footprints have no usable reference prefix (every library footprint says
+# REF**), so scope them by library name or footprint name instead. New
+# footprint properties get a layer, a UUID and the footprint font.
+title = "Land pattern note on chip resistors"
+target = "footprint"
+
+[match]
+name_regex = ["^R-0[46]03"]
+
+[[field]]
+name = "Land Pattern"
+value = "IPC-7351 nominal"
+layer = "F.Fab"
+size = 0.8
+thickness = 0.1

@@ -1,0 +1,37 @@
+# Build a CubeSat – example field rules for passives (reference prefix R, C, L).
+# `when` narrows one entry to symbols whose Package matches; the first entry
+# that matches wins, so order them most specific first. The heights are
+# illustrative – replace them with your parts' values.
+title = "Passive components"
+target = "symbol"
+
+[match]
+reference_prefixes = ["R", "C", "L"]
+
+[[field]]
+name = "Package"
+value = ""
+size = 0.762
+hide = false
+
+[[field]]
+name = "Tolerance"
+value = ""
+size = 0.762
+
+[[field]]
+name = "Max Height"
+value = "0.55 mm"
+size = 0.762
+when = { Package = "^0603$" }
+
+[[field]]
+name = "Max Height"
+value = "0.4 mm"
+size = 0.762
+when = { Package = "^0402$" }
+
+[[field]]
+name = "Max Height"
+value = ""
+size = 0.762
