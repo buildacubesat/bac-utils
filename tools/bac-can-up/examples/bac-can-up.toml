@@ -1,0 +1,17 @@
+# bac-can-up.toml
+# Build a CubeSat – CANable SLCAN bring-up. Machine-specific, so it lives here
+# and not in the repository.
+
+[device]
+# The adapter's stable path under /dev/serial/by-id/. `bac-can-up --init`
+# lists what is plugged in.
+path = "/dev/serial/by-id/usb-Openlight_Labs_CANable2_XXXXXXX_github.com_normaldotcom_canable2.git_XXXXXXXXXXXX-if00"
+# SocketCAN interface name slcand creates.
+interface = "can0"
+
+[defaults]
+# Used when no BITRATE is given on the command line: 10k … 1M.
+bitrate = "500k"
+# Seconds to wait for the interface to disappear after stopping slcand and
+# to appear after starting it.
+wait_timeout = 5
