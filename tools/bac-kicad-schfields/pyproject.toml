@@ -1,0 +1,33 @@
+[project]
+name = "bac-kicad-schfields"
+version = "0.2.0"
+description = "Bulk-edit symbol fields and flags across a KiCad schematic hierarchy from TOML rules, editing files by span."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "bac-common>=0.2",
+    "bac-kicad-common>=0.1",
+    "rich>=13.7",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+bac-kicad-schfields = "bac_kicad_schfields.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bac_kicad_schfields"]
+
+[tool.uv.sources]
+bac-common = { workspace = true }
+bac-kicad-common = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"

@@ -1,0 +1,52 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "4c000000-0000-4000-8000-000000000001")
+	(paper "A4")
+	(lib_symbols)
+	(symbol
+		(lib_id "bac:C")
+		(at 76.2 63.5 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5d000000-0000-4000-8000-000000000010")
+		(property "Reference" "C1"
+			(at 78.74 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100n"
+			(at 78.74 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "board"
+				(path "/1f3c0a6e-0000-4000-8000-000000000001/3b000000-0000-4000-8000-000000000001"
+					(reference "C1")
+					(unit 1)
+				)
+				(path "/1f3c0a6e-0000-4000-8000-000000000001/3b000000-0000-4000-8000-000000000002"
+					(reference "C2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "2")
+		)
+	)
+	(embedded_fonts no)
+)
