@@ -8,13 +8,17 @@ The repository holds the generally usable state of each tool. Anything specific 
 
 | Tool | Domain | What it does | Status | Version |
 | :-- | :-- | :-- | :-- | :-- |
-| `bac-common` | library | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary | available | v0.1.1 |
+| `bac-common` | library | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary, span-preserving s-expression parser | available | v0.2.0 |
+| `bac-kicad-common` | library | Shared KiCad library tooling: TOML field rules, property rendering for KiCad 9 and 10, span edits, write-back with backup | available | v0.1.0 |
+| `bac-can-up` | bench | Brings up the CANable SLCAN interface: fresh `slcand`, bitrate, `can0` up | available | v1.2.0 |
 | `bac-convention-check` | repo | Lints a tree against the BAC guides (typography, naming, licensing, packaging, flags); runs in this repo's CI | available | v0.2.0 |
 | `bac-csr-ingest` | resources | Ingests documents and links into the CubeSat Resources site: extraction, LLM classification, review, upload, index, commit | available | v0.4.0 |
 | `bac-issue-print` | repo | Prints a Codeberg issue with all comments as Markdown | available | v0.1.0 |
 | `bac-kicad-generate-artifacts` | KiCad | Produces the release bundle for a KiCad project: render, pinout, schematic PDF, BOM, iBOM, Gerbers, drills, STEP, QR marker, ZIP | planned | – |
 | `bac-kicad-hlabels` | KiCad | Emits hierarchical-label blocks for a list of net names, ready to paste into a schematic | available | v0.1.0 |
-| `bac-kicad-symlint` | KiCad | Lints and fixes text sizes and footprint references in KiCad symbol and footprint libraries, preserving file formatting | planned | – |
+| `bac-kicad-libcheck` | KiCad | Verifies a library project: every symbol and footprint placed once, 3D models resolvable, in sync per KiCad's ERC/DRC | available | v0.2.0 |
+| `bac-kicad-schfields` | KiCad | Bulk-edits symbol fields and flags across a schematic hierarchy from TOML rules | available | v0.2.0 |
+| `bac-kicad-symfields` | KiCad | Fills fields, lints and fixes text sizes and footprint references in symbol and footprint libraries, preserving file formatting | available | v0.3.0 |
 | `bac-markdown-to-youtube` | content | Converts Markdown to YouTube description markup | available | v0.2.0 |
 | `bac-media-convert` | media | Batch conversions: square WebP for the shop, constant-frame-rate MP4 from variable-rate WebM | available | v0.1.0 |
 | `bac-reference-gallery` | design | Design-reference pages for the BAC guides plus a PNG/PDF renderer; home of the shared `tokens.css` | planned | – |
@@ -47,7 +51,7 @@ uv run ruff check .
 ## 3. Layout
 
 ```
-lib/       shared libraries (bac-common, bac-suite-db)
+lib/       shared libraries (bac-common, bac-kicad-common, bac-suite-db)
 tools/     one directory per CLI tool, installable with uv tool install
 ops/       business operations suite (Marimo notebooks + PostgreSQL)
 blender/   Blender extensions
@@ -69,6 +73,7 @@ Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool n
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.5.0 | 2026-09-07 | The KiCad library tools and the CAN bench tool: `bac-kicad-symfields` v0.3.0, `bac-kicad-schfields` v0.2.0 and `bac-kicad-libcheck` v0.2.0 folded in from the separate bac-kicad-tools repository (the four `bac-kicad-misc` lint scripts absorbed as `symfields lint` and `fix`), `bac-can-up` v1.2.0 ported from `canup.sh`. New `bac-kicad-common` v0.1.0; `bac-common` v0.2.0 adds `bac_common.sexp`. All batch-1 tools have now arrived. |
 | 0.4.0 | 2026-09-04 | Four small tools on the scaffold: `bac-markdown-to-youtube` v0.2.0 (rewritten conversion), `bac-issue-print` v0.1.0 (ported from shell, pagination, token), `bac-kicad-hlabels` v0.1.0 (flags, `--gap-on-blank`), `bac-media-convert` v0.1.0 (`webp-square`, `cfr`; the two shell loops retired). `bac-common` v0.1.1: `.env` is searched from the working directory, `run_typer` puts Typer tools inside the error boundary. |
 | 0.3.0 | 2026-09-02 | `bac-convention-check` v0.2.0 ported to Python with TOML rule sets; runs on the repository in CI. |
 | 0.2.0 | 2026-09-02 | `bac-csr-ingest` v0.4.0: first tool on `bac-common`; classifier trust boundary, upload guard, phase order. Root pytest runs in importlib mode so tools may share test module names. |

@@ -16,11 +16,16 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "bac-can-up",
     "bac-common",
     "bac-convention-check",
     "bac-csr-ingest",
     "bac-issue-print",
+    "bac-kicad-common",
     "bac-kicad-hlabels",
+    "bac-kicad-libcheck",
+    "bac-kicad-schfields",
+    "bac-kicad-symfields",
     "bac-markdown-to-youtube",
     "bac-media-convert",
 ]
@@ -115,8 +120,31 @@ wheels = [
 ]
 
 [[package]]
+name = "bac-can-up"
+version = "1.2.0"
+source = { editable = "tools/bac-can-up" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "rich" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "rich", specifier = ">=13.7" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
 name = "bac-common"
-version = "0.1.1"
+version = "0.2.0"
 source = { editable = "lib/bac-common" }
 dependencies = [
     { name = "python-dotenv" },
@@ -245,6 +273,25 @@ requires-dist = [
 dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
+name = "bac-kicad-common"
+version = "0.1.0"
+source = { editable = "lib/bac-kicad-common" }
+dependencies = [
+    { name = "bac-common" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "bac-common", editable = "lib/bac-common" }]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
 name = "bac-kicad-hlabels"
 version = "0.1.0"
 source = { editable = "tools/bac-kicad-hlabels" }
@@ -262,6 +309,83 @@ dev = [
 requires-dist = [
     { name = "bac-common", editable = "lib/bac-common" },
     { name = "rich", specifier = ">=13.7" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-kicad-libcheck"
+version = "0.2.0"
+source = { editable = "tools/bac-kicad-libcheck" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "bac-kicad-common" },
+    { name = "rich" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "bac-kicad-common", editable = "lib/bac-kicad-common" },
+    { name = "rich", specifier = ">=13.7" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-kicad-schfields"
+version = "0.2.0"
+source = { editable = "tools/bac-kicad-schfields" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "bac-kicad-common" },
+    { name = "rich" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "bac-kicad-common", editable = "lib/bac-kicad-common" },
+    { name = "rich", specifier = ">=13.7" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-kicad-symfields"
+version = "0.3.0"
+source = { editable = "tools/bac-kicad-symfields" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "bac-kicad-common" },
+    { name = "rich" },
+    { name = "typer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "bac-kicad-common", editable = "lib/bac-kicad-common" },
+    { name = "rich", specifier = ">=13.7" },
+    { name = "typer", specifier = ">=0.12" },
 ]
 
 [package.metadata.requires-dev]
