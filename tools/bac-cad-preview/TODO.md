@@ -4,7 +4,7 @@ Updated 2026-10-02 (v0.5.0). Completed items are kept in the "Done" section for 
 
 ## Verification
 
-- [ ] **Compare `--face zp` against a real `kicad-cli pcb render`.** The view is derived from KiCad's `camera.cpp` and the render job handler, not checked pixel for pixel. Render the deployment-switch STEP that `bac-kicad-generate-artifacts` exports (its step-6 fixture) and set it beside the WebP the artifacts tool makes from the same board; adjust the lighting constants in `raster.Lighting` if the two disagree.
+- [ ] **Lighting against `kicad-cli`.** Camera and framing are verified (see Done). KiCad's raytracer lights side faces darker and adds ambient occlusion; the Lambert constants in `raster.Lighting` were not tuned to it. Compare the ADCS placeholder renders side by side if the previews should look closer to the artifacts tool's.
 
 ## Correctness
 
@@ -21,6 +21,7 @@ Updated 2026-10-02 (v0.5.0). Completed items are kept in the "Done" section for 
 
 ## Done (0.5.0)
 
+- [x] `--face zp` compared against `kicad-cli pcb render` (2026-10-02): the ADCS placeholder board's STEP from `bac-kicad-generate-artifacts` 0.4.2 rendered with `--face zp` matches the tool's own `-render.webp` – silhouette IoU 0.996, identical 720 px bounding boxes and top-edge slopes. On the S-band antenna board the framing differs because kicad-cli frames the board outline while the preview frames the whole model (its ground-board part is larger than the PCB), and the board body is green in the STEP where KiCad shows the yellow mask – a property of the STEP export, not of the renderer.
 - [x] Port onto `bac-common` (`make_parser`, `run`, `ui`); drop the mirrored `ui.py`.
 - [x] Faces named with the project's axis letters (`xp` … `zm`); aliases kept.
 - [x] Refuse two inputs that would write the same preview before any work.

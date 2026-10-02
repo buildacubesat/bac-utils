@@ -64,7 +64,7 @@ The gizmo text uses Nunito or IBM Plex Sans when one of them is installed, other
 - STL, OBJ and PLY carry no unit; the tool assumes millimetres. 3MF declares its unit and is converted to millimetres.
 - Tessellation tolerance for STEP is derived from the model size (`--deflection` overrides it). Very large assemblies take a while; a part used many times in an assembly is tessellated once.
 - Memory grows with triangle count: about 1.2 GB peak for 1.3 million triangles.
-- The `--face zp` view is derived from KiCad's camera source, not yet compared pixel for pixel against a `kicad-cli` render of the same board (see `TODO.md`).
+- The `--face zp` view was checked against `kicad-cli pcb render` on 2026-10-02: on the ADCS placeholder board the two 720 px silhouettes agree to an IoU of 0.996 with identical bounding boxes and edge slopes, so camera and framing match. Lighting is not KiCad's, and a board's solder-mask colour is not in the STEP export, so a KiCad board body renders in the exporter's green rather than the mask colour.
 
 ## 8. Development
 
