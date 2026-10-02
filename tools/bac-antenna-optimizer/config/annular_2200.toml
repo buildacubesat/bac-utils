@@ -1,0 +1,107 @@
+# Annular ring baseline around a 10 mm camera bore (compare against the cross patch) – SatNOGS COMMS S-band downlink.
+# 2200–2290 MHz and 2025–2110 MHz are space research / space operation allocations,
+# not amateur-satellite. See cross_2400.toml for the 2400–2450 MHz band.
+
+[antenna]
+type = "annular_ring"
+
+[project]
+name = "BAC annular ring baseline – 2200–2290 MHz Tx"
+
+[[band]]
+name = "tx"
+low_hz = 2.200e9
+high_hz = 2.290e9
+weight = 1.0
+max_s11_db = -10.0
+min_gain_dbic = 6.0
+max_ar_db = 3.0
+cp_span_hz = 90e6          # set to the planned channel width if AR only has to hold there
+
+[[band]]
+name = "rx"
+low_hz = 2.025e9
+high_hz = 2.110e9
+weight = 0.1               # nice to have: strong ground station, polarization not scored
+max_s11_db = -3.0
+min_gain_dbic = -6.0
+max_ar_db = 40.0
+
+[[band]]
+name = "s2400"
+low_hz = 2.400e9
+high_hz = 2.450e9
+weight = 0.0               # reported only
+
+[polarization]
+hand = "rhcp"
+openems_rhcp_sense = 1     # calibrated, see cross_2200.toml
+
+[geometry.stack]
+max_height_mm = 6.0        # ground board bottom to patch copper
+ground_board_mm = 1.0
+ground_board_epsilon_r = 4.3
+ground_board_loss_tangent = 0.02
+gap_mm = 4.4
+gap_epsilon_r = 1.0        # air; ~1.07 for Rohacell-class foam
+gap_loss_tangent = 0.0
+top_board_mm = 0.508       # RO4003C-class; patch on top, feed pad underneath
+top_board_epsilon_r = 3.55
+top_board_loss_tangent = 0.0027
+
+[geometry.outline]
+arm_length_mm = 80.0       # cross: 80 x 40 twice
+arm_width_mm = 40.0
+edge_clearance_mm = 1.5
+bore_diameter_mm = 10.0
+bore_wall_mm = 0.5
+bore_short = true          # tube joins patch and ground at the centre
+patch_to_bore_clearance_mm = 1.0   # used when bore_short = false
+sleeve_length_mm = 8.0
+
+[geometry.feed]
+mode = "single"            # single (diagonal probe) | dual (two probes + ideal 90 deg hybrid, cavity only)
+impedance_ohm = 50.0
+probe_diameter_mm = 1.0
+min_offset_mm = 9.5        # SMP body clear of the camera sleeve
+pad_clearance_mm = 0.5
+
+[search]
+outer_radius_mm = [14.0, 26.8]     # largest circle inside the cross, less edge clearance
+feed_offset_mm = [9.5, 24.0]
+perturbation_mm = [0.0, 8.0]
+pad_radius_mm = [0.8, 4.5]
+
+[optimizer]
+runs = 60
+seed = 42
+elite_fraction = 0.20
+restart_probability = 0.10
+sigma_start = 0.18
+sigma_end = 0.02
+keep_top = 8
+
+[weights]
+frequency = 2.0
+match = 3.0
+gain = 1.5
+axial_ratio = 2.0
+efficiency = 1.0
+min_efficiency_percent = 75
+
+[geometry.cavity]
+grid_mm = 0.5
+modes = 12
+
+[mesh]
+cells_per_wavelength = 22
+substrate_cells = 3
+gap_cells = 8
+mesh_growth = 1.35
+air_margin_mm = 50.0
+boundary = "MUR"
+timesteps = 400000         # upper bound; end_criteria normally stops the run
+end_criteria = 1.0e-4
+frequency_points = 401
+excitation_low_hz = 1.6e9
+excitation_high_hz = 2.9e9

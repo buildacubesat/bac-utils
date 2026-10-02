@@ -1,0 +1,64 @@
+# Deployable UHF turnstile on the +Z face of a 3U body, elements in the face plane.
+# Four ports, driven 0/-90/-180/-270 deg by the turnstile feed network. No cavity model: use --backend coarse first.
+#   uv run bac-antenna simulate -c config/turnstile_435.toml -p designs/turnstile_435.json --backend coarse --output runs/turnstile
+
+[antenna]
+type = "turnstile"
+
+[geometry]
+body_x_mm = 100.0
+body_y_mm = 100.0
+body_z_mm = 340.0
+tape_width_mm = 3.0
+tape_thickness_mm = 0.1
+element_height_mm = 3.0
+root_inset_mm = 5.0
+impedance_ohm = 50.0
+
+[[band]]
+name = "uhf"
+low_hz = 4.35e8
+high_hz = 4.38e8
+weight = 1.0
+max_s11_db = -10.0
+min_gain_dbic = 0.0
+max_ar_db = 3.0
+
+[polarization]
+hand = "rhcp"
+
+[feed_network]
+mode = "turnstile"
+phase_error_deg = 0.0
+amplitude_error_db = 0.0
+
+[search]
+element_length_mm = [140.0, 200.0]
+
+[optimizer]
+runs = 20
+seed = 1
+elite_fraction = 0.20
+restart_probability = 0.10
+sigma_start = 0.25
+sigma_end = 0.03
+keep_top = 5
+
+[mesh]
+excitation_low_hz = 3.0e8
+excitation_high_hz = 6.0e8
+frequency_points = 301
+cells_per_wavelength = 20
+air_margin_mm = 250.0
+boundary = "MUR"
+timesteps = 300000
+end_criteria = 1e-4
+mesh_growth = 1.4
+
+[weights]
+frequency = 2.0
+match = 3.0
+gain = 1.5
+axial_ratio = 2.0
+efficiency = 1.0
+min_efficiency_percent = 50

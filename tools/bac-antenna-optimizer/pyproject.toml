@@ -1,0 +1,27 @@
+[project]
+name = "bac-antenna-optimizer"
+version = "0.7.3"
+description = "Cavity-model and openEMS optimiser for a camera-through S-band patch antenna"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Build a CubeSat" }]
+dependencies = ["numpy>=1.26", "scipy>=1.11"]
+
+[project.optional-dependencies]
+simulation = ["h5py>=3.10"]  # plus openEMS/CSXCAD bindings from the system install
+report = ["matplotlib>=3.8", "h5py>=3.10", "cairosvg>=2.7", "pillow>=10.0"]  # bac-antenna report / charts / drawings / webp
+
+[project.scripts]
+bac-antenna = "bac_antenna.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

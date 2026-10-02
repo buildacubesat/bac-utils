@@ -1,0 +1,57 @@
+# Half-wave strip dipole at 435 MHz – the smallest example: run it to check an openEMS install
+# (expect ~2.1 dBi and a resonance a little below half a wavelength), and copy it to start your own antenna type.
+#   uv run bac-antenna simulate -c config/dipole_435.toml -p designs/dipole_435.json --backend coarse --output runs/dipole
+
+[antenna]
+type = "dipole"
+
+[geometry]
+strip_width_mm = 3.0
+gap_mm = 2.0
+impedance_ohm = 73.0
+
+[[band]]
+name = "uhf"
+low_hz = 4.30e8
+high_hz = 4.40e8
+weight = 1.0
+max_s11_db = -10.0
+min_gain_dbic = 0.0        # linear antenna: the CP metrics still run, the "co" hand is whichever is larger
+max_ar_db = 99.0
+
+[polarization]
+hand = "rhcp"
+
+[feed_network]
+mode = "single"
+
+[search]
+length_mm = [280.0, 360.0]
+
+[optimizer]
+runs = 20
+seed = 1
+elite_fraction = 0.20
+restart_probability = 0.10
+sigma_start = 0.25
+sigma_end = 0.03
+keep_top = 5
+
+[mesh]
+excitation_low_hz = 3.0e8
+excitation_high_hz = 6.0e8
+frequency_points = 301
+cells_per_wavelength = 20
+air_margin_mm = 250.0
+boundary = "MUR"
+timesteps = 200000
+end_criteria = 1e-4
+mesh_growth = 1.4
+
+[weights]
+frequency = 2.0
+match = 3.0
+gain = 1.5
+axial_ratio = 2.0
+efficiency = 1.0
+min_efficiency_percent = 50

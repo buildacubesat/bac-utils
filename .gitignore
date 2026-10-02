@@ -1,10 +1,10 @@
-# Secrets and machine-specific configuration – never commit these.
+# Secrets and machine-specific configuration – never commit these
 .env
 .env.*
 !.env.example
 *.toml.local
 
-# Python
+# Python / uv / notebooks
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -14,6 +14,13 @@ build/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.marimo/
+__marimo__/
+.ipynb_checkpoints/
+# Workspace members have no lock of their own; the root uv.lock is the one that counts
+tools/*/uv.lock
+notebooks/*/uv.lock
+ops/*/uv.lock
 
 # Tool outputs that are always regenerable
 exports/
@@ -21,8 +28,34 @@ out/
 *.fixed
 *.bak
 
+# Simulation runs – multi-GB field data; the antenna folders in bac-hardware keep the small result files
+tools/*/runs/
+tools/bac-antenna-optimizer/**/*.log
+sim/runs/**/simulation_port*/
+sim/runs/**/*.h5
+sim/runs/**/*.vtr
+sim/runs/**/*.vtu
+sim/runs/**/*.xml
+sim/runs/**/error.txt
+sim/runs/**/*.log
+
+# Antenna visualizer – local sensitivity packs are attached to the antenna's release, not tracked here
+tools/bac-antenna-visualizer/packs/
+notebooks/bac-antenna-visualizer/packs/
+
+# KiCad
+*-backups/
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*.kicad_prl
+_autosave-*
+fp-info-cache
+~*.lck
+*.lck
+
 # Editors and OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+*~

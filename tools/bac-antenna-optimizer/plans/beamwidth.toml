@@ -1,0 +1,71 @@
+# Beam-width comparison: what a dielectric-loaded gap buys at 45–60 deg off boresight and what it
+# costs at boresight and in bandwidth. Same v2 outline, stack height and ground board; only the gap
+# material and the patch tuned to it change. Run with:  scripts/run_beamwidth.sh
+# 12 cases (~150–300 s each; the loaded patches have higher Q, so the runs take longer to decay).
+#
+# Why: the air-gap patch has its radiating slots ~0.56 lambda apart, which puts an E-plane null
+# near 63 deg and leaves -5 dBic at 60 deg (HANDOFF §4i). Loading the gap shrinks the patch and
+# widens the beam. Compare tx_gain_60 / tx_gain_45 / tx_gain (boresight) / hybrid_load_fraction
+# against `frozen` in runs/freeze.
+#
+# Designs come from the cavity model (extension_scale 1.5, a guess between the air-gap fit of 2.05
+# and Hammerstad's 1.0; those two bound the resonance at 2.08–2.28 GHz for PTFE and 2.17–2.46 GHz
+# for PEEK), so each variant has an arm-length bracket of -8/-4/0/+4 % to interpolate the resonance
+# from, and two feed offsets to bracket the match. Read the pattern numbers from the
+# nominal case; read gain-in-band and load fraction from whichever bracket case is centred.
+#
+# Materials: PTFE er 2.1, tan d 0.0004; PEEK er 3.2, tan d 0.003 (generic values – confirm on the
+# supplier's datasheet). A full 80 mm slab at 4.67 mm is ~66 g PTFE or ~39 g PEEK. The slab
+# replaces the spacers and the venting problem of the air gap.
+
+# --- A. PTFE-filled gap: cross 46.8 x 37 mm ----------------------------------------------------
+[[case]]
+name = "ptfe"
+set = ["geometry.stack.gap_epsilon_r=2.1", "geometry.stack.gap_loss_tangent=0.0004"]
+params = { arm_x_mm = 46.8, arm_y_mm = 46.8, arm_width_mm = 37.0, feed_offset_mm = 15.0, pad_radius_mm = 3.5 }
+[[case]]
+name = "ptfe_arms_-8pct"
+set = ["geometry.stack.gap_epsilon_r=2.1", "geometry.stack.gap_loss_tangent=0.0004"]
+params = { arm_x_mm = 43.1, arm_y_mm = 43.1, arm_width_mm = 37.0, feed_offset_mm = 15.0, pad_radius_mm = 3.5 }
+[[case]]
+name = "ptfe_arms_-4pct"
+set = ["geometry.stack.gap_epsilon_r=2.1", "geometry.stack.gap_loss_tangent=0.0004"]
+params = { arm_x_mm = 44.9, arm_y_mm = 44.9, arm_width_mm = 37.0, feed_offset_mm = 15.0, pad_radius_mm = 3.5 }
+[[case]]
+name = "ptfe_arms_+4pct"
+set = ["geometry.stack.gap_epsilon_r=2.1", "geometry.stack.gap_loss_tangent=0.0004"]
+params = { arm_x_mm = 48.7, arm_y_mm = 48.7, arm_width_mm = 37.0, feed_offset_mm = 15.0, pad_radius_mm = 3.5 }
+[[case]]
+name = "ptfe_feed_12.5"
+set = ["geometry.stack.gap_epsilon_r=2.1", "geometry.stack.gap_loss_tangent=0.0004"]
+params = { arm_x_mm = 46.8, arm_y_mm = 46.8, arm_width_mm = 37.0, feed_offset_mm = 12.5, pad_radius_mm = 3.5 }
+[[case]]
+name = "ptfe_feed_17.5"
+set = ["geometry.stack.gap_epsilon_r=2.1", "geometry.stack.gap_loss_tangent=0.0004"]
+params = { arm_x_mm = 46.8, arm_y_mm = 46.8, arm_width_mm = 37.0, feed_offset_mm = 17.5, pad_radius_mm = 3.5 }
+
+# --- B. PEEK-filled gap: the cross collapses to a 36.8 mm square around the bore ------------------
+[[case]]
+name = "peek"
+set = ["geometry.stack.gap_epsilon_r=3.2", "geometry.stack.gap_loss_tangent=0.003"]
+params = { arm_x_mm = 36.8, arm_y_mm = 36.8, arm_width_mm = 36.8, feed_offset_mm = 10.0, pad_radius_mm = 3.0 }
+[[case]]
+name = "peek_arms_-8pct"
+set = ["geometry.stack.gap_epsilon_r=3.2", "geometry.stack.gap_loss_tangent=0.003"]
+params = { arm_x_mm = 33.9, arm_y_mm = 33.9, arm_width_mm = 33.9, feed_offset_mm = 10.0, pad_radius_mm = 3.0 }
+[[case]]
+name = "peek_arms_-4pct"
+set = ["geometry.stack.gap_epsilon_r=3.2", "geometry.stack.gap_loss_tangent=0.003"]
+params = { arm_x_mm = 35.3, arm_y_mm = 35.3, arm_width_mm = 35.3, feed_offset_mm = 10.0, pad_radius_mm = 3.0 }
+[[case]]
+name = "peek_arms_+4pct"
+set = ["geometry.stack.gap_epsilon_r=3.2", "geometry.stack.gap_loss_tangent=0.003"]
+params = { arm_x_mm = 38.3, arm_y_mm = 38.3, arm_width_mm = 38.3, feed_offset_mm = 10.0, pad_radius_mm = 3.0 }
+[[case]]
+name = "peek_feed_12.0"
+set = ["geometry.stack.gap_epsilon_r=3.2", "geometry.stack.gap_loss_tangent=0.003"]
+params = { arm_x_mm = 36.8, arm_y_mm = 36.8, arm_width_mm = 36.8, feed_offset_mm = 12.0, pad_radius_mm = 3.0 }
+[[case]]
+name = "peek_feed_14.0"
+set = ["geometry.stack.gap_epsilon_r=3.2", "geometry.stack.gap_loss_tangent=0.003"]
+params = { arm_x_mm = 36.8, arm_y_mm = 36.8, arm_width_mm = 36.8, feed_offset_mm = 14.0, pad_radius_mm = 3.0 }

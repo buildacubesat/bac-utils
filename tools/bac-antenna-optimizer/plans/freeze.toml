@@ -1,0 +1,50 @@
+# Freeze plan for the v2 design (config/cross_2200_dual_v2.toml + designs/cross_2200_dual_v2.json).
+# Run with:  scripts/run_freeze.sh   (or)
+#   uv run bac-antenna sweep -c config/cross_2200_dual_v2.toml -p designs/cross_2200_dual_v2.json \
+#     --plan plans/freeze.toml --output runs/freeze
+# ~150 s per case. Every case also writes farfield_cuts.csv (gain and AR over angle, front-to-back)
+# and the summary gets tx_gain_60 / tx_ar_60 / fb_db / back_fraction / probe_res_hz columns.
+#
+# Read the result like this:
+#   probe_res_hz  – where each probe's own S11 minimum sits. This, not resonance_hz (the hybrid-input
+#                   minimum, which is dominated by coupling), sets the load fraction over the band.
+#                   Target: band centre, 2.245 GHz. At 13.97/12.5 on the v1 stack it was 2.273/2.263 GHz,
+#                   so the Tx low edge carried 22–25 % into the load; the -20 MHz from square boards and
+#                   flight stack should land it on centre. If it is more than ~10 MHz off, interpolate
+#                   the arm length from the arms_-0.5 / arms_+0.5 cases (~24 MHz/mm) and run once more.
+#   tx_gain_60    – worst-plane RHCP realized gain at 60 deg off boresight (a 20 deg elevation pass from
+#                   500 km); the number the low-elevation link budget uses.
+#   fb_db         – front-to-back; back_fraction is the share of radiated power in the rear hemisphere.
+
+# --- 0. the frozen design as-is ------------------------------------------------------------
+[[case]]
+name = "frozen"
+
+# --- 1. gap +/-0.3 mm at the new feed offset: the only tolerance that moves the match ----------
+[[case]]
+name = "gap_4.37"
+set = ["geometry.stack.gap_mm=4.37"]
+[[case]]
+name = "gap_4.97"
+set = ["geometry.stack.gap_mm=4.97", "geometry.stack.max_height_mm=7.0"]
+
+# --- 2. FR4 prototype (PCBWay: 0.6 mm top, 1.0 mm ground, 4.4 mm gap) on the frozen geometry -----
+#        The correlation reference for the bench measurement; carry its residual to `frozen`.
+[[case]]
+name = "proto_fr4"
+set = ["geometry.stack.top_board_mm=0.6", "geometry.stack.top_board_epsilon_r=4.3", "geometry.stack.top_board_loss_tangent=0.02",
+       "geometry.stack.ground_board_mm=1.0", "geometry.stack.ground_board_epsilon_r=4.3", "geometry.stack.ground_board_loss_tangent=0.02",
+       "geometry.stack.gap_mm=4.4"]
+
+# --- 3. metal screws instead of PEEK standoffs ----------------------------------------------------
+[[case]]
+name = "metal_posts"
+set = ['geometry.outline.post_material="metal"']
+
+# --- 4. arm-length bracket, only needed if `frozen` lands off centre (see header) ------------------
+[[case]]
+name = "arms_-0.5"
+params = { arm_x_mm = 60.2, arm_y_mm = 60.2 }
+[[case]]
+name = "arms_+0.5"
+params = { arm_x_mm = 61.2, arm_y_mm = 61.2 }

@@ -1,0 +1,21 @@
+# 2400–2450 MHz variant of the frozen design (HANDOFF §4l). Cavity model: ~54 mm arms for 2.425 GHz on the v2
+# stack; feed scaled to 11.6 mm. Set pad_radius_mm in designs/cross_2400_dual_v2.json to the through-pin result
+# first. Run:
+#   uv run bac-antenna sweep -c config/cross_2400_dual_v2.toml -p designs/cross_2400_dual_v2.json \
+#     --plan plans/s2400.toml --output runs/s2400          (~150 s per case)
+# Read probe_res_hz (target 2.425 GHz) and hybrid_load_fraction; interpolate the arm length (~27 MHz/mm) and
+# pick the feed from the bracket.
+[[case]]
+name = "s2400"
+[[case]]
+name = "s2400_arms_-0.5"
+params = { arm_x_mm = 53.6, arm_y_mm = 53.6 }
+[[case]]
+name = "s2400_arms_+0.5"
+params = { arm_x_mm = 54.6, arm_y_mm = 54.6 }
+[[case]]
+name = "s2400_feed_11.0"
+params = { feed_offset_mm = 11.0 }
+[[case]]
+name = "s2400_feed_12.5"
+params = { feed_offset_mm = 12.5 }

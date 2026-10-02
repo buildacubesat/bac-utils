@@ -1,0 +1,96 @@
+# Robustness plan for the dual-feed cross, designs/cross_2200_dual_v1.json.
+# Run with:  uv run bac-antenna sweep -c config/cross_2200_dual.toml \
+#              -p designs/cross_2200_dual_v1.json --plan plans/robustness.toml --output runs/robustness
+# ~2 x 200 s per case on the reference machine. Cases are ordered by decision value; the
+# sweep is resumable, so stopping early keeps everything finished so far.
+
+# --- 0. baseline and numerical trust ------------------------------------------------------
+[[case]]
+name = "nominal"
+[[case]]
+name = "mesh_fine"                 # convergence check: must reproduce nominal within ~1 %
+set = ["mesh.cells_per_wavelength=30", "mesh.refine_cell_mm=0.15", "mesh.gap_cells=12", "mesh.substrate_cells=4"]
+
+# --- 1. gap height: the most sensitive dimension (spacers, board bow) ----------------------
+[[case]]
+name = "gap_4.1"
+set = ["geometry.stack.gap_mm=4.1"]
+[[case]]
+name = "gap_4.7"
+set = ["geometry.stack.gap_mm=4.7", "geometry.stack.max_height_mm=7.0"]   # what-if beyond the 6 mm limit
+[[case]]
+name = "gap_3.9"
+set = ["geometry.stack.gap_mm=3.9"]
+[[case]]
+name = "gap_4.9"
+set = ["geometry.stack.gap_mm=4.9", "geometry.stack.max_height_mm=7.0"]
+
+# --- 2. feed offset: find the 50 ohm point, cut the hybrid load dissipation ----------------
+[[case]]
+name = "feed_12.5"
+params = { feed_offset_mm = 12.5 }
+[[case]]
+name = "feed_15.5"
+params = { feed_offset_mm = 15.5 }
+[[case]]
+name = "feed_17.0"
+params = { feed_offset_mm = 17.0 }
+
+# --- 3. etching / arm length -------------------------------------------------------------
+[[case]]
+name = "arms_+0.2"
+params = { arm_x_mm = 60.9, arm_y_mm = 60.9 }
+[[case]]
+name = "arms_-0.2"
+params = { arm_x_mm = 60.5, arm_y_mm = 60.5 }
+[[case]]
+name = "arms_diff_0.4"             # asymmetric etch error: x +0.2, y -0.2 -> AR sensitivity
+params = { arm_x_mm = 60.9, arm_y_mm = 60.5 }
+
+# --- 4. pad coupling: stands in for top-board permittivity and thickness tolerance ---------
+[[case]]
+name = "pad_2.26"
+params = { pad_radius_mm = 2.26 }
+[[case]]
+name = "pad_2.76"
+params = { pad_radius_mm = 2.76 }
+
+# --- 5. what the spacecraft does to it -------------------------------------------------------
+[[case]]
+name = "boards_square"             # chamfered 80 mm square boards, full ground, PEEK posts at the real hole pattern
+set = ['geometry.outline.boards="square"', 'geometry.outline.ground="square"']
+[[case]]
+name = "boards_square_metal_posts" # same with M3 metal screws through both boards (8 mm from the patch tip corners)
+set = ['geometry.outline.boards="square"', 'geometry.outline.ground="square"', 'geometry.outline.post_material="metal"']
+[[case]]
+name = "boards_square_no_posts"
+set = ['geometry.outline.boards="square"', 'geometry.outline.ground="square"', 'geometry.outline.posts=[]']
+[[case]]
+name = "ground_panel_94"           # stack mounted on a 94 mm conducting face
+set = ['geometry.outline.ground="panel"', "geometry.outline.panel_mm=94.0"]
+[[case]]
+name = "bore_open"                 # tube not bonded to the patch (assembly risk)
+set = ["geometry.outline.bore_short=false"]
+[[case]]
+name = "sleeve_4"
+set = ["geometry.outline.sleeve_length_mm=4.0"]
+
+# --- 6. prototype stack: FR4 from PCBWay (0.6 mm top, 1.0 mm ground) -----------------------
+[[case]]
+name = "proto_fr4"
+set = ["geometry.stack.top_board_mm=0.6", "geometry.stack.top_board_epsilon_r=4.3", "geometry.stack.top_board_loss_tangent=0.02",
+       "geometry.stack.ground_board_mm=1.0", "geometry.stack.gap_mm=4.4"]
+[[case]]
+name = "proto_fr4_er4.0"
+set = ["geometry.stack.top_board_mm=0.6", "geometry.stack.top_board_epsilon_r=4.0", "geometry.stack.top_board_loss_tangent=0.02",
+       "geometry.stack.ground_board_mm=1.0", "geometry.stack.gap_mm=4.4"]
+[[case]]
+name = "proto_fr4_er4.6"
+set = ["geometry.stack.top_board_mm=0.6", "geometry.stack.top_board_epsilon_r=4.6", "geometry.stack.top_board_loss_tangent=0.02",
+       "geometry.stack.ground_board_mm=1.0", "geometry.stack.gap_mm=4.4"]
+
+# --- 7. flight stack as specified (RO4003C 0.813 mm ground board, 4.67 mm gap) -------------
+[[case]]
+name = "flight_stack"
+set = ["geometry.stack.top_board_epsilon_r=3.55", "geometry.stack.top_board_loss_tangent=0.0021",
+       "geometry.stack.ground_board_mm=0.813", "geometry.stack.gap_mm=4.67"]

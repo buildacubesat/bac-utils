@@ -1,0 +1,104 @@
+# Cross patch around a 10 mm camera bore – 2400–2450 MHz amateur-satellite band
+# (SatNOGS COMMS Rx/Tx). The 2200 MHz bands are reported for comparison only.
+
+[antenna]
+type = "cross_patch"
+
+[project]
+name = "BAC cross patch – 2400–2450 MHz amateur-satellite"
+
+[[band]]
+name = "tx"
+low_hz = 2.200e9
+high_hz = 2.290e9
+weight = 0.0               # reported only
+
+[[band]]
+name = "rx"
+low_hz = 2.025e9
+high_hz = 2.110e9
+weight = 0.0               # reported only
+
+[[band]]
+name = "s2400"
+low_hz = 2.400e9
+high_hz = 2.450e9
+weight = 1.0
+max_s11_db = -10.0
+min_gain_dbic = 6.0
+max_ar_db = 3.0
+cp_span_hz = 50e6
+
+[polarization]
+hand = "rhcp"
+openems_rhcp_sense = 1     # calibrated, see cross_2200.toml
+
+[geometry.stack]
+max_height_mm = 6.0        # ground board bottom to patch copper
+ground_board_mm = 1.0
+ground_board_epsilon_r = 4.3
+ground_board_loss_tangent = 0.02
+gap_mm = 4.4
+gap_epsilon_r = 1.0        # air; ~1.07 for Rohacell-class foam
+gap_loss_tangent = 0.0
+top_board_mm = 0.508       # RO4003C-class; patch on top, feed pad underneath
+top_board_epsilon_r = 3.55
+top_board_loss_tangent = 0.0027
+
+[geometry.outline]
+arm_length_mm = 80.0       # cross: 80 x 40 twice
+arm_width_mm = 40.0
+edge_clearance_mm = 1.5
+bore_diameter_mm = 10.0
+bore_wall_mm = 0.5
+bore_short = true          # tube joins patch and ground at the centre
+patch_to_bore_clearance_mm = 1.0   # used when bore_short = false
+sleeve_length_mm = 8.0
+
+[geometry.feed]
+mode = "single"            # single (diagonal probe) | dual (two probes + ideal 90 deg hybrid, cavity only)
+impedance_ohm = 50.0
+probe_diameter_mm = 1.0
+min_offset_mm = 9.5        # SMP body clear of the camera sleeve
+pad_clearance_mm = 0.5
+
+[search]
+arm_x_mm = [44.0, 77.0]
+arm_y_mm = [44.0, 77.0]
+arm_width_mm = [16.0, 37.0]
+feed_offset_mm = [9.5, 26.0]
+pad_radius_mm = [0.8, 4.5]
+
+[optimizer]
+runs = 60
+seed = 42
+elite_fraction = 0.20
+restart_probability = 0.10
+sigma_start = 0.18
+sigma_end = 0.02
+keep_top = 8
+
+[weights]
+frequency = 2.0
+match = 3.0
+gain = 1.5
+axial_ratio = 2.0
+efficiency = 1.0
+min_efficiency_percent = 75
+
+[geometry.cavity]
+grid_mm = 0.5
+modes = 12
+
+[mesh]
+cells_per_wavelength = 22
+substrate_cells = 3
+gap_cells = 8
+mesh_growth = 1.35
+air_margin_mm = 50.0
+boundary = "MUR"
+timesteps = 400000
+end_criteria = 1.0e-5          # 1e-4 under-converges: ~1 point of efficiency low and run-to-run spread 0.5 points (HANDOFF §6.1)
+frequency_points = 401
+excitation_low_hz = 1.7e9
+excitation_high_hz = 3.0e9

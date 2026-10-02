@@ -1,0 +1,148 @@
+# Cross patch around a 10 mm camera bore, dual feed – FROZEN geometry candidate (v2, 2026-09-22).
+# Differences from cross_2200_dual.toml, each backed by a case in runs/robustness (HANDOFF §4g):
+#   feed offset 13.97 -> 12.5 mm      (designs/cross_2200_dual_v2.json; load fraction 14 % -> 6.5 %)
+#   boards/ground cross -> chamfered square with PEEK posts at the mounting holes (boards_square)
+#   stack -> flight stack: RO4003C 0.813 mm ground board, 4.67 mm gap, 0.508 mm top (flight_stack)
+# Once plans/freeze.toml confirms it, this file and the v2 design are the v0.4.0 reference.
+# 2200–2290 MHz and 2025–2110 MHz are space research / space operation allocations,
+# not amateur-satellite. See cross_2400.toml for the 2400–2450 MHz band.
+
+[antenna]
+type = "cross_patch"
+
+[project]
+name = "BAC cross patch, dual feed + 90 deg hybrid – 2200–2290 MHz Tx – frozen v2"
+
+[[band]]
+name = "tx"
+low_hz = 2.200e9
+high_hz = 2.290e9
+weight = 1.0
+max_s11_db = -10.0
+min_gain_dbic = 6.0
+max_ar_db = 3.0
+cp_span_hz = 90e6          # set to the planned channel width if AR only has to hold there
+
+[[band]]
+name = "rx"
+low_hz = 2.025e9
+high_hz = 2.110e9
+weight = 0.1               # nice to have: strong ground station, polarization not scored
+max_s11_db = -3.0
+min_gain_dbic = -6.0
+max_ar_db = 40.0
+
+[[band]]
+name = "s2400"
+low_hz = 2.400e9
+high_hz = 2.450e9
+weight = 0.0               # reported only
+
+[polarization]
+hand = "rhcp"
+# Calibrated 2026-09-22 against the upstream Helical_Antenna.py tutorial (a geometrically
+# right-handed helix radiating along +z): rf.rotation_sense = +1, openEMS E_cprh dominant by
+# 24 dB. +z is the space-facing side of the patch, so +1 applies. 0 = report unverified.
+openems_rhcp_sense = 1
+
+[geometry.stack]
+max_height_mm = 6.0        # ground board bottom to patch copper; 0.813 + 4.67 + 0.508 = 5.991
+ground_board_mm = 0.813    # RO4003C (Rogers RO4000 datasheet p. 3: design Dk 3.55, Df 0.0021 at 2.5 GHz)
+ground_board_epsilon_r = 3.55
+ground_board_loss_tangent = 0.0021
+gap_mm = 4.67
+gap_epsilon_r = 1.0        # air; ~1.07 for Rohacell-class foam
+gap_loss_tangent = 0.0
+top_board_mm = 0.508       # RO4003C; patch on top, feed pad underneath
+top_board_epsilon_r = 3.55
+top_board_loss_tangent = 0.0021
+
+[geometry.outline]
+arm_length_mm = 80.0       # cross: 80 x 40 twice
+arm_width_mm = 40.0
+edge_clearance_mm = 1.5
+bore_diameter_mm = 10.0
+bore_wall_mm = 0.5
+bore_short = true          # tube joins patch and ground at the centre
+patch_to_bore_clearance_mm = 1.0   # used when bore_short = false
+sleeve_length_mm = 8.0
+boards = "square"          # dielectric outline of both boards: cross | square (chamfered, fills the mounting area)
+ground = "square"          # ground copper: cross | square (= board outline) | panel (conducting face, no chamfer)
+panel_mm = 80.0            # square / panel size
+panel_chamfer_mm = 12.0    # corner chamfer legs for boards/ground = "square" (80 mm square, 96 mm across the chamfers)
+# mounting standoffs between the boards (x, y in mm, frame: x right, y up seen from the antenna side; KiCad y is
+# the negative of this); [] = none. 90 deg rotationally symmetric; each hole sits 20 deg clockwise of a cable
+# egress point (56, -34, -124, 146 deg). Corrected 2026-09-23: the earlier list was mirrored across the diagonal.
+posts = [[35.0, 25.0], [-25.0, 35.0], [-35.0, -25.0], [25.0, -35.0]]
+post_diameter_mm = 3.0
+post_material = "peek"     # peek (er 3.2, between the copper layers) | metal (screw through both boards)
+
+[geometry.feed]
+mode = "dual"              # two probes on the x and y arms + ideal 90 deg hybrid (superposed per-port runs in openEMS)
+impedance_ohm = 50.0
+probe_diameter_mm = 1.0
+min_offset_mm = 9.5        # SMP body clear of the camera sleeve
+pad_clearance_mm = 0.5
+# Pin construction (layout, 2026-09-23): the pin passes through a plated hole in the top board and is soldered on
+# the pad side; the patch copper is cleared around it. Off by default so the frozen reference is unchanged;
+# plans/through_pin.toml re-tunes the pad radius with it on.
+through_pin = true         # confirmed 2026-09-23 (runs/through_pin): pad 2.51 unchanged, 3 MHz, 3.3 % load
+patch_clearance_mm = 2.4   # copper-free circle in the patch around the pin
+top_ring_mm = 1.6          # plated hole's top land inside the clearance (0 = none)
+
+[search]
+arm_x_mm = [44.0, 77.0]
+arm_y_mm = [44.0, 77.0]
+arm_width_mm = [16.0, 37.0]
+feed_offset_mm = [9.5, 26.0]
+pad_radius_mm = [0.8, 4.5]
+
+[optimizer]
+runs = 60
+seed = 42
+elite_fraction = 0.20
+restart_probability = 0.10
+sigma_start = 0.18
+sigma_end = 0.02
+keep_top = 8
+
+[weights]
+frequency = 2.0
+match = 3.0
+gain = 1.5
+axial_ratio = 2.0
+efficiency = 1.0
+min_efficiency_percent = 75
+
+[geometry.cavity]
+grid_mm = 0.5
+modes = 12
+# Fitted 2026-09-21 to the first full-mesh openEMS run (designs/cross_2200_single_x094.json):
+# the Hammerstad extension is ~2x too small for a 5 mm air gap. Residual per-mode error
+# after this scale is still about +/-2 %, so final tuning stays in openEMS.
+extension_scale = 2.05
+
+[dump]
+# frequency-domain E-field planes at the primary band centre for the report (E_gap.h5, E_top.h5, E_xz.h5 per port
+# run; needs a fresh FDTD run, not --reuse). Off by default: ~100 MB per run.
+efield = false
+above_patch_mm = 1.0
+
+[pattern]
+# far-field cuts written to farfield_cuts.csv for the primary band (low, centre, high)
+cut_step_deg = 1.0
+cut_phi_deg = [0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0]
+angles_deg = [45.0, 60.0]  # off-axis angles summarised in the diagnostics and the sweep summary
+
+[mesh]
+cells_per_wavelength = 22
+substrate_cells = 3
+gap_cells = 8
+mesh_growth = 1.35
+air_margin_mm = 50.0          # ~lambda/3 at the lowest excited frequency
+boundary = "MUR"             # as in the upstream patch tutorial; PML_8 needs a margin > 8 cells + lambda/8
+timesteps = 400000         # upper bound; end_criteria normally stops the run
+end_criteria = 1.0e-5          # 1e-4 under-converges: ~1 point of efficiency low and run-to-run spread 0.5 points (HANDOFF §6.1)
+frequency_points = 401
+excitation_low_hz = 1.6e9
+excitation_high_hz = 2.9e9

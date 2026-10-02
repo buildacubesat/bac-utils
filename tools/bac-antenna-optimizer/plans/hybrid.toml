@@ -1,0 +1,25 @@
+# Real-hybrid imperfections – post-processing only, reuses the nominal run's field data.
+# Run AFTER robustness.toml, pointing --output at the same directory:
+#   uv run bac-antenna sweep -c config/cross_2200_dual.toml -p designs/cross_2200_dual_v1.json \
+#     --plan plans/hybrid.toml --output runs/robustness
+# Each case copies nothing: the runner reuses runs/robustness/<case>/simulation_port* if present,
+# so first symlink or copy the nominal case's simulation folders into each case directory:
+#   for c in hyb_86 hyb_94 hyb_amp_-0.3 hyb_amp_+0.3 hyb_worst; do
+#     mkdir -p runs/robustness/$c && ln -sfn ../nominal/simulation_port1 runs/robustness/$c/ \
+#       && ln -sfn ../nominal/simulation_port2 runs/robustness/$c/; done
+# X3C22E3-03S: phase 90 +/- 4 deg, amplitude +/- 0.3 dB over 1800-2700 MHz (datasheet p. 1).
+[[case]]
+name = "hyb_86"
+set = ["polarization.hybrid_phase_deg=86"]
+[[case]]
+name = "hyb_94"
+set = ["polarization.hybrid_phase_deg=94"]
+[[case]]
+name = "hyb_amp_-0.3"
+set = ["polarization.hybrid_amplitude_db=-0.3"]
+[[case]]
+name = "hyb_amp_+0.3"
+set = ["polarization.hybrid_amplitude_db=0.3"]
+[[case]]
+name = "hyb_worst"
+set = ["polarization.hybrid_phase_deg=86", "polarization.hybrid_amplitude_db=0.3"]

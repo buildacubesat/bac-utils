@@ -1,0 +1,12 @@
+# 2400-2450 MHz confirmation (2026-09-23): feed 12.5 so the ground board is shared with the 2200 design,
+# arms from the plans/s2400.toml bracket. Result: 55.7 mm -> probe minimum 2.4255 GHz, load 2.9 %, 10.96 dBic,
+# AR 0.73 dB, -5.0 dBic at 60 deg. designs/cross_2400_dual_v2.json carries it.
+[[case]]
+name = "s2400_f12.5_a55.7"
+params = { arm_x_mm = 55.7, arm_y_mm = 55.7, feed_offset_mm = 12.5 }
+[[case]]
+name = "s2400_f12.5_a55.4"
+params = { arm_x_mm = 55.4, arm_y_mm = 55.4, feed_offset_mm = 12.5 }
+[[case]]
+name = "s2400_f12.5_a56.0"
+params = { arm_x_mm = 56.0, arm_y_mm = 56.0, feed_offset_mm = 12.5 }

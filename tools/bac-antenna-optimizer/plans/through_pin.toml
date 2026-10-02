@@ -1,0 +1,21 @@
+# Feed pin through the top board (HANDOFF §4k): re-tune the pad radius with the patch clearance in the model.
+# Run:  uv run bac-antenna sweep -c config/cross_2200_dual_v2.toml -p designs/cross_2200_dual_v2.json \
+#         --plan plans/through_pin.toml --output runs/through_pin      (~150 s per case)
+# Read: probe_res_hz and hybrid_load_fraction against `frozen` (2.247 GHz, 3.2 %). Pick the pad radius that
+# restores the load fraction; expect it 0.2-0.4 mm larger than 2.51, since the clearance removes ~20 % of the
+# pad-to-patch overlap. Then set through_pin = true and the chosen pad radius in the v2 config/design.
+[[case]]
+name = "tp_pad_2.51"
+set = ["geometry.feed.through_pin=true"]
+[[case]]
+name = "tp_pad_2.70"
+set = ["geometry.feed.through_pin=true"]
+params = { pad_radius_mm = 2.70 }
+[[case]]
+name = "tp_pad_2.90"
+set = ["geometry.feed.through_pin=true"]
+params = { pad_radius_mm = 2.90 }
+[[case]]
+name = "tp_pad_2.70_clr_3.0"     # wider clearance if the fab or the solder fillet needs it
+set = ["geometry.feed.through_pin=true", "geometry.feed.patch_clearance_mm=3.0"]
+params = { pad_radius_mm = 2.70 }
