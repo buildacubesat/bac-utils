@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """`bac-antenna pack design/sensitivity.toml` – build a sensitivity pack for the antenna visualizer.
 
 The axes file defines the sliders: which parameter each one moves (design parameters via `params`, config keys via
@@ -16,8 +17,8 @@ either.
     runs = ["sim/runs/freeze", "sim/runs/through_pin", "sim/runs/sensitivity"]
     plan = "design/plans/sensitivity.toml"
     output = "generated/sensitivity"
-    source = "https://codeberg.org/buildacubesat-project/bac-hardware"   # provenance shown by the visualizer (optional)
-    release = "s-band-cross-patch-v1"                                   # the release the pack zip is attached to (optional)
+    source = "https://codeberg.org/buildacubesat-project/bac-hardware"  # provenance shown by the visualizer (optional)
+    release = "s-band-cross-patch-v1"  # the release the pack zip is attached to (optional)
 
     ignore = ["geometry.stack.max_height_mm"]   # config keys a case may change without becoming a different antenna
 
@@ -40,23 +41,31 @@ Pack layout (all paths relative to `output`):
     models.json     geometry primitives per case, for the 3D view without any solver code
     config.toml, design.json   the nominal antenna, so a notebook with the tool installed can rebuild the model live
 """
+
 from __future__ import annotations
 
 import csv
 import datetime
 import gzip
 import json
-import math
-from pathlib import Path
 import tomllib
+from pathlib import Path
 
 from .antennas import get_antenna
 from .config import load_config
 from .core import full_params
 
 TOL = 1e-6
-CASE_FILES = ("result.json", "openems_diagnostics.json", "s11_sweep.csv", "sparams.csv", "sparams_complex.csv",
-              "farfield_samples.csv", "farfield_cuts.csv", "farfield_sphere.csv")
+CASE_FILES = (
+    "result.json",
+    "openems_diagnostics.json",
+    "s11_sweep.csv",
+    "sparams.csv",
+    "sparams_complex.csv",
+    "farfield_samples.csv",
+    "farfield_cuts.csv",
+    "farfield_sphere.csv",
+)
 
 
 def _flatten(d: dict, prefix: str = "") -> dict:
@@ -182,9 +191,10 @@ def efield_planes(case_dir: Path, diag: dict, cid: str, grid_mm: float) -> list[
         if fixed is None:
             continue
         free = [ax for ax in "xyz" if ax != fixed]
-        plane = np.squeeze(mag, axis="xyz".index(fixed))                 # (n_free0, n_free1)
+        plane = np.squeeze(mag, axis="xyz".index(fixed))  # (n_free0, n_free1)
         g0, g1 = axes[free[0]], axes[free[1]]
-        u = np.arange(g0[0], g0[-1] + 1e-9, grid_mm); v = np.arange(g1[0], g1[-1] + 1e-9, grid_mm)
+        u = np.arange(g0[0], g0[-1] + 1e-9, grid_mm)
+        v = np.arange(g1[0], g1[-1] + 1e-9, grid_mm)
         f = RegularGridInterpolator((g0, g1), plane, bounds_error=False, fill_value=0.0)
         U, V = np.meshgrid(u, v, indexing="ij")
         val = f(np.stack([U.ravel(), V.ravel()], axis=1)).reshape(U.shape)
@@ -193,14 +203,25 @@ def efield_planes(case_dir: Path, diag: dict, cid: str, grid_mm: float) -> list[
         name = fname[:-3]
         for i in range(len(u)):
             for j in range(len(v)):
-                rows.append({"case": cid, "plane": name, "axes": "".join(free), "fixed": fixed, "coord": coord,
-                             "u": f"{u[i]:.2f}", "v": f"{v[j]:.2f}", "e_db": f"{db[i, j]:.1f}"})
+                rows.append(
+                    {
+                        "case": cid,
+                        "plane": name,
+                        "axes": "".join(free),
+                        "fixed": fixed,
+                        "coord": coord,
+                        "u": f"{u[i]:.2f}",
+                        "v": f"{v[j]:.2f}",
+                        "e_db": f"{db[i, j]:.1f}",
+                    }
+                )
     return rows
 
 
 def _tool_version() -> str:
     try:
         from . import __version__
+
         return __version__
     except Exception:
         return ""
@@ -218,8 +239,14 @@ def build_pack(sens_path: Path, public: Path | None = None, make_zip: bool = Fal
     if not (nominal_dir / "result.json").exists():
         print(f"nominal case {s['nominal']} has no result.json")
         return 1
-    nom_over = json.loads((nominal_dir / "overrides.json").read_text()) if (nominal_dir / "overrides.json").exists() else []
-    nom_design = json.loads((nominal_dir / "parameters.json").read_text()) if (nominal_dir / "parameters.json").exists() else design
+    nom_over = (
+        json.loads((nominal_dir / "overrides.json").read_text()) if (nominal_dir / "overrides.json").exists() else []
+    )
+    nom_design = (
+        json.loads((nominal_dir / "parameters.json").read_text())
+        if (nominal_dir / "parameters.json").exists()
+        else design
+    )
     nominal, config = effective_state(config_path, nom_design, nom_over)
     antenna = get_antenna(config)
 
@@ -233,17 +260,23 @@ def build_pack(sens_path: Path, public: Path | None = None, make_zip: bool = Fal
             des = json.loads((case / "parameters.json").read_text()) if (case / "parameters.json").exists() else design
             try:
                 state, _ = effective_state(config_path, des, over)
-            except Exception as exc:                        # a case from a config this tool no longer accepts
+            except Exception as exc:  # a case from a config this tool no longer accepts
                 print(f"  skipping {case}: {exc}")
                 continue
             candidates[case] = (state, des, over)
 
-    ignore = {f"cfg:{k}" for k in s.get("ignore", [])}     # config keys that may differ without making a case foreign
-    matched: dict[str, dict] = {}                          # case id -> record
+    ignore = {f"cfg:{k}" for k in s.get("ignore", [])}  # config keys that may differ without making a case foreign
+    matched: dict[str, dict] = {}  # case id -> record
     missing_plan: list[dict] = []
     axes_out = []
     nominal_id = "nominal"
-    matched[nominal_id] = {"dir": nominal_dir, "axis": "", "level": axis_value(nominal, axes[0]) if axes else None, "design": nom_design, "overrides": nom_over}
+    matched[nominal_id] = {
+        "dir": nominal_dir,
+        "axis": "",
+        "level": axis_value(nominal, axes[0]) if axes else None,
+        "design": nom_design,
+        "overrides": nom_over,
+    }
     for axis in axes:
         levels_out = []
         for level in axis["levels"]:
@@ -251,7 +284,9 @@ def build_pack(sens_path: Path, public: Path | None = None, make_zip: bool = Fal
             if state_matches(nominal, nominal, axis, level, ignore):
                 levels_out.append({"level": level, "case": nominal_id})
                 continue
-            hit = next((c for c, (st, _, _) in candidates.items() if state_matches(st, nominal, axis, level, ignore)), None)
+            hit = next(
+                (c for c, (st, _, _) in candidates.items() if state_matches(st, nominal, axis, level, ignore)), None
+            )
             if hit is None:
                 levels_out.append({"level": level, "case": None})
                 entry = {"name": f"{axis['id']}_{level:g}", "set": list(axis.get("also", []))}
@@ -262,18 +297,38 @@ def build_pack(sens_path: Path, public: Path | None = None, make_zip: bool = Fal
                 missing_plan.append(entry)
             else:
                 cid = f"{axis['id']}_{level:g}"
-                matched[cid] = {"dir": hit, "axis": axis["id"], "level": level, "design": candidates[hit][1], "overrides": candidates[hit][2]}
+                matched[cid] = {
+                    "dir": hit,
+                    "axis": axis["id"],
+                    "level": level,
+                    "design": candidates[hit][1],
+                    "overrides": candidates[hit][2],
+                }
                 levels_out.append({"level": level, "case": cid})
-        axes_out.append({"id": axis["id"], "label": axis.get("label", axis["id"]), "unit": axis.get("unit", ""),
-                         "params": axis.get("params"), "set": axis.get("set"), "levels": levels_out,
-                         "nominal": axis_value(nominal, axis), "missing": [x["level"] for x in levels_out if x["case"] is None]})
+        axes_out.append(
+            {
+                "id": axis["id"],
+                "label": axis.get("label", axis["id"]),
+                "unit": axis.get("unit", ""),
+                "params": axis.get("params"),
+                "set": axis.get("set"),
+                "levels": levels_out,
+                "nominal": axis_value(nominal, axis),
+                "missing": [x["level"] for x in levels_out if x["case"] is None],
+            }
+        )
 
     # plan for the missing levels
     if missing_plan:
         plan_path = root / s.get("plan", "design/plans/sensitivity.toml")
-        lines = [f"# Sensitivity cases missing from the pack, written by `bac-antenna pack` on {datetime.date.today().isoformat()}.",
-                 f"# Run:  uv run bac-antenna sweep -c $ANT/{s['config']} -p $ANT/{s['design']} --plan $ANT/{s.get('plan', 'design/plans/sensitivity.toml')} --output runs/sensitivity",
-                 "# then copy runs/sensitivity into sim/runs/ and rerun `bac-antenna pack`.", ""]
+        lines = [
+            f"# Sensitivity cases missing from the pack, written by `bac-antenna pack` on "
+            f"{datetime.date.today().isoformat()}.",
+            f"# Run:  uv run bac-antenna sweep -c $ANT/{s['config']} -p $ANT/{s['design']} --plan "
+            f"$ANT/{s.get('plan', 'design/plans/sensitivity.toml')} --output runs/sensitivity",
+            "# then copy runs/sensitivity into sim/runs/ and rerun `bac-antenna pack`.",
+            "",
+        ]
         for e in missing_plan:
             lines.append("[[case]]")
             lines.append(f'name = "{e["name"]}"')
@@ -289,16 +344,35 @@ def build_pack(sens_path: Path, public: Path | None = None, make_zip: bool = Fal
     # pack files
     out = root / s.get("output", "generated/sensitivity")
     out.mkdir(parents=True, exist_ok=True)
-    band_meta = [{"name": b.name, "low_hz": b.low_hz, "high_hz": b.high_hz, "weight": b.weight, "max_s11_db": b.max_s11_db,
-                  "min_gain_dbic": b.min_gain_dbic, "max_ar_db": b.max_ar_db} for b in config.bands]
+    band_meta = [
+        {
+            "name": b.name,
+            "low_hz": b.low_hz,
+            "high_hz": b.high_hz,
+            "weight": b.weight,
+            "max_s11_db": b.max_s11_db,
+            "min_gain_dbic": b.min_gain_dbic,
+            "max_ar_db": b.max_ar_db,
+        }
+        for b in config.bands
+    ]
     cases_rows, sweeps_rows, samples_rows, cuts_rows, sphere_rows, efield_rows, models = [], [], [], [], [], [], {}
     for cid, rec in matched.items():
         d = rec["dir"]
         res = json.loads((d / "result.json").read_text())
-        diag = json.loads((d / "openems_diagnostics.json").read_text()) if (d / "openems_diagnostics.json").exists() else {}
+        diag = (
+            json.loads((d / "openems_diagnostics.json").read_text())
+            if (d / "openems_diagnostics.json").exists()
+            else {}
+        )
         state, cfg_case = effective_state(config_path, rec["design"], rec["overrides"])
-        row = {"case": cid, "axis": rec["axis"], "level": rec["level"], "run": str(d.relative_to(root)) if d.is_relative_to(root) else str(d),
-               "files": ",".join(f for f in CASE_FILES if (d / f).exists())}
+        row = {
+            "case": cid,
+            "axis": rec["axis"],
+            "level": rec["level"],
+            "run": str(d.relative_to(root)) if d.is_relative_to(root) else str(d),
+            "files": ",".join(f for f in CASE_FILES if (d / f).exists()),
+        }
         for k, v in full_params(rec["design"], cfg_case).items():
             row[k] = v
         for ax in axes:
@@ -310,17 +384,35 @@ def build_pack(sens_path: Path, public: Path | None = None, make_zip: bool = Fal
         row["probe_res_hz"] = diag.get("probe_resonance_hz")
         row["load_fraction"] = diag.get("hybrid_load_fraction_at_primary_centre")
         w = (diag.get("pattern") or {}).get("worst") or {}
-        for k in ("gain_co_min_45", "gain_co_min_60", "ar_max_45", "ar_max_60", "front_to_back_db", "back_fraction", "gain_co_broadside"):
+        for k in (
+            "gain_co_min_45",
+            "gain_co_min_60",
+            "ar_max_45",
+            "ar_max_60",
+            "front_to_back_db",
+            "back_fraction",
+            "gain_co_broadside",
+        ):
             row[k] = w.get(k)
         cases_rows.append(row)
         # frequency tables
-        sw = {float(r["frequency_hz"]): r for r in read_csv(d / "s11_sweep.csv")} if (d / "s11_sweep.csv").exists() else {}
+        sw = (
+            {float(r["frequency_hz"]): r for r in read_csv(d / "s11_sweep.csv")}
+            if (d / "s11_sweep.csv").exists()
+            else {}
+        )
         sp = {float(r["frequency_hz"]): r for r in read_csv(d / "sparams.csv")} if (d / "sparams.csv").exists() else {}
-        sc = {float(r["frequency_hz"]): r for r in read_csv(d / "sparams_complex.csv")} if (d / "sparams_complex.csv").exists() else {}
+        sc = (
+            {float(r["frequency_hz"]): r for r in read_csv(d / "sparams_complex.csv")}
+            if (d / "sparams_complex.csv").exists()
+            else {}
+        )
         for f in sorted(set(sw) | set(sp) | set(sc)):
             r = {"case": cid, "frequency_hz": f}
             if f in sw:
-                r.update(s11_in_db=sw[f].get("s11_db"), s11_in_re=sw[f].get("s11_real"), s11_in_im=sw[f].get("s11_imag"))
+                r.update(
+                    s11_in_db=sw[f].get("s11_db"), s11_in_re=sw[f].get("s11_real"), s11_in_im=sw[f].get("s11_imag")
+                )
             if f in sp:
                 r.update({k: sp[f].get(k) for k in ("s11_db", "s22_db", "s21_db", "s12_db") if k in sp[f]})
             if f in sc:
@@ -357,30 +449,53 @@ def build_pack(sens_path: Path, public: Path | None = None, make_zip: bool = Fal
     (out / "models.json").write_text(json.dumps(models, separators=(",", ":")))
     (out / "config.toml").write_text(config_path.read_text())
     (out / "design.json").write_text(json.dumps(nom_design, indent=2) + "\n")
-    pack = {"name": s.get("name", out.parent.parent.name), "antenna_type": config.antenna_type, "generated": datetime.date.today().isoformat(),
-            "tool": "bac-antenna-optimizer", "tool_version": _tool_version(), "config": s["config"], "design": s["design"], "nominal_case": nominal_id,
-            "nominal_run": s["nominal"], "bands": band_meta, "primary_band": config.primary_band.name,
-            "parameters": sorted(full_params(nom_design, config)), "axes": axes_out,
-            "cases": {cid: {"run": r["run"], "axis": r["axis"], "level": r["level"]} for cid, r in zip(matched, cases_rows)},
-            "notes": [n for n in [s.get("notes")] if n],
-            "source": s.get("source", ""), "release": s.get("release", "")}
+    pack = {
+        "name": s.get("name", out.parent.parent.name),
+        "antenna_type": config.antenna_type,
+        "generated": datetime.date.today().isoformat(),
+        "tool": "bac-antenna-optimizer",
+        "tool_version": _tool_version(),
+        "config": s["config"],
+        "design": s["design"],
+        "nominal_case": nominal_id,
+        "nominal_run": s["nominal"],
+        "bands": band_meta,
+        "primary_band": config.primary_band.name,
+        "parameters": sorted(full_params(nom_design, config)),
+        "axes": axes_out,
+        "cases": {
+            cid: {"run": r["run"], "axis": r["axis"], "level": r["level"]}
+            for cid, r in zip(matched, cases_rows, strict=True)
+        },
+        "notes": [n for n in [s.get("notes")] if n],
+        "source": s.get("source", ""),
+        "release": s.get("release", ""),
+    }
     (out / "pack.json").write_text(json.dumps(pack, indent=1))
     n_missing = sum(len(a["missing"]) for a in axes_out)
-    print(f"pack {pack['name']}: {len(matched)} cases, {len(axes_out)} axes, {n_missing} level(s) missing -> {out.relative_to(root)}")
+    print(
+        f"pack {pack['name']}: {len(matched)} cases, {len(axes_out)} axes, {n_missing} level(s) missing -> "
+        f"{out.relative_to(root)}"
+    )
     for a in axes_out:
         have = [f"{x['level']:g}" for x in a["levels"] if x["case"]]
         miss = [f"{x:g}" for x in a["missing"]]
         print(f"  {a['id']:8s} have {', '.join(have) or '-'}" + (f"   missing {', '.join(miss)}" if miss else ""))
     if make_zip:
         import zipfile
+
         zpath = out.parent / f"{pack['name']}-pack.zip"
         with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
             for f in sorted(out.iterdir()):
                 if f.is_file():
                     z.write(f, f"{pack['name']}/{f.name}")
-        print(f"zip written: {zpath.relative_to(root)} ({zpath.stat().st_size / 1e6:.1f} MB) – attach it to the antenna's release")
+        print(
+            f"zip written: {zpath.relative_to(root)} ({zpath.stat().st_size / 1e6:.1f} MB) – attach it to the "
+            f"antenna's release"
+        )
     if public:
         import shutil
+
         dest = Path(public) / pack["name"]
         if dest.exists():
             shutil.rmtree(dest)

@@ -1,9 +1,10 @@
-from pathlib import Path
+# SPDX-License-Identifier: MIT
 import tempfile
 import unittest
+from pathlib import Path
 
+from antenna_testkit import ROOT
 from bac_antenna.sweep import append_row, read_summary, run_sweep
-from helpers import ROOT
 
 PLAN = """
 [[case]]
@@ -20,8 +21,8 @@ class SweepTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "sweep_summary.csv"
             append_row(path, {"case": "x", "score": "0", "tx_gain": "9.7"})
-            append_row(path, {"case": "y", "score": "0", "tx_gain": "9.8", "fb_db": "20.0"})   # extra column ignored
-            append_row(path, {"case": "z", "score": "0"})                                    # missing column blank
+            append_row(path, {"case": "y", "score": "0", "tx_gain": "9.8", "fb_db": "20.0"})  # extra column ignored
+            append_row(path, {"case": "z", "score": "0"})  # missing column blank
             fields, rows = read_summary(path)
             self.assertEqual(fields, ["case", "score", "tx_gain"])
             self.assertEqual([r["case"] for r in rows], ["x", "y", "z"])

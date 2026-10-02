@@ -30,6 +30,10 @@ ignore = ["B008"]
 # Prompt text and test fixtures are literal strings; wrapping them changes them.
 "**/llm.py" = ["E501"]
 "**/tests/*" = ["E501"]
+# marimo notebooks: markdown table rows must stay on one line, and a cell's last
+# bare expression is its output, not a useless statement.
+"notebooks/**/*.py" = ["E501", "B018"]
+"tools/bac-antenna-visualizer/*.py" = ["E501", "B018"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["bac_common", "bac_kicad_common", "bac_suite_db"]

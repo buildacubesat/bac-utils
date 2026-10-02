@@ -1,11 +1,12 @@
+# SPDX-License-Identifier: MIT
 import json
-from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from pathlib import Path
 
+from antenna_testkit import ROOT
 from bac_antenna.report.manifest import band_values, render, resolve, run_report
-from helpers import ROOT
 
 
 class TemplateTests(unittest.TestCase):
@@ -13,7 +14,7 @@ class TemplateTests(unittest.TestCase):
         ctx = {"name": "A", "2200": {"gain_min": "10.20"}}
         missing = []
         out = render("{{ name }}: {{ 2200.gain_min }} dBic, {{ 2400.gain_min }}", ctx, missing)
-        self.assertEqual(out, "A: 10.20 dBic, —")
+        self.assertEqual(out, "A: 10.20 dBic, –")
         self.assertEqual(missing, ["2400.gain_min"])
         self.assertIsNone(resolve(ctx, "2200.nothing"))
 
@@ -25,13 +26,37 @@ class ManifestTests(unittest.TestCase):
         shutil.copy(ROOT / "designs" / "cross_2200_dual_v2.json", temp / "design" / "2200.json")
         runs = temp / "sim" / "runs" / "freeze" / "frozen"
         runs.mkdir(parents=True)
-        (runs / "result.json").write_text(json.dumps({"metrics": {"bands": {"tx": {"s11_worst_db": -26.9, "gain_min_dbic": 10.2,
-                                                                                    "ar_worst_db": 0.66, "efficiency_percent": 93.5, "hand": "rhcp"}}}}))
-        (runs / "openems_diagnostics.json").write_text(json.dumps({"probe_resonance_hz": 2.2468e9, "hybrid_load_fraction_at_primary_centre": 0.032,
-                                                                    "per_port_at_primary_centre": {"s11_db": -15.0}}))
+        (runs / "result.json").write_text(
+            json.dumps(
+                {
+                    "metrics": {
+                        "bands": {
+                            "tx": {
+                                "s11_worst_db": -26.9,
+                                "gain_min_dbic": 10.2,
+                                "ar_worst_db": 0.66,
+                                "efficiency_percent": 93.5,
+                                "hand": "rhcp",
+                            }
+                        }
+                    }
+                }
+            )
+        )
+        (runs / "openems_diagnostics.json").write_text(
+            json.dumps(
+                {
+                    "probe_resonance_hz": 2.2468e9,
+                    "hybrid_load_fraction_at_primary_centre": 0.032,
+                    "per_port_at_primary_centre": {"s11_db": -15.0},
+                }
+            )
+        )
         (temp / "templates").mkdir()
-        (temp / "templates" / "README.md").write_text("# {{ name }}\n\ngain {{ 2200.gain_min }} dBic, probe {{ 2200.probe_res_ghz }} GHz, load {{ 2200.load_pct }} %, arms {{ 2200.arm }}, stack {{ stack }} mm, missing {{ 2200.g60 }}\n")
-        (temp / "antenna.toml").write_text('''[antenna]
+        (temp / "templates" / "README.md").write_text(
+            "# {{ name }}\n\ngain {{ 2200.gain_min }} dBic, probe {{ 2200.probe_res_ghz }} GHz, load {{ 2200.load_pct }} %, arms {{ 2200.arm }}, stack {{ stack }} mm, missing {{ 2200.g60 }}\n"
+        )
+        (temp / "antenna.toml").write_text("""[antenna]
 name = "test antenna"
 tool_tag = "v0"
 [bands.2200]
@@ -44,7 +69,7 @@ generated = "generated"
 [[documents]]
 template = "templates/README.md"
 output = "README.md"
-''')
+""")
         return temp
 
     def test_docs_from_manifest_without_matplotlib(self):
@@ -57,7 +82,7 @@ output = "README.md"
             self.assertIn("load 3.2 %", readme)
             self.assertIn("arms 60.7", readme)
             self.assertIn("stack 5.99 mm", readme)
-            self.assertIn("missing —", readme)
+            self.assertIn("missing –", readme)
             status = (temp / "generated" / "STATUS.md").read_text()
             self.assertIn("bac-antenna report antenna.toml", status)
             self.assertTrue((temp / "generated" / "values.json").exists())
@@ -67,8 +92,15 @@ output = "README.md"
             temp = self._folder(Path(t))
             case = temp / "sim" / "runs" / "freeze" / "frozen"
             (case / "result.json").unlink()
-            (case.parent / "sweep_summary.csv").write_text("case,tx_s11,tx_gain,tx_ar,tx_eff,tx_hand\nfrozen,-26.87,10.20,0.66,93.5,rhcp\n")
-            v = band_values(temp, "2200", {"config": "design/2200.toml", "design": "design/2200.json", "reference_run": "sim/runs/freeze/frozen"}, {"order_scale": 1.03})
+            (case.parent / "sweep_summary.csv").write_text(
+                "case,tx_s11,tx_gain,tx_ar,tx_eff,tx_hand\nfrozen,-26.87,10.20,0.66,93.5,rhcp\n"
+            )
+            v = band_values(
+                temp,
+                "2200",
+                {"config": "design/2200.toml", "design": "design/2200.json", "reference_run": "sim/runs/freeze/frozen"},
+                {"order_scale": 1.03},
+            )
             self.assertEqual(v["gain_min"], "10.20")
             self.assertEqual(v["rl_min"], "26.9")
             self.assertEqual(v["available"], "yes")

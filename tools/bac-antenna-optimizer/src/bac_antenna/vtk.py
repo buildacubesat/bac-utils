@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import math
@@ -19,7 +20,7 @@ def write_geometry_vtp(path: Path, model: Model, segments: int = 64) -> None:
             points.extend((x, y, p.elevation) for x, y in p.points)
             polys.append(tuple(range(base, base + len(p.points))))
         elif p.kind == "box":
-            (x0, y0, z0), (x1, y1, z1) = p.start, p.stop
+            (x0, y0, z0), (x1, _y1, z1) = p.start, p.stop
             base = len(points)
             points.extend([(x0, y0, z0), (x1, y0, z0), (x1, y0, z1), (x0, y0, z1)])
             polys.append((base, base + 1, base + 2, base + 3))

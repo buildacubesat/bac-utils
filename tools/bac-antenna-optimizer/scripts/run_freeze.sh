@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
 # Freeze sweep for the v2 design (HANDOFF §4h). Resumable: rerun to continue.
 set -u
 cd "$(dirname "$0")/.."

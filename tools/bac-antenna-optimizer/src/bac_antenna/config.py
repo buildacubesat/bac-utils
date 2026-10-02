@@ -1,8 +1,9 @@
+# SPDX-License-Identifier: MIT
 from __future__ import annotations
 
+import tomllib
 from dataclasses import dataclass
 from pathlib import Path
-import tomllib
 
 
 @dataclass(frozen=True)
@@ -21,9 +22,9 @@ class Band:
     high_hz: float
     weight: float
     max_s11_db: float
-    min_gain_dbic: float          # realized gain in the wanted hand
+    min_gain_dbic: float  # realized gain in the wanted hand
     max_ar_db: float
-    cp_span_hz: float             # AR must hold over this width, centred in the band
+    cp_span_hz: float  # AR must hold over this width, centred in the band
 
     @property
     def centre_hz(self) -> float:
@@ -47,7 +48,7 @@ class Config:
             return str(a["type"])
         return str(self.raw["project"]["topology"])
 
-    topology = antenna_type      # legacy name
+    topology = antenna_type  # legacy name
 
     @property
     def geometry(self) -> dict:
@@ -70,9 +71,18 @@ class Config:
         out = []
         for b in self.raw["band"]:
             low, high = float(b["low_hz"]), float(b["high_hz"])
-            out.append(Band(str(b["name"]), low, high, float(b.get("weight", 1.0)), float(b.get("max_s11_db", -10.0)),
-                            float(b.get("min_gain_dbic", 0.0)), float(b.get("max_ar_db", 3.0)),
-                            float(b.get("cp_span_hz", high - low))))
+            out.append(
+                Band(
+                    str(b["name"]),
+                    low,
+                    high,
+                    float(b.get("weight", 1.0)),
+                    float(b.get("max_s11_db", -10.0)),
+                    float(b.get("min_gain_dbic", 0.0)),
+                    float(b.get("max_ar_db", 3.0)),
+                    float(b.get("cp_span_hz", high - low)),
+                )
+            )
         return out
 
     @property

@@ -4,7 +4,7 @@ A marimo notebook that shows how an antenna's characteristics move when its geom
 
 Views: reflection and coupling, a Smith chart of one probe with the impedance at the band edges and centre, gain and axial ratio versus frequency, pattern cuts, the 3D pattern, the electric field on the dumped planes in 3D, and the geometry in 3D.
 
-Part of [bac-utils](https://github.com/buildacubesat/bac-utils) (`tools/bac-antenna-visualizer/`), next to [bac-antenna-optimizer](../bac-antenna-optimizer/), which makes the packs. It runs locally; there is no hosted copy.
+Part of Build a CubeSat's [bac-utils](https://github.com/buildacubesat/bac-utils) (`tools/bac-antenna-visualizer/`), next to [bac-antenna-optimizer](../bac-antenna-optimizer/), which makes the packs. It runs locally; there is no hosted copy.
 
 ## Run
 
@@ -68,4 +68,16 @@ bac_antenna_visualizer.py     the notebook
 packs/                        local pack folders or zips (gitignored)
 tests/test_notebook.py        headless run on a pack the tool builds during the test, and on any pack found on the machine
 pyproject.toml                dependencies; the optimizer as a workspace dependency
+tests/conftest.py             puts the notebook on the path for the workspace pytest
 ```
+
+## Version history
+
+The notebook's own revision history (its last cell) has the detail per version.
+
+| Version | Date | Change |
+| :-- | :-- | :-- |
+| 0.3.1 | 2026-10-02 | Brought onto the bac-utils conventions: SPDX header, ruff, tests collectable by the workspace pytest, a minimum version on the optimizer dependency. No change to what it shows. |
+| 0.3.0 | 2026-09-28 | Runs locally only; molab code paths, the GitHub fallback and the wheel workflow removed; packs discovered from `BAC_ANTENNA_PACKS`, `packs/` and a bac-hardware checkout. |
+| 0.2.0 | 2026-09-24 | Family conventions: the siblings' style and chart cells, two-column panel, headline cards, Smith chart, 3D pattern and field views in 0.2.x. |
+| 0.1.0 | 2026-09-24 | First version: pack loader, one-axis interpolation, S-parameters, gain and axial ratio, pattern cuts. |

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
 # Refresh runs/robustness from its existing field data: adds the pattern columns (gain/AR over angle,
 # front-to-back, back fraction) and probe_res_hz to every finished case. No FDTD; ~5-10 s per case.
 set -u

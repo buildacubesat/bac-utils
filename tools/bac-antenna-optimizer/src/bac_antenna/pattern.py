@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Far-field pattern analysis over angle.
 
 Works on combined (already superposed) far fields on a (theta, phi) grid. The local transverse
@@ -8,6 +9,7 @@ basis (theta_hat, phi_hat, r_hat) is right-handed with r_hat the propagation dir
 Realized gain is normalised to the incident power, so hybrid-load and mismatch loss stay inside the
 number, as in the band metrics.
 """
+
 from __future__ import annotations
 
 import csv
@@ -19,7 +21,7 @@ import numpy as np
 from .rf import axial_ratio_db, circular_components
 
 ETA0 = 376.730313668
-FLOOR_DBI = -60.0            # gain floor for nulls (keeps front-to-back finite)
+FLOOR_DBI = -60.0  # gain floor for nulls (keeps front-to-back finite)
 CUT_PHI_DEG = (0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0)
 
 
@@ -68,7 +70,7 @@ def cut_summary(theta_deg: np.ndarray, metrics: dict, angles=(45.0, 60.0)) -> di
     """
     theta_deg = np.asarray(theta_deg, dtype=float)
 
-    def at(values, ang):        # linear interpolation in theta, per phi column
+    def at(values, ang):  # linear interpolation in theta, per phi column
         return np.array([np.interp(ang, theta_deg, values[:, j]) for j in range(values.shape[1])])
 
     out = {}
@@ -76,7 +78,7 @@ def cut_summary(theta_deg: np.ndarray, metrics: dict, angles=(45.0, 60.0)) -> di
         out[f"gain_co_min_{ang:g}"] = float(np.min(at(metrics["gain_co_dbic"], ang)))
         out[f"ar_max_{ang:g}"] = float(np.max(at(metrics["ar_db"], ang)))
     i0, i180 = int(np.argmin(np.abs(theta_deg))), int(np.argmin(np.abs(theta_deg - 180.0)))
-    front = float(np.mean(metrics["gain_total_dbi"][i0]))       # theta = 0 is one direction for every phi
+    front = float(np.mean(metrics["gain_total_dbi"][i0]))  # theta = 0 is one direction for every phi
     back = float(np.mean(metrics["gain_total_dbi"][i180]))
     out["gain_co_broadside"] = float(np.mean(metrics["gain_co_dbic"][i0]))
     out["ar_broadside"] = float(np.mean(metrics["ar_db"][i0]))
@@ -108,12 +110,23 @@ def write_cuts_csv(path: Path, freqs_hz, theta_deg, phi_deg, per_freq: list[dict
     """One row per (frequency, phi, theta). `per_freq[i]` is angular_metrics() for freqs_hz[i]."""
     with Path(path).open("w", newline="") as fh:
         wr = csv.writer(fh)
-        wr.writerow(["frequency_hz", "phi_deg", "theta_deg", "gain_total_dbi", "gain_co_dbic", "gain_cross_dbic", "ar_db"])
-        for f, m in zip(freqs_hz, per_freq):
+        wr.writerow(
+            ["frequency_hz", "phi_deg", "theta_deg", "gain_total_dbi", "gain_co_dbic", "gain_cross_dbic", "ar_db"]
+        )
+        for f, m in zip(freqs_hz, per_freq, strict=True):
             for j, ph in enumerate(phi_deg):
                 for i, th in enumerate(theta_deg):
-                    wr.writerow([f"{f:.6e}", f"{ph:.1f}", f"{th:.1f}", f"{m['gain_total_dbi'][i, j]:.2f}",
-                                 f"{m['gain_co_dbic'][i, j]:.2f}", f"{m['gain_cross_dbic'][i, j]:.2f}", f"{m['ar_db'][i, j]:.2f}"])
+                    wr.writerow(
+                        [
+                            f"{f:.6e}",
+                            f"{ph:.1f}",
+                            f"{th:.1f}",
+                            f"{m['gain_total_dbi'][i, j]:.2f}",
+                            f"{m['gain_co_dbic'][i, j]:.2f}",
+                            f"{m['gain_cross_dbic'][i, j]:.2f}",
+                            f"{m['ar_db'][i, j]:.2f}",
+                        ]
+                    )
 
 
 def read_cuts_csv(path: Path) -> dict:

@@ -1,8 +1,10 @@
+# SPDX-License-Identifier: MIT
 """openEMS backend. Unvalidated until HANDOFF §8 has been worked through.
 
 One FDTD run per port; multi-port excitations (the dual-feed hybrid) are formed by
 superposition of the per-port runs, both for S-parameters and far fields.
 """
+
 from __future__ import annotations
 
 import csv
@@ -33,6 +35,7 @@ def merge_lines(fixed, grid, tol: float):
     fixed lines closer than `tol` to each other are averaged. Prevents the near-coincident lines
     (e.g. a pad edge at 2.51 mm next to a grid line at 2.50 mm) that otherwise set the time step."""
     import numpy as np
+
     # never round: a zero-thickness polygon needs a mesh line at exactly its elevation
     fixed = np.sort(np.asarray(fixed, dtype=float))
     keep = [fixed[0]]
@@ -51,13 +54,16 @@ def build_lines(model: Model, mesh_cfg: dict, dom: dict) -> dict:
     """Mesh lines before smoothing: domain edges and the model's fixed lines are authoritative; the fine grid
     around the origin (model.refine) and the model's own grid lines fill in, dropped where they crowd a fixed line."""
     import numpy as np
+
     ext, cell = model.refine
     cell = float(mesh_cfg.get("refine_cell_mm", cell))
     tol = float(mesh_cfg.get("merge_tolerance_mm", 0.05))
     fine = np.arange(-ext, ext + cell / 2, cell) if ext > 0 and cell > 0 else np.array([])
     out = {}
     for ax in "xyz":
-        grid = np.concatenate([fine if ax != "z" else np.array([]), np.asarray(model.grid_lines.get(ax, ()), dtype=float)])
+        grid = np.concatenate(
+            [fine if ax != "z" else np.array([]), np.asarray(model.grid_lines.get(ax, ()), dtype=float)]
+        )
         out[ax] = merge_lines([dom[ax][0], dom[ax][1], *model.fixed_lines[ax]], grid, tol)
     return out
 
@@ -79,31 +85,47 @@ def apply_model(csx, fdtd, model: Model, excite: int, f_ref_hz: float):
         elif p.kind == "polygon":
             prop.AddPolygon(points=_xy(p.points), norm_dir="z", elevation=p.elevation, priority=p.priority)
         elif p.kind == "linpoly":
-            prop.AddLinPoly(points=_xy(p.points), norm_dir="z", elevation=p.elevation, length=p.length, priority=p.priority)
+            prop.AddLinPoly(
+                points=_xy(p.points), norm_dir="z", elevation=p.elevation, length=p.length, priority=p.priority
+            )
         else:
             raise ValueError(p.kind)
     for i, port in enumerate(model.ports):
-        ports.append(fdtd.AddLumpedPort(i + 1, port.impedance_ohm, list(port.start), list(port.stop), port.direction,
-                                        1.0 if i == excite else 0.0, priority=port.priority, edges2grid="xy"))
+        ports.append(
+            fdtd.AddLumpedPort(
+                i + 1,
+                port.impedance_ohm,
+                list(port.start),
+                list(port.stop),
+                port.direction,
+                1.0 if i == excite else 0.0,
+                priority=port.priority,
+                edges2grid="xy",
+            )
+        )
     return props, ports
 
 
 class OpenEMSBackend:
     name = "openems"
 
-    def evaluate(self, params: dict, config: Config, directory: Path, geometry_only: bool = False,
-                 reuse: bool = False) -> Metrics | None:
+    def evaluate(
+        self, params: dict, config: Config, directory: Path, geometry_only: bool = False, reuse: bool = False
+    ) -> Metrics | None:
         try:
             import numpy as np
             from CSXCAD import ContinuousStructure
             from openEMS import openEMS
             from openEMS.physical_constants import C0
         except ImportError as exc:
-            raise RuntimeError("openEMS Python bindings are unavailable. Install openEMS/CSXCAD and expose them to this uv environment.") from exc
+            raise RuntimeError(
+                "openEMS Python bindings are unavailable. Install openEMS/CSXCAD and expose them to this uv "
+                "environment."
+            ) from exc
         from .antennas import get_antenna
         from .feednetwork import describe, weight_options
 
-        directory = directory.resolve()      # openEMS.Run() chdirs into the sim folder
+        directory = directory.resolve()  # openEMS.Run() chdirs into the sim folder
         model = get_antenna(config).model(params, config)
         problems = check_model(model)
         if problems:
@@ -128,7 +150,11 @@ class OpenEMSBackend:
                 print(f"air margin {margin:.0f} mm is inside the {bc} layer at this resolution; using {needed:.0f} mm")
                 margin = needed
         xmin, xmax, ymin, ymax, zmin, zmax = model.extent()
-        dom = {"x": (xmin - margin, xmax + margin), "y": (ymin - margin, ymax + margin), "z": (zmin - margin, zmax + margin)}
+        dom = {
+            "x": (xmin - margin, xmax + margin),
+            "y": (ymin - margin, ymax + margin),
+            "z": (zmin - margin, zmax + margin),
+        }
 
         runs = []
         for k in range(len(model.ports)):
@@ -153,13 +179,18 @@ class OpenEMSBackend:
             zl = np.asarray(mesh.GetLines(2))
             for prim in model.primitives:
                 if prim.kind == "polygon" and not np.any(zl == prim.elevation):
-                    raise RuntimeError(f"{prim.prop}: no mesh line at z = {prim.elevation!r} – the primitive would be ignored")
+                    raise RuntimeError(
+                        f"{prim.prop}: no mesh line at z = {prim.elevation!r} – the primitive would be ignored"
+                    )
             if k == 0:
                 csx.Write2XML(str(directory / "geometry.xml"))
                 counts = [len(mesh.GetLines(d)) for d in range(3)]
                 min_cell = min(float(np.min(np.diff(np.sort(mesh.GetLines(d))))) for d in range(3))
-                print(f"mesh {counts[0]} x {counts[1]} x {counts[2]} = {counts[0] * counts[1] * counts[2] / 1e6:.2f} M cells, "
-                      f"smallest cell {min_cell * 1e3:.0f} um")
+                print(
+                    f"mesh {counts[0]} x {counts[1]} x {counts[2]} = {counts[0] * counts[1] * counts[2] / 1e6:.2f} M "
+                    f"cells, "
+                    f"smallest cell {min_cell * 1e3:.0f} um"
+                )
             if geometry_only:
                 return None
             sim = directory / f"simulation_port{k + 1}"
@@ -176,7 +207,9 @@ class OpenEMSBackend:
                             start[d] = stop[d] = float(ls[int(np.argmin(np.abs(ls - start[d])))])
                         else:
                             start[d], stop[d] = max(start[d], dom[ax][0]), min(stop[d], dom[ax][1])
-                    d_ = csx.AddDump(fp.name, dump_type=10, dump_mode=1, file_type=1, frequency=[config.primary_band.centre_hz])
+                    d_ = csx.AddDump(
+                        fp.name, dump_type=10, dump_mode=1, file_type=1, frequency=[config.primary_band.centre_hz]
+                    )
                     d_.AddBox(start, stop)
             if reuse and (sim / "port_ut_1").exists():
                 print(f"reusing {sim}")
@@ -194,17 +227,33 @@ class OpenEMSBackend:
         for k in range(n):
             inc = np.abs(runs[k][2][k].uf_inc)
             if not np.all(np.isfinite(inc)) or np.max(inc) <= 0:
-                raise RuntimeError(f"port {k + 1} recorded no incident wave – the excitation did not couple into the mesh "
-                                   f"(check for zero-width cells: see 'smallest cell' above)")
+                raise RuntimeError(
+                    f"port {k + 1} recorded no incident wave – the excitation did not couple into the mesh "
+                    f"(check for zero-width cells: see 'smallest cell' above)"
+                )
         # S[j, k, f] = b_j / a_k with run k exciting port k
         S = np.array([[runs[k][2][j].uf_ref / runs[k][2][k].uf_inc for k in range(n)] for j in range(n)])
         weights_options = weight_options(config, n)
 
         theta = np.arange(0.0, 181.0, 5.0)
         phi = np.arange(0.0, 360.0, 10.0)
-        sample_f = sorted({f for b in config.bands for f in (b.low_hz, b.centre_hz, b.high_hz,
-                                                              b.centre_hz - b.cp_span_hz / 2, b.centre_hz + b.cp_span_hz / 2)})
-        ff = [runs[k][1].CalcNF2FF(str(runs[k][0]), sample_f, theta, phi, center=list(model.phase_centre)) for k in range(n)]
+        sample_f = sorted(
+            {
+                f
+                for b in config.bands
+                for f in (
+                    b.low_hz,
+                    b.centre_hz,
+                    b.high_hz,
+                    b.centre_hz - b.cp_span_hz / 2,
+                    b.centre_hz + b.cp_span_hz / 2,
+                )
+            }
+        )
+        ff = [
+            runs[k][1].CalcNF2FF(str(runs[k][0]), sample_f, theta, phi, center=list(model.phase_centre))
+            for k in range(n)
+        ]
         sense = int(config.polarization.get("openems_rhcp_sense", 0))
         wanted = config.polarization["hand"].lower()
 
@@ -234,10 +283,22 @@ class OpenEMSBackend:
             gamma = complex(np.dot(a, b)) if n > 1 else complex(b[0] / a[0])
             if fi == centre_probe[0]:
                 # power balance: far-field P_rad vs port P_acc (P_rad > P_acc means the far field is wrong)
-                centre_probe.append({"p_rad_w": p_rad, "p_acc_w": p_acc, "p_inc_w": p_inc,
-                                     "p_rad_over_p_acc": p_rad / p_acc if p_acc > 0 else None})
-            return {"g_co": co, "ar": axial_ratio_db(ex, ey), "hand": hand, "eff": p_rad / p_acc if p_acc > 0 else 0.0,
-                    "gamma": gamma, "p_rad": p_rad}
+                centre_probe.append(
+                    {
+                        "p_rad_w": p_rad,
+                        "p_acc_w": p_acc,
+                        "p_inc_w": p_inc,
+                        "p_rad_over_p_acc": p_rad / p_acc if p_acc > 0 else None,
+                    }
+                )
+            return {
+                "g_co": co,
+                "ar": axial_ratio_db(ex, ey),
+                "hand": hand,
+                "eff": p_rad / p_acc if p_acc > 0 else 0.0,
+                "gamma": gamma,
+                "p_rad": p_rad,
+            }
 
         centre_i = sample_f.index(config.primary_band.centre_hz)
         centre_probe = [centre_i]
@@ -247,25 +308,36 @@ class OpenEMSBackend:
         with (directory / "s11_sweep.csv").open("w", newline="") as fh:
             wr = csv.writer(fh)
             wr.writerow(["frequency_hz", "s11_db", "s11_real", "s11_imag"])
-            for f, d, c in zip(freqs, s11_db, gam):
+            for f, d, c in zip(freqs, s11_db, gam, strict=True):
                 wr.writerow([f"{f:.6e}", f"{d:.4f}", f"{c.real:.6e}", f"{c.imag:.6e}"])
 
         diag = {}
         with (directory / "sparams_complex.csv").open("w", newline="") as fh:
             wr = csv.writer(fh)
-            wr.writerow(["frequency_hz"] + [f"s{j + 1}{k + 1}_{c}" for j in range(n) for k in range(n) for c in ("re", "im")])
+            wr.writerow(
+                ["frequency_hz"] + [f"s{j + 1}{k + 1}_{c}" for j in range(n) for k in range(n) for c in ("re", "im")]
+            )
             for i, f in enumerate(freqs):
-                wr.writerow([f"{f:.6e}"] + [f"{v:.6e}" for j in range(n) for k in range(n) for v in (S[j, k, i].real, S[j, k, i].imag)])
+                wr.writerow(
+                    [f"{f:.6e}"]
+                    + [f"{v:.6e}" for j in range(n) for k in range(n) for v in (S[j, k, i].real, S[j, k, i].imag)]
+                )
         # per-port S-parameters (the sweep above is the hybrid-input reflection for dual feeds)
         if n > 1:
             with (directory / "sparams.csv").open("w", newline="") as fh:
                 wr = csv.writer(fh)
                 wr.writerow(["frequency_hz"] + [f"s{j + 1}{k + 1}_db" for j in range(n) for k in range(n)])
                 for i, f in enumerate(freqs):
-                    wr.writerow([f"{f:.6e}"] + [f"{20 * math.log10(max(1e-15, abs(S[j, k, i]))):.2f}" for j in range(n) for k in range(n)])
+                    wr.writerow(
+                        [f"{f:.6e}"]
+                        + [f"{20 * math.log10(max(1e-15, abs(S[j, k, i]))):.2f}" for j in range(n) for k in range(n)]
+                    )
             i0 = int(np.argmin(abs(freqs - f_ref)))
-            diag["per_port_at_primary_centre"] = {f"s{j + 1}{k + 1}_db": round(20 * math.log10(max(1e-15, abs(S[j, k, i0]))), 2)
-                                                  for j in range(n) for k in range(n)}
+            diag["per_port_at_primary_centre"] = {
+                f"s{j + 1}{k + 1}_db": round(20 * math.log10(max(1e-15, abs(S[j, k, i0]))), 2)
+                for j in range(n)
+                for k in range(n)
+            }
             b0 = S[:, :, i0] @ a
             diag["hybrid_load_fraction_at_primary_centre"] = float(np.sum(np.abs(b0) ** 2) / np.sum(np.abs(a) ** 2))
         # where each probe's own match is centred; for a dual feed this, not the hybrid-input minimum,
@@ -283,8 +355,12 @@ class OpenEMSBackend:
         cut_theta = np.arange(0.0, 180.0 + 1e-9, float(pat.get("cut_step_deg", 1.0)))
         cut_phi = np.array([float(x) for x in pat.get("cut_phi_deg", CUT_PHI_DEG)])
         angles = tuple(float(x) for x in pat.get("angles_deg", (45.0, 60.0)))
-        ffc = [runs[k][1].CalcNF2FF(str(runs[k][0]), cut_f, cut_theta, cut_phi, center=list(model.phase_centre),
-                                    outfile="nf2ff_cuts.h5") for k in range(n)]
+        ffc = [
+            runs[k][1].CalcNF2FF(
+                str(runs[k][0]), cut_f, cut_theta, cut_phi, center=list(model.phase_centre), outfile="nf2ff_cuts.h5"
+            )
+            for k in range(n)
+        ]
         p_inc = 0.5 * float(np.sum(np.abs(a) ** 2)) / z0
         per_f, summaries = [], {}
         for fi, f in enumerate(cut_f):
@@ -296,8 +372,11 @@ class OpenEMSBackend:
             per_f.append(m_)
             summaries[f"{f / 1e9:.4f}_ghz"] = cut_summary(cut_theta, m_, angles)
         write_cuts_csv(directory / "farfield_cuts.csv", cut_f, cut_theta, cut_phi, per_f)
-        worst = {k: (min if k.startswith("gain") or k.startswith("front") else max)(s[k] for s in summaries.values())
-                 for k in next(iter(summaries.values())) if k != "theta_180_reached"}
+        worst = {
+            k: (min if k.startswith("gain") or k.startswith("front") else max)(s[k] for s in summaries.values())
+            for k in next(iter(summaries.values()))
+            if k != "theta_180_reached"
+        }
         # rear-hemisphere share from the full-sphere grid at band centre
         idx_c = int(np.argmin(abs(freqs - pb.centre_hz)))
         wc = [a[k] / runs[k][2][k].uf_inc[idx_c] for k in range(n)]
@@ -310,37 +389,77 @@ class OpenEMSBackend:
             wr.writerow(["theta_deg", "phi_deg", "gain_total_dbi", "gain_co_dbic", "gain_cross_dbic", "ar_db"])
             for i, th in enumerate(theta):
                 for j, ph in enumerate(phi):
-                    wr.writerow([f"{th:.1f}", f"{ph:.1f}", f"{sphere['gain_total_dbi'][i, j]:.2f}", f"{sphere['gain_co_dbic'][i, j]:.2f}",
-                                 f"{sphere['gain_cross_dbic'][i, j]:.2f}", f"{sphere['ar_db'][i, j]:.2f}"])
+                    wr.writerow(
+                        [
+                            f"{th:.1f}",
+                            f"{ph:.1f}",
+                            f"{sphere['gain_total_dbi'][i, j]:.2f}",
+                            f"{sphere['gain_co_dbic'][i, j]:.2f}",
+                            f"{sphere['gain_cross_dbic'][i, j]:.2f}",
+                            f"{sphere['ar_db'][i, j]:.2f}",
+                        ]
+                    )
         if bool(config.raw.get("dump", {}).get("efield", False)):
-            diag["efield_dump"] = {"frequency_hz": pb.centre_hz, "files": [f"{fp.name}.h5" for fp in model.field_planes],
-                                   "port_dirs": [f"simulation_port{k + 1}" for k in range(n)],
-                                   "weights": [[float(wc[k].real), float(wc[k].imag)] for k in range(n)],
-                                   "p_inc_w": p_inc, "layout": "NZYX (component, z, y, x); mesh in /Mesh/x,y,z"}
-        diag["pattern"] = {"frequencies_hz": cut_f, "theta_step_deg": float(cut_theta[1] - cut_theta[0]),
-                           "phi_deg": [float(x) for x in cut_phi], "per_frequency": summaries, "worst": worst}
+            diag["efield_dump"] = {
+                "frequency_hz": pb.centre_hz,
+                "files": [f"{fp.name}.h5" for fp in model.field_planes],
+                "port_dirs": [f"simulation_port{k + 1}" for k in range(n)],
+                "weights": [[float(wc[k].real), float(wc[k].imag)] for k in range(n)],
+                "p_inc_w": p_inc,
+                "layout": "NZYX (component, z, y, x); mesh in /Mesh/x,y,z",
+            }
+        diag["pattern"] = {
+            "frequencies_hz": cut_f,
+            "theta_step_deg": float(cut_theta[1] - cut_theta[0]),
+            "phi_deg": [float(x) for x in cut_phi],
+            "per_frequency": summaries,
+            "worst": worst,
+        }
         # per-frequency far-field summary for the sampled points (band edges, centres, CP span)
         with (directory / "farfield_samples.csv").open("w", newline="") as fh:
             wr = csv.writer(fh)
             wr.writerow(["frequency_hz", "gain_co_dbic", "ar_db", "hand", "efficiency", "s11_db"])
             for i, f in enumerate(sample_f):
                 r = combine(a, i)
-                wr.writerow([f"{f:.6e}", f"{10 * math.log10(max(1e-9, r['g_co'])):.2f}", f"{r['ar']:.2f}", r["hand"],
-                             f"{r['eff']:.4f}", f"{20 * math.log10(max(1e-15, abs(r['gamma']))):.2f}"])
+                wr.writerow(
+                    [
+                        f"{f:.6e}",
+                        f"{10 * math.log10(max(1e-9, r['g_co'])):.2f}",
+                        f"{r['ar']:.2f}",
+                        r["hand"],
+                        f"{r['eff']:.4f}",
+                        f"{20 * math.log10(max(1e-15, abs(r['gamma']))):.2f}",
+                    ]
+                )
         out = {}
         for band in config.bands:
             sel = (freqs >= band.low_hz) & (freqs <= band.high_hz)
             pts = [sample_f.index(f) for f in (band.low_hz, band.centre_hz, band.high_hz)]
-            cps = [sample_f.index(f) for f in (band.centre_hz - band.cp_span_hz / 2, band.centre_hz, band.centre_hz + band.cp_span_hz / 2)]
+            cps = [
+                sample_f.index(f)
+                for f in (band.centre_hz - band.cp_span_hz / 2, band.centre_hz, band.centre_hz + band.cp_span_hz / 2)
+            ]
             r = {i: combine(a, i) for i in set(pts) | set(cps)}
             c = r[sample_f.index(band.centre_hz)]
-            out[band.name] = BandMetrics(float(s11_db[sel].max()), float(10 * math.log10(max(1e-9, min(r[i]["g_co"] for i in pts)))),
-                                         float(max(r[i]["ar"] for i in cps)), 100 * min(1.0, c["eff"]), c["hand"])
+            out[band.name] = BandMetrics(
+                float(s11_db[sel].max()),
+                float(10 * math.log10(max(1e-9, min(r[i]["g_co"] for i in pts)))),
+                float(max(r[i]["ar"] for i in cps)),
+                100 * min(1.0, c["eff"]),
+                c["hand"],
+            )
             diag[band.name] = {"efficiency_raw": c["eff"], "p_rad_w": c["p_rad"]}
         diag["power_cross_check_primary_centre"] = centre_probe[1] if len(centre_probe) > 1 else None
-        diag.update({"note": "Validate against HANDOFF §8 before trusting any of these numbers.", "ports": n,
-                     "feed_mode": describe(config, n), "hybrid_weights": [str(x) for x in a],
-                     "rhcp_sense_calibrated": sense != 0, "model_notes": list(model.notes)})
+        diag.update(
+            {
+                "note": "Validate against HANDOFF §8 before trusting any of these numbers.",
+                "ports": n,
+                "feed_mode": describe(config, n),
+                "hybrid_weights": [str(x) for x in a],
+                "rhcp_sense_calibrated": sense != 0,
+                "model_notes": list(model.notes),
+            }
+        )
         (directory / "openems_diagnostics.json").write_text(json.dumps(diag, indent=2) + "\n")
         return Metrics(out, float(freqs[int(np.argmin(s11_db))]), (), "openEMS – unvalidated")
 
@@ -350,13 +469,26 @@ class CoarseBackend(OpenEMSBackend):
     model (seconds to tens of seconds instead of minutes). Not for final numbers."""
 
     name = "coarse"
-    overrides = {"cells_per_wavelength": 12, "end_criteria": 1e-3, "gap_cells": 4, "substrate_cells": 2, "refine_cell_mm": 0.5}
+    overrides = {
+        "cells_per_wavelength": 12,
+        "end_criteria": 1e-3,
+        "gap_cells": 4,
+        "substrate_cells": 2,
+        "refine_cell_mm": 0.5,
+    }
 
     def evaluate(self, params: dict, config: Config, directory: Path, geometry_only: bool = False, reuse: bool = False):
         import copy
 
         raw = copy.deepcopy(config.raw)
-        raw["mesh"] = {**raw["mesh"], **{k: v for k, v in self.overrides.items() if k in raw["mesh"] or k in ("cells_per_wavelength", "end_criteria")}}
+        raw["mesh"] = {
+            **raw["mesh"],
+            **{
+                k: v
+                for k, v in self.overrides.items()
+                if k in raw["mesh"] or k in ("cells_per_wavelength", "end_criteria")
+            },
+        }
         raw.setdefault("pattern", {})["cut_step_deg"] = 5.0
         coarse = Config(raw=raw, source=config.source)
         return super().evaluate(params, coarse, directory, geometry_only=geometry_only, reuse=reuse)

@@ -1,12 +1,12 @@
+# SPDX-License-Identifier: MIT
 import math
 import unittest
 
 import numpy as np
-
+from antenna_testkit import NOMINAL, config
 from bac_antenna.cavity import Cavity, CavityBackend, bore_isolation_db_per_mm, eigenmodes, rasterise, ring_root
 from bac_antenna.geometry import Shape, ring_outline
 from bac_antenna.topologies import CrossPatch
-from helpers import NOMINAL, config
 
 
 def rect(L, W):
@@ -21,8 +21,12 @@ class SolverTests(unittest.TestCase):
     def test_open_and_shorted_ring_match_bessel(self):
         a, b = 6.6, 16.7
         for shorted in (False, True):
-            m = eigenmodes(rasterise(Shape(ring_outline(b, 0, 3), 0 if shorted else a, a if shorted else 0, ((12, 0),), b - a),
-                                     0.25, 0.0), 6)
+            m = eigenmodes(
+                rasterise(
+                    Shape(ring_outline(b, 0, 3), 0 if shorted else a, a if shorted else 0, ((12, 0),), b - a), 0.25, 0.0
+                ),
+                6,
+            )
             ks = np.sqrt(m.lam) * 1e-3
             exact = ring_root(a / b, shorted) / b
             self.assertLess(np.min(np.abs(ks - exact)) / exact, 0.012)
@@ -54,7 +58,9 @@ class CrossPatchTests(unittest.TestCase):
 
     def test_arm_swap_flips_hand(self):
         c = config()
-        d = dict(arm_x_mm=57.92, arm_y_mm=63.92, arm_width_mm=37.0, feed_offset_mm=13.97, pad_radius_mm=2.51)  # CP design at 2.245 GHz
+        d = dict(
+            arm_x_mm=57.92, arm_y_mm=63.92, arm_width_mm=37.0, feed_offset_mm=13.97, pad_radius_mm=2.51
+        )  # CP design at 2.245 GHz
         a = CavityBackend().evaluate(d, c, None).bands["tx"].hand
         b = CavityBackend().evaluate(dict(d, arm_x_mm=d["arm_y_mm"], arm_y_mm=d["arm_x_mm"]), c, None).bands["tx"].hand
         self.assertEqual({a, b}, {"rhcp", "lhcp"})

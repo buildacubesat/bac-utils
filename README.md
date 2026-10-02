@@ -1,6 +1,6 @@
 # bac-utils
 
-Build a CubeSat – the utilities that keep the project running: KiCad release and library tooling, Blender video editing helpers, media conversion, content and resource pipelines, repository checks, and the business operations suite. Every tool follows the [BAC Project & Tooling Guide](https://buildacubesat.space) and the BAC Interface Design Guide, so they look and behave alike: the same flags, the same terminal output, the same config locations.
+Build a CubeSat – the utilities that keep the project running: KiCad release and library tooling, antenna simulation, Blender video editing helpers, media conversion, content and resource pipelines, repository checks, and the business operations suite. Every tool follows the [BAC Project & Tooling Guide](https://buildacubesat.space) and the BAC Interface Design Guide, so they look and behave alike: the same flags, the same terminal output, the same config locations.
 
 The repository holds the generally usable state of each tool. Anything specific to one project – vendor prices, sheet IDs, repository paths, plugin locations – lives in your own config and data directories, created by each tool's `--init`. What ships here is the tool, sample data under `examples/`, and an `.env.example` where secrets are involved. See §5 to adapt a tool for your own project.
 
@@ -10,6 +10,8 @@ The repository holds the generally usable state of each tool. Anything specific 
 | :-- | :-- | :-- | :-- | :-- |
 | `bac-common` | library | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary, span-preserving s-expression parser | available | v0.2.0 |
 | `bac-kicad-common` | library | Shared KiCad library tooling: TOML field rules, property rendering for KiCad 9 and 10, span edits, write-back with backup | available | v0.1.0 |
+| `bac-antenna-optimizer` | RF | Antenna design around openEMS: parametric geometry, meshing rules, band targets, cavity-model pre-tuner, tolerance sweeps, sensitivity packs, reports with drawings, charts and KiCad board files | available | v0.7.4 |
+| `bac-antenna-visualizer` | RF | Marimo notebook with a slider per geometry parameter over an optimizer sensitivity pack: S-parameters, Smith chart, gain and axial ratio, pattern cuts, 3D pattern and fields; runs locally | available | v0.3.1 |
 | `bac-can-up` | bench | Brings up the CANable SLCAN interface: fresh `slcand`, bitrate, `can0` up | available | v1.2.0 |
 | `bac-convention-check` | repo | Lints a tree against the BAC guides (typography, naming, licensing, packaging, flags); runs in this repo's CI | available | v0.2.0 |
 | `bac-csr-ingest` | resources | Ingests documents and links into the CubeSat Resources site: extraction, LLM classification, review, upload, index, commit | available | v0.4.0 |
@@ -52,7 +54,8 @@ uv run ruff check .
 
 ```
 lib/       shared libraries (bac-common, bac-kicad-common, bac-suite-db)
-tools/     one directory per CLI tool, installable with uv tool install
+tools/     one directory per CLI tool, installable with uv tool install; the antenna optimizer's
+           simulation output (runs/) stays out of git and the kept runs live in bac-hardware
 ops/       business operations suite (Marimo notebooks + PostgreSQL)
 blender/   Blender extensions
 ```
@@ -73,6 +76,7 @@ Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool n
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.6.0 | 2026-10-02 | The two antenna tools from the S-band sessions brought in: `bac-antenna-optimizer` v0.7.4 (tag `bac-antenna-optimizer-v0.7.3` marks the version that generated the S-band cross patch in bac-hardware) and `bac-antenna-visualizer` v0.3.1, both on the conventions; the root `.gitignore` takes over their ignore rules. |
 | 0.5.0 | 2026-09-07 | The KiCad library tools and the CAN bench tool: `bac-kicad-symfields` v0.3.0, `bac-kicad-schfields` v0.2.0 and `bac-kicad-libcheck` v0.2.0 folded in from the separate bac-kicad-tools repository (the four `bac-kicad-misc` lint scripts absorbed as `symfields lint` and `fix`), `bac-can-up` v1.2.0 ported from `canup.sh`. New `bac-kicad-common` v0.1.0; `bac-common` v0.2.0 adds `bac_common.sexp`. All batch-1 tools have now arrived. |
 | 0.4.0 | 2026-09-04 | Four small tools on the scaffold: `bac-markdown-to-youtube` v0.2.0 (rewritten conversion), `bac-issue-print` v0.1.0 (ported from shell, pagination, token), `bac-kicad-hlabels` v0.1.0 (flags, `--gap-on-blank`), `bac-media-convert` v0.1.0 (`webp-square`, `cfr`; the two shell loops retired). `bac-common` v0.1.1: `.env` is searched from the working directory, `run_typer` puts Typer tools inside the error boundary. |
 | 0.3.0 | 2026-09-02 | `bac-convention-check` v0.2.0 ported to Python with TOML rule sets; runs on the repository in CI. |

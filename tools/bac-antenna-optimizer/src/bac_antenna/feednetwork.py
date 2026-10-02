@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Feed networks: how the ports are driven together.
 
 The solver runs each port alone; the network is applied afterwards as a vector of incident-wave weights. The
@@ -12,6 +13,7 @@ weights = [[re, im], ...]   # custom only; one entry per port, any scale
 
 Legacy `[polarization] hybrid_phase_deg / hybrid_amplitude_db` are mapped to phase_error_deg / amplitude_error_db.
 """
+
 from __future__ import annotations
 
 import cmath
@@ -49,7 +51,14 @@ def weight_options(config: Config, n_ports: int) -> list[np.ndarray]:
         out = []
         for sign in (-1, 1):
             # crossed dipoles: opposite elements in anti-phase, the two dipoles in quadrature
-            a = np.array([1.0, r * cmath.exp(1j * sign * math.radians(phase)), -1.0, -r * cmath.exp(1j * sign * math.radians(phase))])
+            a = np.array(
+                [
+                    1.0,
+                    r * cmath.exp(1j * sign * math.radians(phase)),
+                    -1.0,
+                    -r * cmath.exp(1j * sign * math.radians(phase)),
+                ]
+            )
             out.append(a / np.linalg.norm(a))
         return out
     if mode == "custom":

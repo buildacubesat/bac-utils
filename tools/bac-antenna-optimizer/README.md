@@ -2,7 +2,7 @@
 
 A workflow around [openEMS](https://openems.de) for designing antennas that have to be right before anyone builds them: parametric geometry, automatic meshing rules, band targets and scoring, a fast pre-tuner, circular-polarization post-processing, unattended tolerance sweeps, and a report pipeline that turns a run directory into charts, drawings, KiCad board files and a datasheet.
 
-Part of [bac-utils](https://github.com/buildacubesat/bac-utils) (`tools/bac-antenna-optimizer/`). The antennas designed with it live in [bac-hardware](https://codeberg.org/buildacubesat/bac-hardware) under `rf/antenna/`, each with an `antenna.toml` that pins the tool tag (`bac-antenna-optimizer-vX.Y.Z`). The first of them is the camera-through S-band cross patch; the engineering log of that design is `HANDOFF.md`.
+Part of Build a CubeSat's [bac-utils](https://github.com/buildacubesat/bac-utils) (`tools/bac-antenna-optimizer/`). The antennas designed with it live in [bac-hardware](https://codeberg.org/buildacubesat-project/bac-hardware) under `rf/antenna/`, each with an `antenna.toml` that pins the tool tag (`bac-antenna-optimizer-vX.Y.Z`). The first of them is the camera-through S-band cross patch; the engineering log of that design is `HANDOFF.md`.
 
 ## What the tool does, and what openEMS does
 
@@ -85,22 +85,31 @@ An antenna type is a small Python class. The dipole is the whole of it:
 from bac_antenna.antennas import AntennaType
 from bac_antenna.geometry import PRIORITY_METAL, FieldPlane, Model, Port, Primitive
 
+
 class Dipole(AntennaType):
     name = "dipole"
-    params = ("length_mm",)                       # what the optimizer varies; ranges come from [search]
+    params = ("length_mm",)  # what the optimizer varies; ranges come from [search]
 
-    def valid(self, p, config):                   # constraints between parameters
+    def valid(self, p, config):  # constraints between parameters
         return p["length_mm"] > 2 * config.geometry["gap_mm"]
 
-    def model(self, p, config):                   # geometry, ports, mesh hints
+    def model(self, p, config):  # geometry, ports, mesh hints
         g = config.geometry
         w, gap, h = g["strip_width_mm"], g["gap_mm"], p["length_mm"] / 2
-        arms = (Primitive("box", "arm", "metal", PRIORITY_METAL, start=(gap / 2, -w / 2, 0), stop=(h, w / 2, 0)),
-                Primitive("box", "arm", "metal", PRIORITY_METAL, start=(-h, -w / 2, 0), stop=(-gap / 2, w / 2, 0)))
+        arms = (
+            Primitive("box", "arm", "metal", PRIORITY_METAL, start=(gap / 2, -w / 2, 0), stop=(h, w / 2, 0)),
+            Primitive("box", "arm", "metal", PRIORITY_METAL, start=(-h, -w / 2, 0), stop=(-gap / 2, w / 2, 0)),
+        )
         port = Port((-gap / 2, 0, 0), (gap / 2, 0, 0), "x", 73.0)
-        return Model(arms, (port,), fixed_lines={"x": (-h, -gap / 2, gap / 2, h), "y": (-w / 2, w / 2), "z": (0.0,)},
-                     bounds=(-h, h, -w / 2, w / 2, 0, 0), edge_props=("arm",),
-                     field_planes=(FieldPlane("E_plane", (-1e9, -1e9, 0), (1e9, 1e9, 0)),))
+        return Model(
+            arms,
+            (port,),
+            fixed_lines={"x": (-h, -gap / 2, gap / 2, h), "y": (-w / 2, w / 2), "z": (0.0,)},
+            bounds=(-h, h, -w / 2, w / 2, 0, 0),
+            edge_props=("arm",),
+            field_planes=(FieldPlane("E_plane", (-1e9, -1e9, 0), (1e9, 1e9, 0)),),
+        )
+
 
 ANTENNA = Dipole()
 ```
@@ -124,3 +133,17 @@ A regenerate of an unchanged folder is byte-identical apart from the date line i
 ## Before trusting a number
 
 Look at `geometry.vtp` in ParaView. Run the mesh-refinement case, and keep `end_criteria` at 1e-5: openEMS does not stop at the same timestep twice, and at 1e-4 that costs a point of efficiency and half a point of run-to-run spread. Check `p_rad_over_p_acc` in the diagnostics is below 1 and close to the expected efficiency. For circular polarization, make sure `polarization.openems_rhcp_sense` was calibrated (HANDOFF §8) – the hand of every CP statement rests on it. Then build the antenna and measure it; the simulation is only as good as its comparison with a VNA.
+
+## Version history
+
+The engineering log in `HANDOFF.md` dates every version from 0.1.0 (2026-09-20) on; this table carries the releases that matter to a user of the tool.
+
+| Version | Date | Change |
+| :-- | :-- | :-- |
+| 0.7.4 | 2026-10-02 | Brought onto the bac-utils conventions: SPDX headers, ruff, en dash in the generated tables, tests collectable by the workspace pytest, hatchling. One fix: `report/drawings.py` used an f-string form that only Python 3.12 parses, so the report pipeline failed to import on 3.11. No change to any model, mesh or result. |
+| 0.7.3 | 2026-09-28 | Idempotent regenerate: deterministic KiCad UUIDs and SVG ids, no drawing rasters, the missing-runs guard (`--allow-missing`). The version pinned by the S-band cross patch in bac-hardware (tag `bac-antenna-optimizer-v0.7.3`). |
+| 0.7.2 | 2026-09-28 | Lossless WebP for raster images, `pack --zip`, provenance fields in `pack.json`, pack discovery inside a bac-hardware checkout. |
+| 0.7.0 | 2026-09-24 | Sensitivity packs (`bac-antenna pack`) for the visualizer. |
+| 0.6.0 | 2026-09-24 | General-purpose core: antenna types as plugins, `[feed_network]`, the coarse estimator, `bac-antenna migrate`. |
+| 0.5.0 | 2026-09-23 | Report pipeline: drawings, charts, KiCad board files and the antenna folder from templates. |
+| 0.1.0 | 2026-09-20 | Optimisation scaffold with the cavity model and the openEMS backend. |

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Cavity model for an arbitrary patch shape.
 
 Classic cavity model (Lo, Richards) with numerically computed eigenmodes:
@@ -12,10 +13,11 @@ Classic cavity model (Lo, Richards) with numerically computed eigenmodes:
 Resonances and mode structure are physical; absolute impedance and gain are cavity-model
 estimates (typically within 5–10 % in frequency, tens of percent in resistance).
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -48,6 +50,7 @@ def edge_extension_mm(h_mm: float, w_mm: float, ee: float) -> float:
 
 # ------------------------------------------------------------------ rasterise + eigen
 
+
 def _inside(poly: np.ndarray, X: np.ndarray, Y: np.ndarray) -> np.ndarray:
     inside = np.zeros(X.shape, dtype=bool)
     for i in range(len(poly)):
@@ -66,8 +69,8 @@ class Grid:
     xs: np.ndarray
     ys: np.ndarray
     d_mm: float
-    mask: np.ndarray        # cavity cells
-    pec: np.ndarray         # shorting tube cells
+    mask: np.ndarray  # cavity cells
+    pec: np.ndarray  # shorting tube cells
 
 
 def rasterise(shape: Shape, d_mm: float, extension_mm: float) -> Grid:
@@ -89,20 +92,20 @@ def rasterise(shape: Shape, d_mm: float, extension_mm: float) -> Grid:
 
 def _neighbour(a: np.ndarray, di: int, dj: int) -> np.ndarray:
     out = np.zeros_like(a)
-    src = a[max(di, 0): a.shape[0] + min(di, 0), max(dj, 0): a.shape[1] + min(dj, 0)]
-    out[max(-di, 0): a.shape[0] + min(-di, 0), max(-dj, 0): a.shape[1] + min(-dj, 0)] = src
+    src = a[max(di, 0) : a.shape[0] + min(di, 0), max(dj, 0) : a.shape[1] + min(dj, 0)]
+    out[max(-di, 0) : a.shape[0] + min(-di, 0), max(-dj, 0) : a.shape[1] + min(-dj, 0)] = src
     return out
 
 
 @dataclass
 class Modes:
-    lam: np.ndarray             # eigenvalues k_m^2, 1/m^2
-    vec: np.ndarray             # (cells, n), sum vec^2 = 1
+    lam: np.ndarray  # eigenvalues k_m^2, 1/m^2
+    vec: np.ndarray  # (cells, n), sum vec^2 = 1
     grid: Grid
-    index: np.ndarray           # cell index map, -1 outside
-    face_pos: np.ndarray        # (F, 2) m
-    face_dir: np.ndarray        # (F, 2) z x n
-    face_cell: np.ndarray       # (F,) cell index
+    index: np.ndarray  # cell index map, -1 outside
+    face_pos: np.ndarray  # (F, 2) m
+    face_dir: np.ndarray  # (F, 2) z x n
+    face_cell: np.ndarray  # (F,) cell index
 
     @property
     def d_m(self) -> float:
@@ -159,11 +162,19 @@ def eigenmodes(grid: Grid, count: int = 12) -> Modes:
     lam, vec = eigsh(A, k=k, sigma=-1e-4, which="LM")
     order = np.argsort(lam)
     lam, vec = np.maximum(lam[order], 0.0), vec[:, order]
-    return Modes(lam * 1e6, vec, grid, index, np.concatenate(face_pos) * 1e-3,
-                 np.concatenate(face_dir).astype(float), np.concatenate(face_cell))
+    return Modes(
+        lam * 1e6,
+        vec,
+        grid,
+        index,
+        np.concatenate(face_pos) * 1e-3,
+        np.concatenate(face_dir).astype(float),
+        np.concatenate(face_cell),
+    )
 
 
 # ------------------------------------------------------------------ radiation
+
 
 def _directions(n_theta: int = 18, n_phi: int = 36):
     dt, dp = (math.pi / 2) / n_theta, 2 * math.pi / n_phi
@@ -177,7 +188,7 @@ def radiation_vectors(modes: Modes, h_m: float, k0: float, theta, phi):
     """Magnetic radiation vectors Lx, Ly, shape (n_modes, n_dirs)."""
     u, v = np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi)
     phase = np.exp(1j * k0 * (np.outer(modes.face_pos[:, 0], u) + np.outer(modes.face_pos[:, 1], v)))
-    m = 2 * h_m * modes.vec[modes.face_cell]      # psi (1/m) * face length (m) = vec
+    m = 2 * h_m * modes.vec[modes.face_cell]  # psi (1/m) * face length (m) = vec
     lx = (m * modes.face_dir[:, [0]]).T @ phase
     ly = (m * modes.face_dir[:, [1]]).T @ phase
     return lx, ly
@@ -199,6 +210,7 @@ def broadside(modes: Modes, h_m: float, k0: float) -> tuple[np.ndarray, np.ndarr
 
 # ------------------------------------------------------------------ the model
 
+
 @dataclass
 class Cavity:
     modes: Modes
@@ -206,8 +218,8 @@ class Cavity:
     gap_m: float
     ee: float
     tan_d: float
-    feeds_psi: np.ndarray       # (ports, n)
-    q_rad: np.ndarray           # per mode
+    feeds_psi: np.ndarray  # (ports, n)
+    q_rad: np.ndarray  # per mode
     f_modes: np.ndarray
     probe_radius_m: float
     pad_c: float | None
@@ -215,7 +227,7 @@ class Cavity:
     extension_mm: float
 
     @classmethod
-    def build(cls, shape: Shape, config: Config, grid_mm: float | None = None, count: int | None = None) -> "Cavity":
+    def build(cls, shape: Shape, config: Config, grid_mm: float | None = None, count: int | None = None) -> Cavity:
         cav = config.cavity
         h = config.patch_height_mm()
         eq = config.epsilon_eq()
@@ -238,12 +250,30 @@ class Cavity:
             p = float(np.sum((abs(et) ** 2 + abs(ep) ** 2) * dom) / (2 * ETA0))
             q[i] = 2 * math.pi * f * stored / p if p > 0 else np.inf
         s, f = config.stack, config.feed
-        return cls(modes, h_m, float(s["gap_mm"]) * 1e-3, ee, config.loss_tangent_eq(), psi, q, f_modes,
-                   float(f["probe_diameter_mm"]) * 0.5e-3, None, float(f["impedance_ohm"]), ext)
+        return cls(
+            modes,
+            h_m,
+            float(s["gap_mm"]) * 1e-3,
+            ee,
+            config.loss_tangent_eq(),
+            psi,
+            q,
+            f_modes,
+            float(f["probe_diameter_mm"]) * 0.5e-3,
+            None,
+            float(f["impedance_ohm"]),
+            ext,
+        )
 
-    def with_pad(self, radius_mm: float, config: Config) -> "Cavity":
+    def with_pad(self, radius_mm: float, config: Config) -> Cavity:
         s = config.stack
-        self.pad_c = EPS0 * float(s["top_board_epsilon_r"]) * math.pi * (radius_mm * 1e-3) ** 2 / (float(s["top_board_mm"]) * 1e-3)
+        self.pad_c = (
+            EPS0
+            * float(s["top_board_epsilon_r"])
+            * math.pi
+            * (radius_mm * 1e-3) ** 2
+            / (float(s["top_board_mm"]) * 1e-3)
+        )
         return self
 
     def delta(self, f: float) -> np.ndarray:
@@ -303,9 +333,16 @@ class Cavity:
         g = d0 * e_rad * max(p_acc, 0.0) / p_inc
         er, el = circular_components(ex, ey)
         tot = abs(er) ** 2 + abs(el) ** 2
-        return {"ex": ex, "ey": ey, "gain_lin": g, "g_rhcp": g * abs(er) ** 2 / tot if tot else 0.0,
-                "g_lhcp": g * abs(el) ** 2 / tot if tot else 0.0, "ar_db": axial_ratio_db(ex, ey),
-                "e_rad": e_rad, "d0": d0}
+        return {
+            "ex": ex,
+            "ey": ey,
+            "gain_lin": g,
+            "g_rhcp": g * abs(er) ** 2 / tot if tot else 0.0,
+            "g_lhcp": g * abs(el) ** 2 / tot if tot else 0.0,
+            "ar_db": axial_ratio_db(ex, ey),
+            "e_rad": e_rad,
+            "d0": d0,
+        }
 
     def mode_table(self, k_ref: float) -> list[dict]:
         bx, by = broadside(self.modes, self.h_m, k_ref)
@@ -319,7 +356,13 @@ class Cavity:
                 kind = "no broadside (monopolar/higher)"
             else:
                 angle = math.degrees(math.atan2(abs(by[i]), abs(bx[i])))
-                kind = "broadside, x-pol" if angle < 30 else "broadside, y-pol" if angle > 60 else f"broadside, {angle:.0f} deg"
+                kind = (
+                    "broadside, x-pol"
+                    if angle < 30
+                    else "broadside, y-pol"
+                    if angle > 60
+                    else f"broadside, {angle:.0f} deg"
+                )
             out.append({"f_hz": float(f), "q_rad": float(self.q_rad[i]), "kind": kind})
         return out
 
@@ -397,13 +440,20 @@ class CavityBackend:
 
 # ------------------------------------------------------------------ analytic references (tests)
 
+
 def ring_root(inner_over_outer: float, shorted_inner: bool, n: int = 1) -> float:
     """Smallest k*b for an annular cavity: magnetic wall at b; magnetic (open) or electric (shorted) wall at a."""
     r = inner_over_outer
     if shorted_inner:
-        g = lambda x: jv(n, x * r) * yvp(n, x) - jvp(n, x) * yv(n, x * r)
+
+        def g(x):
+            return jv(n, x * r) * yvp(n, x) - jvp(n, x) * yv(n, x * r)
+
     else:
-        g = lambda x: jvp(n, x * r) * yvp(n, x) - jvp(n, x) * yvp(n, x * r)
+
+        def g(x):
+            return jvp(n, x * r) * yvp(n, x) - jvp(n, x) * yvp(n, x * r)
+
     xs = np.linspace(0.05, 12, 6000)
     v = g(xs)
     for i in range(len(xs) - 1):

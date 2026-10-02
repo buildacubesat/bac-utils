@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Plot farfield_cuts.csv of one or more case directories: RHCP realized gain and axial ratio versus
 signed theta in the four cut planes, one column per frequency. Writes farfield_cuts.png next to the
 CSV and prints the off-axis summary from openems_diagnostics.json.
 
     uv run --with matplotlib scripts/plot_cuts.py runs/freeze/frozen [runs/freeze/gap_4.37 ...]
 """
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
-
-import numpy as np
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from bac_antenna.pattern import read_cuts_csv, signed_cut  # noqa: E402
@@ -21,19 +21,20 @@ PLANES = (0.0, 90.0, 45.0, 135.0)
 
 def plot_case(case_dir: Path) -> Path:
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     cuts = read_cuts_csv(case_dir / "farfield_cuts.csv")
     freqs, theta, phi, metrics = cuts["freqs"], cuts["theta"], cuts["phi"], cuts["metrics"]
     fig, axes = plt.subplots(2, len(freqs), figsize=(4.8 * len(freqs), 7.0), sharex=True, squeeze=False)
-    for c, (f, m) in enumerate(zip(freqs, metrics)):
+    for c, (f, m) in enumerate(zip(freqs, metrics, strict=True)):
         ax_g, ax_ar = axes[0, c], axes[1, c]
         for plane in PLANES:
             xs, g = signed_cut(theta, phi, m["gain_co_dbic"], plane)
             _, gx = signed_cut(theta, phi, m["gain_cross_dbic"], plane)
             _, ar = signed_cut(theta, phi, m["ar_db"], plane)
-            line, = ax_g.plot(xs, g, label=f"phi = {plane:g} deg")
+            (line,) = ax_g.plot(xs, g, label=f"phi = {plane:g} deg")
             ax_g.plot(xs, gx, color=line.get_color(), linestyle=":", linewidth=0.8)
             ax_ar.plot(xs, ar, color=line.get_color())
         ax_g.set_title(f"{f / 1e9:.3f} GHz")
@@ -69,12 +70,16 @@ def print_summary(case_dir: Path) -> None:
         return
     print(f"{case_dir.name}:")
     for key, s in pat["per_frequency"].items():
-        print(f"  {key:>12s}  G0 {s['gain_co_broadside']:5.2f} dBic  AR0 {s['ar_broadside']:4.2f} dB  "
-              f"G45 {s['gain_co_min_45']:5.2f}  AR45 {s['ar_max_45']:4.2f}  G60 {s['gain_co_min_60']:5.2f}  "
-              f"AR60 {s['ar_max_60']:4.2f}  F/B {s['front_to_back_db']:4.1f} dB")
+        print(
+            f"  {key:>12s}  G0 {s['gain_co_broadside']:5.2f} dBic  AR0 {s['ar_broadside']:4.2f} dB  "
+            f"G45 {s['gain_co_min_45']:5.2f}  AR45 {s['ar_max_45']:4.2f}  G60 {s['gain_co_min_60']:5.2f}  "
+            f"AR60 {s['ar_max_60']:4.2f}  F/B {s['front_to_back_db']:4.1f} dB"
+        )
     w = pat["worst"]
-    print(f"  {'worst':>12s}  G60 {w['gain_co_min_60']:5.2f} dBic  AR60 {w['ar_max_60']:4.2f} dB  "
-          f"F/B {w['front_to_back_db']:4.1f} dB  rear-hemisphere power {100 * w['back_fraction']:.1f} %")
+    print(
+        f"  {'worst':>12s}  G60 {w['gain_co_min_60']:5.2f} dBic  AR60 {w['ar_max_60']:4.2f} dB  "
+        f"F/B {w['front_to_back_db']:4.1f} dB  rear-hemisphere power {100 * w['back_fraction']:.1f} %"
+    )
 
 
 def main(argv: list[str]) -> int:

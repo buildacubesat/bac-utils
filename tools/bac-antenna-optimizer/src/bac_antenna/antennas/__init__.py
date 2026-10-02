@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Antenna types: each turns a parameter dict + config into a solver-independent Model.
 
 Built-ins are registered in BUILTIN. A config can also name a Python file:
@@ -14,6 +15,7 @@ Minimal type:
         def valid(self, p, config): return p["length_mm"] > 0
         def model(self, p, config): ...  # -> Model (see geometry.Model)
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -57,7 +59,7 @@ class AntennaType:
         """Template values shared by all bands (stack, materials, ...)."""
         return {}
 
-    exporters: dict = {}     # name -> ("band" | "once", callable(ctx)); e.g. drawings per band, board files once
+    exporters: dict = {}  # name -> ("band" | "once", callable(ctx)); e.g. drawings per band, board files once
 
 
 def _load_file_type(spec: str):

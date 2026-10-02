@@ -1,4 +1,6 @@
+# SPDX-License-Identifier: MIT
 """Polarization helpers. Convention: IEEE, e^{jwt}, wave travelling along +z (broadside)."""
+
 from __future__ import annotations
 
 import math
@@ -35,7 +37,9 @@ def hybrid_weights(phase_deg: float = 90.0, amplitude_db: float = 0.0) -> list:
     Normalised to unit incident power.
     """
     import cmath
+
     import numpy as np
+
     r = 10 ** (amplitude_db / 20)
     out = []
     for sign in (-1, 1):

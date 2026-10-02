@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
 # Unattended robustness sweep for the dual-feed cross. Resumable: rerun to continue.
 set -u
 cd "$(dirname "$0")/.."

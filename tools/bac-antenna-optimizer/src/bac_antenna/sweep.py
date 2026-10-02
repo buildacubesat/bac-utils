@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Unattended parameter sweeps over a plan file.
 
 Plan (TOML):
@@ -12,13 +13,14 @@ Each finished case appends one row to sweep_summary.csv. With reprocess=True eve
 re-evaluated from its existing field data (no FDTD) and its summary row replaced – use it after a
 post-processing change to refresh an old sweep.
 """
+
 from __future__ import annotations
 
 import csv
 import json
-from pathlib import Path
 import time
 import tomllib
+from pathlib import Path
 
 from .config import load_config
 from .core import full_params, score
@@ -29,12 +31,24 @@ from .vtk import write_geometry_vtp
 
 
 def _row(name: str, params: dict, metrics: Metrics, s: float, diag: dict, seconds: float, config) -> dict:
-    row = {"case": name, "score": f"{s:.4f}", "resonance_hz": f"{metrics.resonance_hz:.5e}", "seconds": f"{seconds:.0f}"}
+    row = {
+        "case": name,
+        "score": f"{s:.4f}",
+        "resonance_hz": f"{metrics.resonance_hz:.5e}",
+        "seconds": f"{seconds:.0f}",
+    }
     row.update({k: f"{v:.3f}" for k, v in sorted(params.items())})
     for b in config.bands:
         m = metrics.bands[b.name]
-        row.update({f"{b.name}_s11": f"{m.s11_worst_db:.2f}", f"{b.name}_gain": f"{m.gain_min_dbic:.2f}",
-                    f"{b.name}_ar": f"{m.ar_worst_db:.2f}", f"{b.name}_eff": f"{m.efficiency_percent:.1f}", f"{b.name}_hand": m.hand})
+        row.update(
+            {
+                f"{b.name}_s11": f"{m.s11_worst_db:.2f}",
+                f"{b.name}_gain": f"{m.gain_min_dbic:.2f}",
+                f"{b.name}_ar": f"{m.ar_worst_db:.2f}",
+                f"{b.name}_eff": f"{m.efficiency_percent:.1f}",
+                f"{b.name}_hand": m.hand,
+            }
+        )
     pb = diag.get("power_cross_check_primary_centre") or {}
     row["p_rad_over_p_acc"] = f"{pb.get('p_rad_over_p_acc', float('nan')):.3f}"
     row["hybrid_load_fraction"] = f"{diag.get('hybrid_load_fraction_at_primary_centre', float('nan')):.3f}"
@@ -81,8 +95,17 @@ def merged_fields(existing: list[str], row: dict) -> list[str]:
     return existing + [k for k in row if k not in existing]
 
 
-def run_sweep(config_path: Path, design_path: Path, plan_path: Path, output: Path, backend_name: str,
-              base_overrides: list[str], dry_run: bool = False, reuse: bool = True, reprocess: bool = False) -> int:
+def run_sweep(
+    config_path: Path,
+    design_path: Path,
+    plan_path: Path,
+    output: Path,
+    backend_name: str,
+    base_overrides: list[str],
+    dry_run: bool = False,
+    reuse: bool = True,
+    reprocess: bool = False,
+) -> int:
     plan = tomllib.load(plan_path.open("rb"))
     cases = plan.get("case", [])
     base_design = json.loads(design_path.read_text())
@@ -95,14 +118,16 @@ def run_sweep(config_path: Path, design_path: Path, plan_path: Path, output: Pat
     if backend_name == "openems" and not dry_run:
         try:
             import CSXCAD  # noqa: F401
-            import openEMS  # noqa: F401
             import h5py  # noqa: F401
+            import openEMS  # noqa: F401
         except ImportError as exc:
-            print(f"openEMS backend unavailable in this environment ({exc.name}). Install the bindings into this venv:\n"
-                  "  uv sync --extra simulation\n"
-                  "  CSXCAD_INSTALL_PATH=<openEMS install> OPENEMS_INSTALL_PATH=<openEMS install> "
-                  "uv pip install <openEMS-Project>/CSXCAD/python <openEMS-Project>/openEMS/python\n"
-                  "then use `uv run` or `uv sync --inexact`; a plain `uv sync` removes them again (HANDOFF §7).")
+            print(
+                f"openEMS backend unavailable in this environment ({exc.name}). Install the bindings into this venv:\n"
+                "  uv sync --extra simulation\n"
+                "  CSXCAD_INSTALL_PATH=<openEMS install> OPENEMS_INSTALL_PATH=<openEMS install> "
+                "uv pip install <openEMS-Project>/CSXCAD/python <openEMS-Project>/openEMS/python\n"
+                "then use `uv run` or `uv sync --inexact`; a plain `uv sync` removes them again (HANDOFF §7)."
+            )
             return 2
     failures: list[tuple[str, str]] = []
     for i, case in enumerate(cases, start=1):
@@ -153,7 +178,7 @@ def run_sweep(config_path: Path, design_path: Path, plan_path: Path, output: Pat
 
                 metrics = OpenEMSBackend().evaluate(params, config, case_dir, reuse=(reuse or reprocess) and has_fields)
                 diag = json.loads((case_dir / "openems_diagnostics.json").read_text())
-        except Exception as exc:          # one bad case must not end an unattended sweep
+        except Exception as exc:  # one bad case must not end an unattended sweep
             import traceback
 
             print(f"{tag}: FAILED after {time.time() - t0:.0f} s – {exc}", flush=True)
@@ -162,24 +187,34 @@ def run_sweep(config_path: Path, design_path: Path, plan_path: Path, output: Pat
             continue
         (case_dir / "error.txt").unlink(missing_ok=True)
         s = score(metrics, config)
-        (case_dir / "result.json").write_text(json.dumps({"score": s, "backend": backend_name, "metrics": metrics.as_dict()}, indent=2) + "\n")
+        (case_dir / "result.json").write_text(
+            json.dumps({"score": s, "backend": backend_name, "metrics": metrics.as_dict()}, indent=2) + "\n"
+        )
         seconds = time.time() - t0
         if reprocess and name in done:
             old = next(r for r in rows if r["case"] == name)
-            seconds = float(old.get("seconds") or seconds)   # keep the FDTD time, not the reprocessing time
+            seconds = float(old.get("seconds") or seconds)  # keep the FDTD time, not the reprocessing time
         row = _row(name, params, metrics, s, diag, seconds, config)
         if reprocess:
             rows = [r for r in rows if r["case"] != name] + [row]
             fields = merged_fields(fields, row)
-            write_summary(summary, fields, rows)      # rewritten after every case: a crash loses nothing
+            write_summary(summary, fields, rows)  # rewritten after every case: a crash loses nothing
         else:
             append_row(summary, row)
         done.add(name)
         pm = metrics.bands[config.primary_band.name]
         w = (diag.get("pattern") or {}).get("worst") or {}
-        extra = f", G60 {w['gain_co_min_60']:.1f} dBic, AR60 {w['ar_max_60']:.1f} dB, F/B {w['front_to_back_db']:.0f} dB" if w else ""
-        print(f"{tag}: f_res {metrics.resonance_hz / 1e9:.4f} GHz  {config.primary_band.name}: S11 {pm.s11_worst_db:.1f} dB, "
-              f"G {pm.gain_min_dbic:.1f} dBic, AR {pm.ar_worst_db:.1f} dB, {pm.hand}{extra}  ({time.time() - t0:.0f} s)", flush=True)
+        extra = (
+            f", G60 {w['gain_co_min_60']:.1f} dBic, AR60 {w['ar_max_60']:.1f} dB, F/B {w['front_to_back_db']:.0f} dB"
+            if w
+            else ""
+        )
+        print(
+            f"{tag}: f_res {metrics.resonance_hz / 1e9:.4f} GHz  {config.primary_band.name}: S11 {pm.s11_worst_db:.1f} "
+            f"dB, "
+            f"G {pm.gain_min_dbic:.1f} dBic, AR {pm.ar_worst_db:.1f} dB, {pm.hand}{extra}  ({time.time() - t0:.0f} s)",
+            flush=True,
+        )
     if failures:
         print(f"{len(failures)} case(s) failed: " + ", ".join(n for n, _ in failures))
         return 1

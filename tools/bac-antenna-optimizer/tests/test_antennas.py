@@ -1,21 +1,22 @@
+# SPDX-License-Identifier: MIT
 """Antenna types, feed networks, config layouts and migration."""
+
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 
 import numpy as np
-
+from antenna_testkit import ROOT
 from bac_antenna.antennas import builtin_types, get_antenna
-from bac_antenna.config import Config, load_config
+from bac_antenna.config import load_config
 from bac_antenna.core import full_params
 from bac_antenna.feednetwork import weight_options
 from bac_antenna.geometry import check_model
 from bac_antenna.migrate import migrate_config_text, migrate_plan_text
 from bac_antenna.openems_backend import build_lines
-from helpers import ROOT
 
-GENERIC = '''
+GENERIC = """
 [[band]]
 name = "uhf"
 low_hz = 4.30e8
@@ -40,7 +41,7 @@ end_criteria = 1e-4
 mesh_growth = 1.4
 [weights]
 s11 = 1.0
-'''
+"""
 
 
 def write(temp: Path, name: str, text: str) -> Path:
@@ -55,7 +56,12 @@ class TypeTests(unittest.TestCase):
 
     def test_dipole_model(self):
         with tempfile.TemporaryDirectory() as t:
-            cfg = write(Path(t), "d.toml", '[antenna]\ntype = "dipole"\n[geometry]\nstrip_width_mm = 2.0\ngap_mm = 1.0\n[search]\nlength_mm = [250.0, 400.0]\n' + GENERIC)
+            cfg = write(
+                Path(t),
+                "d.toml",
+                '[antenna]\ntype = "dipole"\n[geometry]\nstrip_width_mm = 2.0\ngap_mm = 1.0\n[search]\nlength_mm = [250.0, 400.0]\n'
+                + GENERIC,
+            )
             config = load_config(cfg)
             ant = get_antenna(config)
             self.assertFalse(ant.has_estimator())
@@ -74,8 +80,13 @@ class TypeTests(unittest.TestCase):
 
     def test_turnstile_model_and_feed(self):
         with tempfile.TemporaryDirectory() as t:
-            cfg = write(Path(t), "t.toml", '[antenna]\ntype = "turnstile"\n[geometry]\nbody_x_mm = 100.0\nbody_y_mm = 100.0\nbody_z_mm = 340.0\n'
-                        'tape_width_mm = 3.0\ntape_thickness_mm = 0.1\nelement_height_mm = 3.0\nroot_inset_mm = 5.0\n[search]\nelement_length_mm = [140.0, 200.0]\n' + GENERIC)
+            cfg = write(
+                Path(t),
+                "t.toml",
+                '[antenna]\ntype = "turnstile"\n[geometry]\nbody_x_mm = 100.0\nbody_y_mm = 100.0\nbody_z_mm = 340.0\n'
+                "tape_width_mm = 3.0\ntape_thickness_mm = 0.1\nelement_height_mm = 3.0\nroot_inset_mm = 5.0\n[search]\nelement_length_mm = [140.0, 200.0]\n"
+                + GENERIC,
+            )
             config = load_config(cfg)
             ant = get_antenna(config)
             p = full_params({"element_length_mm": 170.0}, config)
@@ -83,26 +94,39 @@ class TypeTests(unittest.TestCase):
             self.assertEqual(check_model(m), [])
             self.assertEqual(len(m.ports), 4)
             self.assertEqual([q.direction for q in m.ports], ["z"] * 4)
-            self.assertEqual(m.extent()[0], -215.0)                # 50 - 5 + 170 reach
+            self.assertEqual(m.extent()[0], -215.0)  # 50 - 5 + 170 reach
             opts = weight_options(config, 4)
             self.assertEqual(len(opts), 2)
             for a in opts:
                 self.assertAlmostEqual(float(np.linalg.norm(a)), 1.0)
-                self.assertAlmostEqual(a[2] / a[0], -1.0)              # opposite elements anti-phase
+                self.assertAlmostEqual(a[2] / a[0], -1.0)  # opposite elements anti-phase
                 self.assertAlmostEqual(abs(a[1] / a[0]), 1.0)
                 self.assertAlmostEqual(abs(np.angle(a[1] / a[0])), np.pi / 2)
 
     def test_file_type(self):
         with tempfile.TemporaryDirectory() as t:
             temp = Path(t)
-            write(temp, "mine.py", "from bac_antenna.antennas.dipole import Dipole\n\nclass Mine(Dipole):\n    name = 'mine'\n\nANTENNA = Mine()\n")
-            cfg = write(temp, "m.toml", f'[antenna]\ntype = "file:{temp / "mine.py"}"\n[geometry]\nstrip_width_mm = 2.0\ngap_mm = 1.0\n[search]\nlength_mm = [250.0, 400.0]\n' + GENERIC)
+            write(
+                temp,
+                "mine.py",
+                "from bac_antenna.antennas.dipole import Dipole\n\nclass Mine(Dipole):\n    name = 'mine'\n\nANTENNA = Mine()\n",
+            )
+            cfg = write(
+                temp,
+                "m.toml",
+                f'[antenna]\ntype = "file:{temp / "mine.py"}"\n[geometry]\nstrip_width_mm = 2.0\ngap_mm = 1.0\n[search]\nlength_mm = [250.0, 400.0]\n'
+                + GENERIC,
+            )
             self.assertEqual(get_antenna(load_config(cfg)).name, "mine")
 
     def test_feed_network_custom_and_errors(self):
         with tempfile.TemporaryDirectory() as t:
-            cfg = write(Path(t), "d.toml", '[antenna]\ntype = "dipole"\n[geometry]\nstrip_width_mm = 2.0\ngap_mm = 1.0\n[search]\nlength_mm = [250.0, 400.0]\n'
-                        '[feed_network]\nmode = "custom"\nweights = [[1.0, 0.0], [0.0, -1.0]]\n' + GENERIC)
+            cfg = write(
+                Path(t),
+                "d.toml",
+                '[antenna]\ntype = "dipole"\n[geometry]\nstrip_width_mm = 2.0\ngap_mm = 1.0\n[search]\nlength_mm = [250.0, 400.0]\n'
+                '[feed_network]\nmode = "custom"\nweights = [[1.0, 0.0], [0.0, -1.0]]\n' + GENERIC,
+            )
             config = load_config(cfg)
             a = weight_options(config, 2)[0]
             self.assertAlmostEqual(a[1] / a[0], -1j)
@@ -119,7 +143,7 @@ class LayoutTests(unittest.TestCase):
         design = json.loads((ROOT / "designs" / "cross_2200_dual_v2.json").read_text())
         models = []
         for path in (legacy, new):
-            config = load_config(path, ["stack.gap_mm=4.5"])          # legacy override spelling on both layouts
+            config = load_config(path, ["stack.gap_mm=4.5"])  # legacy override spelling on both layouts
             self.assertEqual(float(config.stack["gap_mm"]), 4.5)
             models.append(get_antenna(config).model(full_params(design, config), config))
         self.assertEqual(models[0], models[1])
@@ -132,12 +156,18 @@ class LayoutTests(unittest.TestCase):
         self.assertIn("[geometry.feed]", out)
         self.assertNotIn("topology =", out)
         self.assertIn("phase_error_deg = -4", out)
-        self.assertEqual(migrate_config_text(out), out)                # idempotent
+        self.assertEqual(migrate_config_text(out), out)  # idempotent
         plan = 'set = ["stack.gap_mm=4.1", "outline.ground=\\"panel\\"", "polarization.hybrid_phase_deg=86"]'
-        self.assertEqual(migrate_plan_text(plan), 'set = ["geometry.stack.gap_mm=4.1", "geometry.outline.ground=\\"panel\\"", "polarization.hybrid_phase_deg=86"]')
+        self.assertEqual(
+            migrate_plan_text(plan),
+            'set = ["geometry.stack.gap_mm=4.1", "geometry.outline.ground=\\"panel\\"", "polarization.hybrid_phase_deg=86"]',
+        )
 
     def test_feed_network_maps_legacy_keys(self):
-        config = load_config(ROOT / "config" / "cross_2200_dual_v2.toml", ["polarization.hybrid_phase_deg=94", "polarization.hybrid_amplitude_db=0.3"])
+        config = load_config(
+            ROOT / "config" / "cross_2200_dual_v2.toml",
+            ["polarization.hybrid_phase_deg=94", "polarization.hybrid_amplitude_db=0.3"],
+        )
         self.assertAlmostEqual(config.feed_network["phase_error_deg"], 4.0)
         self.assertAlmostEqual(config.feed_network["amplitude_error_db"], 0.3)
         opts = weight_options(config, 2)

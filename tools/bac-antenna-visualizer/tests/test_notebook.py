@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Headless checks of the visualizer.
 
 SyntheticPackTests builds a small pack with the optimizer itself (cavity-backend sweep + `build_pack`), adds a
@@ -5,6 +6,7 @@ synthetic sphere, field planes and complex S-parameters, and runs the notebook o
 RealPackTests runs the notebook on whatever pack the notebook discovers on this machine (a bac-hardware checkout
 next to bac-utils, the notebook's packs/ folder, or BAC_ANTENNA_PACKS) and is skipped when there is none.
 """
+
 import gzip
 import importlib
 import json
@@ -47,7 +49,15 @@ def build_synthetic_pack(root: Path) -> Path:
         '[[case]]\nname = "arms_60.2"\nparams = { arm_x_mm = 60.2, arm_y_mm = 60.2 }\n'
         '[[case]]\nname = "arms_61.2"\nparams = { arm_x_mm = 61.2, arm_y_mm = 61.2 }\n'
     )
-    run_sweep(root / "design" / "2200.toml", root / "design" / "2200.json", root / "plan.toml", root / "sim" / "runs", "cavity", [], False)
+    run_sweep(
+        root / "design" / "2200.toml",
+        root / "design" / "2200.json",
+        root / "plan.toml",
+        root / "sim" / "runs",
+        "cavity",
+        [],
+        False,
+    )
     (root / "design" / "sensitivity.toml").write_text(
         '[sensitivity]\nname = "synthetic-2200"\nconfig = "design/2200.toml"\ndesign = "design/2200.json"\n'
         'nominal = "sim/runs/ref-2200"\nruns = ["sim/runs"]\nignore = ["geometry.stack.max_height_mm"]\n'
@@ -67,8 +77,22 @@ def build_synthetic_pack(root: Path) -> Path:
     for k, c in enumerate(cases):
         for t in th:
             for p in ph:
-                g = 10 * np.log10(max(1e-3, np.cos(np.radians(t)) ** 4)) + 10.5 - 0.3 * k if t <= 90 else -12 - 0.05 * (t - 90)
-                rows.append({"case": c, "theta_deg": t, "phi_deg": p, "gain_total_dbi": g, "gain_co_dbic": g, "gain_cross_dbic": g - 20, "ar_db": 0.6 + t / 60})
+                g = (
+                    10 * np.log10(max(1e-3, np.cos(np.radians(t)) ** 4)) + 10.5 - 0.3 * k
+                    if t <= 90
+                    else -12 - 0.05 * (t - 90)
+                )
+                rows.append(
+                    {
+                        "case": c,
+                        "theta_deg": t,
+                        "phi_deg": p,
+                        "gain_total_dbi": g,
+                        "gain_co_dbic": g,
+                        "gain_cross_dbic": g - 20,
+                        "ar_db": 0.6 + t / 60,
+                    }
+                )
     with gzip.open(pack / "sphere.csv.gz", "wt", newline="") as fh:
         pd.DataFrame(rows).to_csv(fh, index=False)
     # field planes: a gaussian on two planes, nominal only
@@ -77,14 +101,39 @@ def build_synthetic_pack(root: Path) -> Path:
     for plane, axes, fixed, coord in (("E_gap", "xy", "z", 2.33), ("E_xz", "xz", "y", 0.0)):
         for a in u:
             for b in u:
-                rows.append({"case": nominal, "plane": plane, "axes": axes, "fixed": fixed, "coord": coord, "u": a, "v": b, "e_db": -(a**2 + b**2) / 100})
+                rows.append(
+                    {
+                        "case": nominal,
+                        "plane": plane,
+                        "axes": axes,
+                        "fixed": fixed,
+                        "coord": coord,
+                        "u": a,
+                        "v": b,
+                        "e_db": -(a**2 + b**2) / 100,
+                    }
+                )
     with gzip.open(pack / "efield.csv.gz", "wt", newline="") as fh:
         pd.DataFrame(rows).to_csv(fh, index=False)
     # sweeps: the cavity backend writes no S-parameter files, so make a loop per case
     f = np.linspace(1.6e9, 2.9e9, 131)
     ang = (f - 2.245e9) / 0.3e9 * np.pi
-    sw = pd.concat([pd.DataFrame({"case": c, "frequency_hz": f, "s11_in_db": -20 - 5 * np.cos(ang), "s11_db": -10 - 5 * np.cos(ang), "s21_db": -30.0,
-                                  "s11_re": 0.3 * np.cos(ang) + 0.1, "s11_im": 0.3 * np.sin(ang)}) for c in cases])
+    sw = pd.concat(
+        [
+            pd.DataFrame(
+                {
+                    "case": c,
+                    "frequency_hz": f,
+                    "s11_in_db": -20 - 5 * np.cos(ang),
+                    "s11_db": -10 - 5 * np.cos(ang),
+                    "s21_db": -30.0,
+                    "s11_re": 0.3 * np.cos(ang) + 0.1,
+                    "s11_im": 0.3 * np.sin(ang),
+                }
+            )
+            for c in cases
+        ]
+    )
     with gzip.open(pack / "sweeps.csv.gz", "wt", newline="") as fh:
         sw.to_csv(fh, index=False)
     return pack
@@ -95,7 +144,7 @@ class SyntheticPackTests(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp = Path(tempfile.mkdtemp())
         cls.pack = build_synthetic_pack(cls.tmp)
-        os.environ["BAC_ANTENNA_PACKS"] = str(cls.tmp)          # an antenna folder as a search root
+        os.environ["BAC_ANTENNA_PACKS"] = str(cls.tmp)  # an antenna folder as a search root
         cls.outputs, cls.defs = _run_notebook()
 
     @classmethod
@@ -107,7 +156,7 @@ class SyntheticPackTests(unittest.TestCase):
         d = self.defs
         self.assertIn("synthetic-2200", d["FOUND"])
         self.assertEqual(Path(d["FOUND"]["synthetic-2200"]).resolve(), self.pack.resolve())
-        self.assertEqual(Path(d["pack_source"]).resolve(), self.pack.resolve())   # BAC_ANTENNA_PACKS packs come first
+        self.assertEqual(Path(d["pack_source"]).resolve(), self.pack.resolve())  # BAC_ANTENNA_PACKS packs come first
         self.assertEqual(d["MODE"], "nominal")
         self.assertEqual(d["PACK"]["meta"]["source"], "test")
 
@@ -150,6 +199,7 @@ class SyntheticPackTests(unittest.TestCase):
     def test_zip_pack_loads(self):
         d = self.defs
         import zipfile
+
         z = self.tmp / "synthetic-pack.zip"
         with zipfile.ZipFile(z, "w") as zf:
             for f in self.pack.iterdir():
@@ -167,8 +217,8 @@ class RealPackTests(unittest.TestCase):
         os.environ.pop("BAC_ANTENNA_PACKS", None)
         try:
             cls.outputs, cls.defs = _run_notebook()
-        except Exception as exc:       # the No Pack callout stops the run
-            raise unittest.SkipTest(f"no pack discoverable here: {exc}")
+        except Exception as exc:  # the No Pack callout stops the run
+            raise unittest.SkipTest(f"no pack discoverable here: {exc}") from exc
         if not cls.defs.get("FOUND"):
             raise unittest.SkipTest("no pack discoverable here")
 

@@ -1,32 +1,34 @@
+# SPDX-License-Identifier: MIT
 """Solver-independent geometry: primitives for CSXCAD, shapes for the cavity model.
 
 Units: mm. z = 0 is the ground copper; the patch sits at z = gap + top board.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import math
+from dataclasses import dataclass, field
 
 PRIORITY_DIELECTRIC = 0
-PRIORITY_PORT = 5          # below the metals, as in the upstream patch tutorial
+PRIORITY_PORT = 5  # below the metals, as in the upstream patch tutorial
 PRIORITY_METAL = 10
 PRIORITY_SLEEVE = 20
-PRIORITY_APERTURE = 100    # air cut through everything inside the bore
+PRIORITY_APERTURE = 100  # air cut through everything inside the bore
 
 Point = tuple[float, float]
 
 
 @dataclass(frozen=True)
 class Primitive:
-    kind: str                       # polygon | linpoly | cylinder | box
+    kind: str  # polygon | linpoly | cylinder | box
     prop: str
-    material: str                   # metal | dielectric | air
+    material: str  # metal | dielectric | air
     priority: int
     epsilon_r: float = 1.0
     loss_tangent: float = 0.0
     points: tuple[Point, ...] = ()
     elevation: float = 0.0
-    length: float = 0.0             # linpoly extrusion along +z
+    length: float = 0.0  # linpoly extrusion along +z
     start: tuple[float, float, float] = (0.0, 0.0, 0.0)
     stop: tuple[float, float, float] = (0.0, 0.0, 0.0)
     radius: float = 0.0
@@ -44,6 +46,7 @@ class Port:
 @dataclass(frozen=True)
 class FieldPlane:
     """A plane for frequency-domain field dumps; the backend snaps the fixed coordinate to the nearest mesh line."""
+
     name: str
     start: tuple[float, float, float]
     stop: tuple[float, float, float]
@@ -62,6 +65,7 @@ class Model:
     edge_props: property names whose edges get metal-edge refinement.
     field_planes: planes for E-field dumps when [dump] efield is on.
     """
+
     primitives: tuple[Primitive, ...]
     ports: tuple[Port, ...]
     fixed_lines: dict[str, tuple[float, ...]]
@@ -80,41 +84,66 @@ class Model:
         xs, ys, zs = [], [], []
         for p in self.primitives:
             if p.kind in ("box", "cylinder"):
-                xs += [p.start[0] - p.radius, p.stop[0] + p.radius]; ys += [p.start[1] - p.radius, p.stop[1] + p.radius]
+                xs += [p.start[0] - p.radius, p.stop[0] + p.radius]
+                ys += [p.start[1] - p.radius, p.stop[1] + p.radius]
                 zs += [p.start[2], p.stop[2]]
             else:
-                xs += [q[0] for q in p.points]; ys += [q[1] for q in p.points]
+                xs += [q[0] for q in p.points]
+                ys += [q[1] for q in p.points]
                 zs += [p.elevation, p.elevation + p.length]
         for q in self.ports:
-            xs += [q.start[0], q.stop[0]]; ys += [q.start[1], q.stop[1]]; zs += [q.start[2], q.stop[2]]
+            xs += [q.start[0], q.stop[0]]
+            ys += [q.start[1], q.stop[1]]
+            zs += [q.start[2], q.stop[2]]
         return (min(xs), max(xs), min(ys), max(ys), min(zs), max(zs))
 
 
 @dataclass(frozen=True)
 class Shape:
     """Patch description for the cavity model."""
-    outline: tuple[Point, ...]      # outer contour, CCW
-    hole_radius: float              # open hole (magnetic wall), 0 = none
-    short_radius: float             # PEC tube joining patch and ground, 0 = none
+
+    outline: tuple[Point, ...]  # outer contour, CCW
+    hole_radius: float  # open hole (magnetic wall), 0 = none
+    short_radius: float  # PEC tube joining patch and ground, 0 = none
     feeds: tuple[Point, ...]
-    fringe_width_mm: float          # strip width used for the Hammerstad edge extension
+    fringe_width_mm: float  # strip width used for the Hammerstad edge extension
 
 
 # ---------------------------------------------------------------- outlines
 
-def circle(radius: float, segments: int = 48, cx: float = 0.0, cy: float = 0.0, start: float = 0.0,
-           clockwise: bool = False) -> tuple[Point, ...]:
+
+def circle(
+    radius: float, segments: int = 48, cx: float = 0.0, cy: float = 0.0, start: float = 0.0, clockwise: bool = False
+) -> tuple[Point, ...]:
     s = -1 if clockwise else 1
-    return tuple((cx + radius * math.cos(start + s * 2 * math.pi * i / segments),
-                  cy + radius * math.sin(start + s * 2 * math.pi * i / segments)) for i in range(segments))
+    return tuple(
+        (
+            cx + radius * math.cos(start + s * 2 * math.pi * i / segments),
+            cy + radius * math.sin(start + s * 2 * math.pi * i / segments),
+        )
+        for i in range(segments)
+    )
 
 
 def cross_outline(arm_x: float, arm_y: float, width: float, width_y: float | None = None) -> tuple[Point, ...]:
     """Plus shape, CCW, starting at (-arm_x/2, 0). Arms are full tip-to-tip lengths."""
     ax, ay, w = arm_x / 2, arm_y / 2, width / 2
     wy = (width_y if width_y is not None else width) / 2
-    return ((-ax, 0.0), (-ax, -w), (-wy, -w), (-wy, -ay), (wy, -ay), (wy, -w), (ax, -w), (ax, w),
-            (wy, w), (wy, ay), (-wy, ay), (-wy, w), (-ax, w))
+    return (
+        (-ax, 0.0),
+        (-ax, -w),
+        (-wy, -w),
+        (-wy, -ay),
+        (wy, -ay),
+        (wy, -w),
+        (ax, -w),
+        (ax, w),
+        (wy, w),
+        (wy, ay),
+        (-wy, ay),
+        (-wy, w),
+        (-ax, w),
+    )
 
 
 def ring_outline(outer: float, tab_length: float, tab_width: float, segments: int = 96) -> tuple[Point, ...]:
@@ -150,8 +179,13 @@ def with_hole(outline: tuple[Point, ...], radius: float, segments: int = 48) -> 
     then gives the hole winding 0.
     """
     start = outline[0]
-    hole = [(radius * math.cos(math.pi - 2 * math.pi * i / segments),
-             radius * math.sin(math.pi - 2 * math.pi * i / segments)) for i in range(segments + 1)]
+    hole = [
+        (
+            radius * math.cos(math.pi - 2 * math.pi * i / segments),
+            radius * math.sin(math.pi - 2 * math.pi * i / segments),
+        )
+        for i in range(segments + 1)
+    ]
     return tuple(outline) + (start,) + tuple(hole)
 
 
