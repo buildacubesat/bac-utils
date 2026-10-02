@@ -1,0 +1,41 @@
+[project]
+name = "bac-cad-preview"
+version = "0.5.0"
+description = "Render STEP, STL and 3MF files to square WebP previews framed like the BAC KiCad board renders, with an X/Y/Z scale gizmo."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "bac-common>=0.2",
+    "rich>=13.7",
+    "numpy>=1.26",
+    "pillow>=10.1",
+    "trimesh>=4.0",
+    "networkx>=3.0",
+    "lxml>=5.0",
+]
+
+[project.optional-dependencies]
+# STEP input needs OpenCascade through cadquery-ocp (about 100 MB). Without it
+# the tool renders STL, 3MF, OBJ and PLY and says how to add STEP support.
+step = ["cadquery-ocp>=7.7"]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+bac-cad-preview = "bac_cad_preview.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bac_cad_preview"]
+
+[tool.uv.sources]
+bac-common = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
