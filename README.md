@@ -8,7 +8,7 @@ The repository holds the generally usable state of each tool. Anything specific 
 
 | Tool | Domain | What it does | Status | Version |
 | :-- | :-- | :-- | :-- | :-- |
-| `bac-common` | library | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary, span-preserving s-expression parser | available | v0.2.0 |
+| `bac-common` | library | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary, span-preserving s-expression parser, test harness | available | v0.2.1 |
 | `bac-kicad-common` | library | Shared KiCad library tooling: TOML field rules, property rendering for KiCad 9 and 10, span edits, write-back with backup | available | v0.1.0 |
 | `bac-antenna-optimizer` | RF | Antenna design around openEMS: parametric geometry, meshing rules, band targets, cavity-model pre-tuner, tolerance sweeps, sensitivity packs, reports with drawings, charts and KiCad board files | available | v0.7.4 |
 | `bac-antenna-visualizer` | RF | Marimo notebook with a slider per geometry parameter over an optimizer sensitivity pack: S-parameters, Smith chart, gain and axial ratio, pattern cuts, 3D pattern and fields; runs locally | available | v0.3.1 |
@@ -76,7 +76,7 @@ Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool n
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
-| 0.6.0 | 2026-10-02 | The two antenna tools from the S-band sessions brought in: `bac-antenna-optimizer` v0.7.4 (tag `bac-antenna-optimizer-v0.7.3` marks the version that generated the S-band cross patch in bac-hardware) and `bac-antenna-visualizer` v0.3.1, both on the conventions; the root `.gitignore` takes over their ignore rules. |
+| 0.6.0 | 2026-10-02 | The two antenna tools from the S-band sessions brought in: `bac-antenna-optimizer` v0.7.4 (tag `bac-antenna-optimizer-v0.7.3` marks the version that generated the S-band cross patch in bac-hardware) and `bac-antenna-visualizer` v0.3.1, both on the conventions; the root `.gitignore` takes over their ignore rules. `bac-common` v0.2.1 and a root `conftest.py` pin the terminal widths under test, so the suite passes at any width (five tests failed at 80 columns before). |
 | 0.5.0 | 2026-09-07 | The KiCad library tools and the CAN bench tool: `bac-kicad-symfields` v0.3.0, `bac-kicad-schfields` v0.2.0 and `bac-kicad-libcheck` v0.2.0 folded in from the separate bac-kicad-tools repository (the four `bac-kicad-misc` lint scripts absorbed as `symfields lint` and `fix`), `bac-can-up` v1.2.0 ported from `canup.sh`. New `bac-kicad-common` v0.1.0; `bac-common` v0.2.0 adds `bac_common.sexp`. All batch-1 tools have now arrived. |
 | 0.4.0 | 2026-09-04 | Four small tools on the scaffold: `bac-markdown-to-youtube` v0.2.0 (rewritten conversion), `bac-issue-print` v0.1.0 (ported from shell, pagination, token), `bac-kicad-hlabels` v0.1.0 (flags, `--gap-on-blank`), `bac-media-convert` v0.1.0 (`webp-square`, `cfr`; the two shell loops retired). `bac-common` v0.1.1: `.env` is searched from the working directory, `run_typer` puts Typer tools inside the error boundary. |
 | 0.3.0 | 2026-09-02 | `bac-convention-check` v0.2.0 ported to Python with TOML rule sets; runs on the repository in CI. |

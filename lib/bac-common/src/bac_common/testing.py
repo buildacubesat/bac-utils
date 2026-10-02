@@ -18,8 +18,9 @@
 from __future__ import annotations
 
 import io
-from collections.abc import Sequence
-from contextlib import redirect_stderr, redirect_stdout
+import os
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from dataclasses import dataclass
 
 from . import ui
@@ -28,6 +29,28 @@ from .cli import MainFn, run
 __all__ = ["Result", "invoke", "assert_standard_flags"]
 
 HELP_MAX_LINES = 24
+HELP_COLUMNS = 80
+"""The terminal width ``--help`` is measured at: argparse and Click read ``COLUMNS``."""
+RICH_COLUMNS = 250
+"""Rich output is captured at this width so panels, tables and messages never wrap or truncate
+in a test; a long temporary path would otherwise split the text an assertion looks for."""
+
+
+@contextmanager
+def _fixed_widths() -> Iterator[None]:
+    saved_env = os.environ.get("COLUMNS")
+    saved = (ui.console.width, ui.err_console.width)
+    os.environ["COLUMNS"] = str(HELP_COLUMNS)
+    ui.console.width = RICH_COLUMNS
+    ui.err_console.width = RICH_COLUMNS
+    try:
+        yield
+    finally:
+        ui.console.width, ui.err_console.width = saved
+        if saved_env is None:
+            os.environ.pop("COLUMNS", None)
+        else:
+            os.environ["COLUMNS"] = saved_env
 
 
 @dataclass(slots=True)
@@ -46,7 +69,7 @@ def invoke(main: MainFn, argv: Sequence[str]) -> Result:
     out, err = io.StringIO(), io.StringIO()
     # Rich consoles resolve sys.stdout/sys.stderr at print time, so the
     # redirects below capture them as long as no explicit file was set.
-    with redirect_stdout(out), redirect_stderr(err):
+    with _fixed_widths(), redirect_stdout(out), redirect_stderr(err):
         try:
             run(main, list(argv))
         except SystemExit as exc:

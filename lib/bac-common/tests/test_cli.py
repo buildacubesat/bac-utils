@@ -185,3 +185,26 @@ def test_run_typer_exit_paths():
     assert i.exit_code == 1 and "Interrupted." in i.stdout
     c = invoke(main, ["config"])
     assert c.exit_code == 1 and c.stderr.startswith("ERROR Not set up.\n      Run --init.")
+
+
+def test_invoke_pins_widths_and_restores_them(monkeypatch):
+    import os
+
+    from bac_common import testing, ui
+
+    monkeypatch.setenv("COLUMNS", "30")
+    monkeypatch.setattr(ui.console, "width", 30)
+    monkeypatch.setattr(ui.err_console, "width", 30)
+    seen: dict[str, object] = {}
+
+    def probe(argv, debug):
+        seen["columns"] = os.environ["COLUMNS"]
+        seen["width"] = ui.console.width
+        ui.console.print("x" * 120)
+        return 0
+
+    result = invoke(probe, [])
+    assert seen == {"columns": str(testing.HELP_COLUMNS), "width": testing.RICH_COLUMNS}
+    assert "x" * 120 in result.stdout, "Rich must not wrap captured output"
+    assert ui.console.width == 30 and ui.err_console.width == 30
+    assert os.environ["COLUMNS"] == "30"
