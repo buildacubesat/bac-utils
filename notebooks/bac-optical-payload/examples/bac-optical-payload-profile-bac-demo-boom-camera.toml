@@ -1,0 +1,29 @@
+# Build a CubeSat demo mission, engineering camera on the boom, as of
+# 2026-09-10. The sensor is one of the secondary-imager candidates; the
+# boom geometry is a starting point for the mechanical issue.
+name = "Build a CubeSat demo mission, boom camera"
+
+[mission]
+mode = "Boom"
+
+[orbit]
+altitude_km = 450
+
+[sensor]
+name = "OV5640"
+
+[lens]
+name = "S-mount 8 mm f/2.0"
+
+[boom]
+cubesat = "1.5U"
+face = "+Z"
+offset_x_mm = 35
+offset_y_mm = 35
+length_mm = 500
+sweep_deg = 30
+sweep_dir_deg = 45
+aim_at_center = true
+pitch_deg = 15
+yaw_deg = 225
+focus_mm = 0

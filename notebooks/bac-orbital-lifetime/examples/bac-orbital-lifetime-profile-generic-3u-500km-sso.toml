@@ -1,0 +1,39 @@
+# BAC Orbital Lifetime profile – generic 3U with two deployed panels
+name = "Generic 3U, 500 km SSO"
+tool = "bac_orbital_lifetime"
+tool_version = "0.2.0"
+
+[orbit]
+altitude_km = 500
+inclination_deg = 97.4
+ltdn_hours = 10.5
+epoch = "2027-01-01T00:00:00Z"
+
+[mission]
+duration_years = 3.0
+
+[spacecraft]
+form_factor = "3U"
+size_x_cm = 10.0
+size_y_cm = 10.0
+size_z_cm = 34.05
+mass_kg = 4.0
+drag_coefficient = 2.2
+attitude_mission = "ram_z"
+attitude_after_mission = "tumbling"
+
+[[deployables]]
+name = "Solar wings"
+shape = "panel"
+count = 2
+width_cm = 10.0
+length_cm = 30.0
+flow_angle_deg = 90
+deployed = true
+
+[solar]
+next_cycle_start = "2030-07"
+constant_f107 = 150
+constant_ap = 15
+ap_override = 0
+fetch_live = false

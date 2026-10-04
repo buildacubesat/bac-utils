@@ -1,4 +1,4 @@
-# bac-convention-check v0.2.0
+# bac-convention-check v0.2.1
 
 Build a CubeSat – scans a repository for drift from the BAC conventions and prints a report that can go straight into a review or an LLM session. It is the linter this monorepo runs in CI on itself.
 
@@ -142,5 +142,6 @@ A single line opts out with a marker in a comment: `# convention-check: allow A1
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.2.1 | 2026-10-02 | P2 (build backend) no longer fires on a pyproject under `notebooks/`, or one with `[tool.uv] package = false`, that has neither a `[build-system]` nor `[project.scripts]`: a marimo notebook is not built, so it has no backend to check. A library that lost its build system is still flagged. |
 | 0.2.0 | 2026-09-02 | Ported from shell to Python on `bac-common`. Rules moved into TOML sets; the 16 firmware heuristics split into `firmware`, the guide conventions into `guide` with new rules for curly quotes, ß, thousands separators, mixed-case file names, SPDX headers, pyproject fields (license, requires-python, backend, pins, name, scripts), `--version` presence, versions in file names, README version history and first reference, GitHub URLs for Codeberg-hosted repositories, and master/slave terminology. One deterministic file walk (git-aware, binary sniff) replaces the rg/grep split; HTML, CSS, JSON and extension-less files are scanned. Counts are taken before truncation; unknown `--only` ids and a missing option value are usage errors; the amber check matches whole words; E9 orphan parts are findings, not notes. Added `terminal` output, project config with per-rule excludes, inline allow markers, custom rule sets. 22 tests. |
 | 0.1.0 | – | Shell script with 23 checks, `report` and `tsv` output. |

@@ -1,0 +1,30 @@
+# A generic 1U with a Raspberry Pi camera module 3 and its fixed lens.
+name = "Generic 1U, camera module 3"
+
+[camera]
+name = "Raspberry Pi Camera Module 3"
+
+[mission]
+mode = "Earth observation"
+
+[orbit]
+altitude_km = 500
+
+[sensor]
+name = "IMX708"
+
+[lens]
+name = "Camera module 3, 4.7 mm f/1.8"
+
+[imaging]
+exposure_ms = 1
+readout_ms = 30
+attitude_rate_deg_s = 1
+pointing_error_deg = 10
+pointing_knowledge_deg = 10
+wavelength_nm = 550
+compression_ratio = 10
+frames_per_day = 2
+# One amateur UHF radio and no second link.
+low_rate_kb_per_day = 500
+high_rate_kb_per_day = 0

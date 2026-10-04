@@ -95,6 +95,10 @@ def pyproject_backend(rule: Rule, index: FileIndex, files: list[str]) -> tuple[l
         project = _project_table(data)
         if project is None or "__error__" in data:
             continue
+        virtual = data.get("tool", {}).get("uv", {}).get("package") is False or rel.startswith("notebooks/")
+        if virtual and "build-system" not in data and "scripts" not in project:
+            # a marimo notebook or another member declared non-packaged: nothing is built or installed
+            continue
         backend = str(data.get("build-system", {}).get("build-backend", ""))
         if backend != "hatchling.build":
             hits.append(Hit(rel, 0, f"build backend is {backend or 'missing'!r}; the guide uses hatchling"))

@@ -1,11 +1,13 @@
 # bac-utils – workspace root
-# Build a CubeSat – utilities monorepo. Each tool under lib/, tools/ and ops/
+# Build a CubeSat – utilities monorepo. Each tool under lib/, tools/, notebooks/ and ops/
 # is its own uv project; this file only ties them together for `uv sync`,
 # `uv run pytest` and CI. Install a single tool with
 #   uv tool install ./tools/<name>
 
 [tool.uv.workspace]
-members = ["lib/*", "tools/*", "ops/*"]
+members = ["lib/*", "tools/*", "notebooks/*", "ops/*"]
+# notebooks/tests holds the cross-tool profile checks; it is a test folder, not a member
+exclude = ["notebooks/tests"]
 
 [tool.uv.sources]
 bac-common = { workspace = true }
@@ -20,6 +22,8 @@ dev = [
 line-length = 120
 target-version = "py311"
 extend-exclude = ["blender"]
+# honour the format exclude below even when a file is named explicitly (editors, pre-commit)
+force-exclude = true
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]
@@ -33,13 +37,28 @@ ignore = ["B008"]
 # marimo notebooks: markdown table rows must stay on one line, and a cell's last
 # bare expression is its output, not a useless statement.
 "notebooks/**/*.py" = ["E501", "B018"]
-"tools/bac-antenna-visualizer/*.py" = ["E501", "B018"]
+# The four published notebooks are byte-identical to the copies on molab and are not
+# rewritten here (see notebooks/README.md); `marimo check` is their lint. The antenna
+# visualizer is local-only and stays under the normal rules.
+"notebooks/bac-link-budget/bac_link_budget.py" = ["ALL"]
+"notebooks/bac-optical-payload/bac_optical_payload.py" = ["ALL"]
+"notebooks/bac-power-budget/bac_power_budget.py" = ["ALL"]
+"notebooks/bac-orbital-lifetime/bac_orbital_lifetime.py" = ["ALL"]
+
+[tool.ruff.format]
+# the same four files: formatting would change bytes that must match molab
+exclude = [
+    "notebooks/bac-link-budget/bac_link_budget.py",
+    "notebooks/bac-optical-payload/bac_optical_payload.py",
+    "notebooks/bac-power-budget/bac_power_budget.py",
+    "notebooks/bac-orbital-lifetime/bac_orbital_lifetime.py",
+]
 
 [tool.ruff.lint.isort]
-known-first-party = ["bac_common", "bac_kicad_common", "bac_suite_db"]
+known-first-party = ["bac_common", "bac_kicad_common", "bac_suite_db", "notebook_harness"]
 
 [tool.pytest.ini_options]
-testpaths = ["lib", "tools", "ops"]
+testpaths = ["lib", "tools", "notebooks", "ops"]
 # importlib mode lets every tool keep its own tests/test_cli.py without
 # module-name collisions when the whole workspace runs in one session.
 addopts = "-q --import-mode=importlib"

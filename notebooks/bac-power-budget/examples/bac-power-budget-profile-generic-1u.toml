@@ -1,0 +1,83 @@
+name = "Generic 1U, one radio, one camera"
+
+[orbit]
+altitude_km = 500
+inclination_deg = 97.4
+ltdn_hours = 10.5
+sim_days = 2
+
+[ground_station]
+station = "Bern, Switzerland"
+
+[payload]
+mode = "Fixed cadence"
+cadence_min = 30
+cap_per_day = 0
+active_s = 30
+
+[radio]
+consumer = "UHF transceiver"
+
+[generation]
+cell = "AzurSpace 3G30C-Advanced"
+module_series = 2
+module_parallel = 1
+module_u = 1.0
+cubesat = "1U"
+cell_temp_c = 50
+attitude = "Tumbling"
+
+[storage]
+cell = "Generic 18650, 2.6 Ah"
+series = 2
+parallel = 1
+dod_pct = 30
+
+tx_w = 3.0
+rx_w = 0.2
+
+[beacon]
+cw_cadence_s = 0
+tier1_on_air_ms = 300
+tier1_cadence_s = 60
+tier2_cadence_s = 0
+lora_cadence_degraded_s = 0
+
+[oneshot]
+hdrm_duration_s = 0
+
+[[loads]]
+consumer = "On-board computer"
+rail = "3V3"
+peak_w = 1.0
+safe_w = 0.3
+nominal_w = 0.5
+pass_w = 0.5
+payload_w = 0.5
+degraded_w = 0.3
+
+[[loads]]
+consumer = "UHF transceiver"
+rail = "VBAT"
+peak_w = 4.0
+safe_w = 0.2
+nominal_w = 0.2
+pass_w = 3.2
+payload_w = 0.2
+degraded_w = 0.2
+note = "1 W RF class"
+
+[[loads]]
+consumer = "Camera"
+rail = "3V3"
+peak_w = 1.0
+payload_w = 0.8
+
+[[loads]]
+consumer = "ADCS"
+rail = "3V3"
+peak_w = 0.5
+safe_w = 0.1
+nominal_w = 0.2
+pass_w = 0.2
+payload_w = 0.2

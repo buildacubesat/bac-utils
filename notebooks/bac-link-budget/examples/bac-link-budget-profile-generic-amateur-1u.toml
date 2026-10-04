@@ -1,0 +1,43 @@
+# A different mission: an amateur 1U on a community ground station.
+# No sibling – this is here to show the tool is not the mission.
+name = "Generic amateur 1U"
+
+[orbit]
+altitude_km = 550
+inclination_deg = 53.0
+min_elevation_deg = 5
+target_margin_db = 3
+downlink_mhz = 436.5
+uplink_mhz = 145.9
+
+[ground_station]
+station = "Custom"
+latitude_deg = 51.5
+longitude_deg = -0.13
+antenna = "Turnstile, no rotator"
+rotator = false
+tx_power_w = 50
+
+[spacecraft]
+antenna_gain_dbi = 0
+receiver_nf_db = 4.0
+# VHF up and UHF down, but one transceiver: it does not receive while it
+# transmits, so the pass is still shared.
+duplex = "half"
+
+[[modes]]
+mode = "9k6 GMSK"
+modulation = "GMSK"
+bitrate_bps = 9600
+tx_dbm = 30.0
+downlink = true
+uplink = true
+featured = true
+
+[[modes]]
+mode = "1k2 AFSK"
+modulation = "AFSK/FM"
+bitrate_bps = 1200
+tx_dbm = 30.0
+downlink = true
+uplink = true

@@ -1,0 +1,67 @@
+# Build a CubeSat demo mission, UHF, as of 2026-09-10.
+# Sibling: "Build a CubeSat demo mission, S-band" – same orbit, station and
+# policy; only the band, antennas and modes differ. Change both together.
+name = "Build a CubeSat demo mission"
+
+[mission]
+# What this link is for the payload: the optical payload tool puts the
+# usable volume in its low-rate or high-rate slot by this key.
+link_role = "low rate"
+
+[orbit]
+altitude_km = 450
+inclination_deg = 97.4
+min_elevation_deg = 10
+target_margin_db = 3
+downlink_mhz = 436.0
+uplink_mhz = 436.0
+
+[ground_station]
+station = "Bern, Switzerland"
+antenna = "WiMo X-Quad 70 cm"
+rotator = true
+tx_power_w = 25
+
+[spacecraft]
+antenna_gain_dbi = 0
+receiver_nf_db = 1.5
+# One radio and one antenna serve both directions on one frequency, so
+# the pass is shared by the downlink share under Link Allowances.
+duplex = "half"
+
+# The beacon ladder of 2026-09-14 maps onto these rows: tier 0 is the CW
+# row (radio node, commissioning and deep safe mode); tiers 1 and 2 ride
+# the native 50k profile (6.5 and 26 ms messages, safe mode and
+# commissioning); the backstop is the LoRa SF12 row (function board,
+# degraded phase). The power budget prices them.
+[[modes]]
+mode = "50k GFSK"
+modulation = "GFSK h=1, non-coherent"
+bitrate_bps = 50000
+tx_dbm = 32.0
+downlink = true
+uplink = true
+featured = true
+
+[[modes]]
+mode = "CW beacon"
+modulation = "CW, detector spec"
+bandwidth_hz = 100
+tx_dbm = 32.0
+downlink = true
+
+[[modes]]
+mode = "LoRa SF7"
+modulation = "LoRa SF7"
+bandwidth_hz = 125000
+tx_dbm = 22.0
+downlink = true
+uplink = true
+
+[[modes]]
+mode = "LoRa SF12"
+modulation = "LoRa SF12"
+bandwidth_hz = 125000
+tx_dbm = 22.0
+downlink = true
+uplink = true

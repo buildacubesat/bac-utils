@@ -1,0 +1,80 @@
+# Build a CubeSat demo mission, S-band downlink, as of 2026-09-10.
+# Sibling: "Build a CubeSat demo mission" (UHF) – same orbit, station and
+# policy; only the band, antennas and modes differ. Change both together.
+#
+# Placeholders, stated so nobody mistakes them for measurements: 2'445 MHz
+# is a planning channel inside the amateur allocation and inside the patch's
+# AR < 3 dB range (2'443–2'457 MHz), pending IARU coordination; the feed and
+# LNA for 2.4 GHz are not owned yet, so feed loss, noise figure and antenna
+# temperature are the tool's defaults; the spacecraft gain is the simulated
+# RHCP boresight value of the ICDT/Inatel patch at 2'450 MHz, not a measured
+# installed figure; and the h = 0.5 discriminator threshold is unverified, so
+# custom_ebn0_db carries the h = 1 figure as a pessimistic bracket with a
+# coherent-bound row alongside. Rows are downlink only: the dish has no
+# transmit path, and commanding stays on UHF.
+name = "Build a CubeSat demo mission, S-band"
+
+[mission]
+# The payload data link: the optical payload tool takes this profile's
+# usable volume as its high-rate figure.
+link_role = "high rate"
+
+[orbit]
+altitude_km = 450
+inclination_deg = 97.4
+min_elevation_deg = 10
+target_margin_db = 3
+downlink_mhz = 2445.0
+# Uplink stays on UHF, so the two directions are cross-band and the downlink
+# gets the whole pass. No uplink row exists for the dish to receive through.
+uplink_mhz = 436.0
+
+[ground_station]
+station = "Bern, Switzerland"
+antenna = "Discovery Dish 70 cm"
+rotator = true
+# 5° on a 12.2° beam costs about 2 dB; the same 5° on the X-Quad costs 0.2 dB.
+tracking_error_deg = 5
+
+[spacecraft]
+antenna_gain_dbi = 7.4
+cable_loss_db = 1.0
+# About 0.1 dB of that is the simulated patch loss at a 5° ADCS error; the
+# rest covers mounting, alignment and jitter that nobody has measured.
+pointing_allowance_db = 0.5
+receiver_nf_db = 1.5
+reference_rx_level_dbm = -108
+reference_rx_rate_bps = 100000
+# Full duplex is a hardware claim, not a frequency one: the AT86RF215's
+# 2.4 GHz transmitter and sub-GHz receiver run at the same time and the
+# dish and the UHF station are separate chains. Accepted as a design
+# assumption on 2026-09-14; set "half" to price the pessimistic case.
+duplex = "full"
+
+[allowances]
+custom_ebn0_db = 13.8
+
+[[modes]]
+mode = "100k GFSK"
+modulation = "GFSK h=0.5, discriminator"
+bitrate_bps = 100000
+tx_dbm = 31.0
+downlink = true
+uplink = false
+featured = true
+
+[[modes]]
+mode = "400k GFSK"
+modulation = "GFSK h=0.5, discriminator"
+bitrate_bps = 400000
+tx_dbm = 31.0
+downlink = true
+uplink = false
+
+[[modes]]
+mode = "100k, coherent bound"
+modulation = "GMSK"
+bitrate_bps = 100000
+tx_dbm = 31.0
+downlink = true
+uplink = false

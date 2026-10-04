@@ -32,6 +32,9 @@ jobs:
       - name: Format check
         run: uv run ruff format --check .
 
+      - name: Notebook check
+        run: uv run marimo check notebooks/*/bac_*.py
+
       - name: Tests
         run: uv run pytest
 

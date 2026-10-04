@@ -1,0 +1,41 @@
+# Build a CubeSat demo mission, primary imager, as of 2026-09-10.
+# A candidate, not a decision: the sensor and lens are the January 2027
+# evaluation pair. Change them and the numbers follow.
+name = "Build a CubeSat demo mission, primary imager"
+
+[mission]
+mode = "Earth observation"
+
+[orbit]
+altitude_km = 450
+inclination_deg = 97.4
+ltdn_hours = 10.5
+epoch = "2027-06-21"
+sim_days = 30
+
+[target]
+name = "Bern"
+
+[sensor]
+name = "IMX477"
+
+[lens]
+name = "C-mount 16 mm f/1.4"
+
+[imaging]
+exposure_ms = 0.5
+readout_ms = 20
+attitude_rate_deg_s = 0.5
+pointing_error_deg = 5
+pointing_knowledge_deg = 5
+wavelength_nm = 550
+compression_ratio = 10
+frames_per_day = 4
+# From the link budget v0.6.0 at Bern, 450 km, 10°, 3 dB: the UHF 50k link
+# and the S-band 100k link as they stand today. S-band carries less because
+# it clears the margin target for about a minute per pass, not because it is
+# slower; a 2.4 GHz LNA and tracking under 2-3° take it to about 8'500.
+low_rate_kb_per_day = 3221
+high_rate_kb_per_day = 2539
+max_off_nadir_deg = 0
+min_sun_elevation_deg = 20

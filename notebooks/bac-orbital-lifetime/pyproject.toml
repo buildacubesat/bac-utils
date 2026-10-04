@@ -1,0 +1,21 @@
+[project]
+name = "bac-orbital-lifetime"
+version = "0.2.0"
+description = "Marimo notebook: orbital decay under drag with an embedded NRLMSIS 2.1 table and ten solar-activity scenarios – lifetime band, disposal rules, lifetime against launch date"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "Build a CubeSat contributors" }]
+# A single-file marimo notebook: these dependencies are what the headless tests need; the notebook
+# carries its own PEP 723 metadata for `uvx marimo edit --sandbox` and molab.
+# scipy and pymsis serve the tests only (propagator and density-table checks); the notebook
+# itself runs on the common set so it stays within Pyodide's package list for molab.
+dependencies = [
+    "marimo>=0.24",
+    "numpy>=2.0",
+    "pandas>=2.0",
+    "altair>=5.0",
+    "pyarrow>=15.0",
+    "scipy>=1.11",
+    "pymsis>=0.11",
+]

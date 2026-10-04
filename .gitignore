@@ -40,7 +40,6 @@ sim/runs/**/error.txt
 sim/runs/**/*.log
 
 # Antenna visualizer – local sensitivity packs are attached to the antenna's release, not tracked here
-tools/bac-antenna-visualizer/packs/
 notebooks/bac-antenna-visualizer/packs/
 
 # KiCad

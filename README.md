@@ -2,7 +2,7 @@
 
 Build a CubeSat – the utilities that keep the project running: KiCad release and library tooling, antenna simulation, Blender video editing helpers, media conversion, content and resource pipelines, repository checks, and the business operations suite. Every tool follows the [BAC Project & Tooling Guide](https://buildacubesat.space) and the BAC Interface Design Guide, so they look and behave alike: the same flags, the same terminal output, the same config locations.
 
-The repository holds the generally usable state of each tool. Anything specific to one project – vendor prices, sheet IDs, repository paths, plugin locations – lives in your own config and data directories, created by each tool's `--init`. What ships here is the tool, sample data under `examples/`, and an `.env.example` where secrets are involved. See §5 to adapt a tool for your own project.
+The repository holds the generally usable state of each tool. Anything specific to one project – vendor prices, sheet IDs, repository paths, plugin locations – lives in your own config and data directories, created by each tool's `--init`. What ships here is the tool, sample data under `examples/`, and an `.env.example` where secrets are involved. See §6 to adapt a tool for your own project.
 
 ## 1. Tools
 
@@ -13,10 +13,10 @@ This table is the record of what exists, what is being worked on and what is pla
 | `bac-common` | library | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary, span-preserving s-expression parser, test harness | available | v0.2.1 |
 | `bac-kicad-common` | library | Shared KiCad library tooling: TOML field rules, property rendering for KiCad 9 and 10, span edits, write-back with backup | available | v0.1.0 |
 | `bac-antenna-optimizer` | RF | Antenna design around openEMS: parametric geometry, meshing rules, band targets, cavity-model pre-tuner, tolerance sweeps, sensitivity packs, reports with drawings, charts and KiCad board files | available | v0.7.4 |
-| `bac-antenna-visualizer` | notebook | A slider per geometry parameter over an optimizer sensitivity pack: S-parameters, Smith chart, gain and axial ratio, pattern cuts, 3D pattern and fields; runs locally | available | v0.3.1 |
+| `bac-antenna-visualizer` | notebook | A slider per geometry parameter over an optimizer sensitivity pack: S-parameters, Smith chart, gain and axial ratio, pattern cuts, 3D pattern and fields; runs locally | available | v0.3.2 |
 | `bac-cad-preview` | CAD | Renders STEP, STL and 3MF files to 720 px WebP previews framed like the KiCad artifacts render, with an X/Y/Z scale gizmo; the preview stage of the planned `bac-freecad-generate-artifacts` | available | v0.5.0 |
 | `bac-can-up` | bench | Brings up the CANable SLCAN interface: fresh `slcand`, bitrate, `can0` up | available | v1.2.0 |
-| `bac-convention-check` | repo | Lints a tree against the BAC guides (typography, naming, licensing, packaging, flags); runs in this repo's CI | available | v0.2.0 |
+| `bac-convention-check` | repo | Lints a tree against the BAC guides (typography, naming, licensing, packaging, flags); runs in this repo's CI | available | v0.2.1 |
 | `bac-csr-ingest` | resources | Ingests documents and links into the CubeSat Resources site: extraction, LLM classification, review, upload, index, commit | available | v0.4.0 |
 | `bac-issue-print` | repo | Prints a Codeberg issue with all comments as Markdown | available | v0.1.0 |
 | `bac-freecad-generate-artifacts` | CAD | FreeCAD counterpart of the KiCad artifacts tool: exports the file types and iterations of a part through the FreeCAD CLI, renders previews (absorbs `bac-cad-preview`), fills missing author, organisation and part metadata in STEP and 3MF output | planned | – |
@@ -32,11 +32,13 @@ This table is the record of what exists, what is being worked on and what is pla
 | `bac-shop-product-cropper` | media | Interactive crop of product photos with size-targeted WebP export | planned | – |
 | `bac-update-content-plan` | content | Renders the content plan from a Google Sheet into the docs repository and commits it | planned | – |
 | `bac-vse-tools` | Blender | One extension with three sub-panels: bulk import, sequential proxies, separate meta strips preserving trim | planned | – |
-| `bac-link-budget` | notebook | Link budget for a CubeSat radio link: passes, margins, data volume per day, validated against the AMSAT/IARU link model and SGP4 | in progress | v0.7.0 |
-| `bac-optical-payload` | notebook | Earth-observation and boom-camera optics: GSD, swath, smear, access and illumination over a target, days to downlink | in progress | v0.7.0 |
-| `bac-power-budget` | notebook | Generation, storage and loads over the orbit with a scheduler and safe mode | in progress | v0.5.0 |
-| `bac-orbital-lifetime` | notebook | Decay under drag with NRLMSIS 2.1 and ten solar-activity scenarios; lifetime against launch date; disposal rules | in progress | v0.2.0 |
+| `bac-link-budget` | notebook | Link budget for a CubeSat radio link: passes, margins, data volume per day, validated against the AMSAT/IARU link model and SGP4 | available | v0.7.0 |
+| `bac-optical-payload` | notebook | Earth-observation and boom-camera optics: GSD, swath, smear, access and illumination over a target, days to downlink | available | v0.7.0 |
+| `bac-power-budget` | notebook | Generation, storage and loads over the orbit with a scheduler and safe mode | available | v0.5.0 |
+| `bac-orbital-lifetime` | notebook | Decay under drag with NRLMSIS 2.1 and ten solar-activity scenarios; lifetime against launch date; disposal rules | available | v0.2.0 |
 | `bac-orbit-viewer` | notebook | 3D view of a mission's geometry around the globe from any sibling's profile | planned | – |
+| `bac-pv-aging` | notebook | Single-diode model of a solar cell string fitted to datasheet points and aged over the mission by UV, atomic oxygen, displacement damage and thermal cycling: BOL and EOL IV curves, the EOL power factor the power budget takes | planned | – |
+| `bac-battery-pack` | notebook | Battery pack configuration (cell, S × P, depth of discharge, temperature) and aging: cycle and calendar capacity fade over the mission, usable energy at end of life, the pack figures the power budget takes | planned | – |
 | `bac-thermal` | notebook | Lumped-parameter thermal model of the spacecraft over the orbit, hot and cold cases, battery heater energy | planned | – |
 | `bac-builder` | shop | Web app to configure a CubeSat build from BAC parts with a 3D view, tied to the shop's prices and stock; cart, quote, CSV and PDF outputs; mass, power and data budgets per build | planned | – |
 | `bac-catalog` | shop | Builds the static part catalog the builder reads from the `part.toml` files next to the hardware designs | planned | – |
@@ -63,7 +65,11 @@ uv run pytest
 uv run ruff check .
 ```
 
-## 3. Layout
+## 3. Notebooks
+
+The engineering notebooks under `notebooks/` – link budget, optical payload, power budget, orbital lifetime, and the local-only antenna visualizer – are single marimo files with PEP 723 metadata. Run one in its own environment with `uvx marimo edit --sandbox notebooks/bac-link-budget/bac_link_budget.py`, or in the workspace environment with `uv run marimo edit <file>`. The four published ones are the molab copies behind the bac.page links, byte for byte apart from the SPDX line; each of them carries the shipped profiles as TOML files under `examples/` and headless regression tests. `notebooks/README.md` has the rules of the class.
+
+## 4. Layout
 
 ```
 lib/       shared libraries (bac-common, bac-kicad-common, bac-suite-db)
@@ -76,20 +82,21 @@ blender/   Blender extensions
 
 Every tool directory has the same shape: `pyproject.toml`, `src/bac_<name>/cli.py`, `README.md` with a version history, `tests/`, and where the tool consumes data, `examples/`.
 
-## 4. Conventions
+## 5. Conventions
 
-Every CLI tool supports `-v/--version`, `--dry-run`, hidden `--debug`, `--env-file PATH`, `--config PATH` and `--init`, and `-l/--list` where it operates on a named set. Config lives at `~/.config/bac/<tool>.toml`; secrets in a `.env` file loaded with python-dotenv. Exit codes are 0 for success, 1 for a runtime error, 2 for bad arguments. Errors go to stderr; tracebacks appear only with `--debug`. Terminal output uses the BAC Interface Design Guide's terminal profile through `bac_common.ui`.
+Every CLI tool supports `-v/--version`, `--dry-run`, hidden `--debug`, `--env-file PATH`, `--config PATH` and `--init`, and `-l/--list` where it operates on a named set; the notebooks are exempt from the flags and carry their version in `TOOL_VERSION` and in every export's header. Config lives at `~/.config/bac/<tool>.toml`; secrets in a `.env` file loaded with python-dotenv. Exit codes are 0 for success, 1 for a runtime error, 2 for bad arguments. Errors go to stderr; tracebacks appear only with `--debug`. Terminal output uses the BAC Interface Design Guide's terminal profile through `bac_common.ui`.
 
 Software in this repository is licensed MIT; documentation CC BY-SA 4.0. Software versions follow SemVer and display with a `v` prefix.
 
-## 5. Adapting for your own project
+## 6. Adapting for your own project
 
 Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool needs, writes `~/.config/bac/<tool>.toml`, and where secrets are involved, a `.env` next to your working directory with empty values to fill in. Tools that consume data files take a data directory from that config; the copies under each tool's `examples/` show the expected shape and can be copied as a starting point. Nothing in the repository needs editing to point a tool at your own project.
 
-## 6. Version history
+## 7. Version history
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.8.0 | 2026-10-02 | The `notebooks/` group: `bac-link-budget` v0.7.0, `bac-optical-payload` v0.7.0, `bac-power-budget` v0.5.0 and `bac-orbital-lifetime` v0.2.0 come in as byte-identical copies of the published files with example profiles and regression tests from their handoffs; `bac-antenna-visualizer` v0.3.2 moves there from `tools/`; a shared headless harness; `marimo check` and the notebook tests in CI. `bac-convention-check` v0.2.1 stops flagging a notebook's build-system-less pyproject. |
 | 0.7.0 | 2026-10-02 | `bac-cad-preview` v0.5.0 joins on `bac-common`: STEP, STL and 3MF previews framed like the KiCad artifacts render, faces named with the project's axis letters, `--out-dir`, output collisions refused; the `step` extra carries OpenCascade. |
 | 0.6.0 | 2026-10-02 | The two antenna tools from the S-band sessions brought in: `bac-antenna-optimizer` v0.7.4 (tag `bac-antenna-optimizer-v0.7.3` marks the version that generated the S-band cross patch in bac-hardware) and `bac-antenna-visualizer` v0.3.1, both on the conventions; the root `.gitignore` takes over their ignore rules. `bac-common` v0.2.1 and a root `conftest.py` pin the terminal widths under test, so the suite passes at any width (five tests failed at 80 columns before). The tool table becomes the tracking view of everything planned for the repository. |
 | 0.5.0 | 2026-09-07 | The KiCad library tools and the CAN bench tool: `bac-kicad-symfields` v0.3.0, `bac-kicad-schfields` v0.2.0 and `bac-kicad-libcheck` v0.2.0 folded in from the separate bac-kicad-tools repository (the four `bac-kicad-misc` lint scripts absorbed as `symfields lint` and `fix`), `bac-can-up` v1.2.0 ported from `canup.sh`. New `bac-kicad-common` v0.1.0; `bac-common` v0.2.0 adds `bac_common.sexp`. All batch-1 tools have now arrived. |

@@ -1,6 +1,6 @@
 [project]
 name = "bac-convention-check"
-version = "0.2.0"
+version = "0.2.1"
 description = "Scan a repository for drift from the Build a CubeSat conventions: typography, naming, licensing, packaging, and optional firmware review heuristics."
 readme = "README.md"
 license = { text = "MIT" }

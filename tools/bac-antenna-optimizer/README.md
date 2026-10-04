@@ -52,7 +52,7 @@ uv run bac-antenna sweep ... --reprocess     # redo post-processing from saved f
 uv run --extra report bac-antenna report <folder>/antenna.toml
 ```
 
-Commands: `check` (cavity estimate, patches only), `optimize`, `simulate`, `sweep`, `report`, `pack` (sensitivity pack for the [antenna visualizer](../bac-antenna-visualizer/): `bac-antenna pack design/sensitivity.toml`), `migrate` (0.5 → 0.6 file layout). Backends: `cavity` (patches, seconds), `coarse` (openEMS, coarse mesh), `openems`, `mock` (for testing the loop).
+Commands: `check` (cavity estimate, patches only), `optimize`, `simulate`, `sweep`, `report`, `pack` (sensitivity pack for the [antenna visualizer](../../notebooks/bac-antenna-visualizer/): `bac-antenna pack design/sensitivity.toml`), `migrate` (0.5 → 0.6 file layout). Backends: `cavity` (patches, seconds), `coarse` (openEMS, coarse mesh), `openems`, `mock` (for testing the loop).
 
 ## Antenna types
 
@@ -118,7 +118,7 @@ Save it as `design/model.py` next to your config, set `type = "file:design/model
 
 ## Sensitivity packs
 
-`bac-antenna pack design/sensitivity.toml` reads an axes file in the antenna folder (which parameter or config key each slider moves, its levels, where the runs are), matches existing cases to the levels by their effective parameters, writes a sweep plan for the levels without a run, and packs the matched cases' small result files into `generated/sensitivity/` (gzipped CSV + JSON, a few MB) for the [antenna visualizer](../bac-antenna-visualizer/) – including the complex probe reflection for the Smith chart and, when the `report` extra (h5py) is installed, the resampled E-field planes of cases run with dumps. `--zip` also writes `<name>-pack.zip` beside the folder, the form to attach to the antenna's release; `--public <dir>` copies the folder elsewhere. `source` and `release` in the axes file travel into `pack.json` as provenance, and so does the tool version.
+`bac-antenna pack design/sensitivity.toml` reads an axes file in the antenna folder (which parameter or config key each slider moves, its levels, where the runs are), matches existing cases to the levels by their effective parameters, writes a sweep plan for the levels without a run, and packs the matched cases' small result files into `generated/sensitivity/` (gzipped CSV + JSON, a few MB) for the [antenna visualizer](../../notebooks/bac-antenna-visualizer/) – including the complex probe reflection for the Smith chart and, when the `report` extra (h5py) is installed, the resampled E-field planes of cases run with dumps. `--zip` also writes `<name>-pack.zip` beside the folder, the form to attach to the antenna's release; `--public <dir>` copies the folder elsewhere. `source` and `release` in the axes file travel into `pack.json` as provenance, and so does the tool version.
 
 ## Images
 

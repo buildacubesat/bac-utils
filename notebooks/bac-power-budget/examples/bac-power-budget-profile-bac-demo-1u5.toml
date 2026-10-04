@@ -1,0 +1,88 @@
+name = "Build a CubeSat demo mission, 1.5U"
+
+[orbit]
+altitude_km = 450
+inclination_deg = 97.4
+ltdn_hours = 10.5
+epoch = "2027-06-21"
+sim_days = 2
+
+[ground_station]
+station = "Bern, Switzerland"
+min_elevation_deg = 10
+
+[payload]
+mode = "Over a location"
+target_is_station = true
+reach_km = 88
+gate_lit = true
+min_sun_elevation_deg = 20
+cap_per_day = 4
+active_s = 60
+
+[radio]
+consumer = "Radio node (SatNOGS-COMMS respin)"
+
+[generation]
+cell = "Anysolar SM141K10TF"
+module_series = 2
+module_parallel = 2
+module_u = 0.5
+cubesat = "1.5U"
+faces_x = true
+faces_y = true
+faces_z = false
+modules_per_z_face = 0
+am0_factor = 0.9
+cell_temp_c = 50
+string_loss_pct = 5
+attitude = "Tumbling"
+
+[storage]
+cell = "LG INR18650 MJ1"
+series = 2
+parallel = 2
+dod_pct = 30
+initial_soc_pct = 80
+charger_eff_pct = 86
+rail_5v_eff_pct = 90
+rail_3v3_eff_pct = 87
+uvlo_v_per_cell = 3.5
+safe_enter_soc_pct = 40
+safe_exit_soc_pct = 60
+
+tx_w = 6.0
+rx_w = 0.4
+downlink_share_pct = 80
+
+# The beacon ladder of 2026-09-14. Tier 0: CW on the radio node, in
+# commissioning and deep safe mode, 300 s cadence, 12 s at 6 W (both
+# placeholders). Tiers 1 and 2: digital on the native 50k profile, radio
+# node, safe mode and commissioning only, silent in nominal and during
+# passes; tier 1 is identity and the radio node's state (6.5 ms), tier 2
+# adds EPS housekeeping over bacBus (26 ms) and degrades to tier 1 when the
+# EPS does not answer. Backstop: LoRa SF12 on the function board, degraded
+# phase only, 2.5 s at 0.5 W every 300 s (placeholder; a link budget
+# profile brings the SF12 packet airtime, 1.81 s for 32 bytes). Fallback
+# order tier 2 -> tier 1 -> tier 0 -> LoRa. Every length and power here is
+# a typed placeholder until measured.
+[beacon]
+policy = "Safe mode and commissioning"
+cw_message_s = 12
+cw_power_w = 6.0
+cw_cadence_s = 300
+tier1_on_air_ms = 6.5
+tier1_cadence_s = 60
+tier2_on_air_ms = 26
+tier2_cadence_s = 300
+lora_on_air_s = 2.5
+lora_power_w = 0.5
+lora_cadence_nominal_s = 0
+lora_cadence_degraded_s = 300
+
+[oneshot]
+hdrm_power_w = 5.0
+hdrm_duration_s = 30
+
+[schedule]
+scenario = "Nominal"

@@ -20,6 +20,9 @@ DIRTY_FILES: dict[str, str] = {
     '[build-system]\nrequires = ["setuptools"]\nbuild-backend = "setuptools.build_meta"\n',
     "no-license/pyproject.toml": '[project]\nname = "bac-nolic"\nrequires-python = ">=3.11"\n\n'
     '[build-system]\nrequires = ["hatchling"]\nbuild-backend = "hatchling.build"\n',
+    # a library that lost its build system: still a P2 hit (only notebooks/ and package = false members are exempt)
+    "lib/bac-lost/pyproject.toml": '[project]\nname = "bac-lost"\nversion = "0.1.0"\nlicense = { text = "MIT" }\n'
+    'requires-python = ">=3.11"\ndependencies = ["rich>=13.7"]\n',
 }
 
 CLEAN_FILES: dict[str, str] = {
@@ -31,6 +34,9 @@ CLEAN_FILES: dict[str, str] = {
     'requires-python = ">=3.11"\ndependencies = ["rich>=13.7"]\n\n[project.scripts]\n'
     'bac-demo = "bac_demo.cli:main"\n\n[build-system]\nrequires = ["hatchling"]\nbuild-backend = "hatchling.build"\n',
     ".github/workflows/ci.yml": "name: CI\n",
+    # a notebook member: no build system and no scripts, so P2 does not apply
+    "notebooks/bac-nb/pyproject.toml": '[project]\nname = "bac-nb"\nversion = "0.1.0"\nlicense = { text = "MIT" }\n'
+    'requires-python = ">=3.11"\ndependencies = ["marimo>=0.14"]\n',
     "image.bin": "\x00\x01binary — with an em dash that must not be scanned",
 }
 

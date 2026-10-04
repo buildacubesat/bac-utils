@@ -37,7 +37,7 @@ EXPECTED = {
     "L2": (1, "no-license/pyproject.toml"),
     "L3": (1, "table form"),
     "P1": (1, ">=3.10"),
-    "P2": (1, "setuptools"),
+    "P2": (2, "setuptools"),
     "P3": (2, "rich<14"),
     "P4": (1, "demo-tool"),
     "P5": (2, "demo.main:run"),

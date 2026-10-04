@@ -48,7 +48,7 @@ def _(mo):
     `packs/` folder, or from a path, a URL or an upload under Other Packs.
 
     This tool runs locally from [bac-utils](https://github.com/buildacubesat/bac-utils)
-    (`tools/bac-antenna-visualizer`); its siblings are the [Link Budget](https://bac.page/link-budget-tool),
+    (`notebooks/bac-antenna-visualizer`); its siblings are the [Link Budget](https://bac.page/link-budget-tool),
     [Optical Payload](https://bac.page/optical-payload-tool),
     [Power Budget](https://bac.page/power-budget-tool) and
     [Orbital Lifetime](https://bac.page/orbital-lifetime-tool) tools. All of them
@@ -136,7 +136,7 @@ def _():
 def _(Path, mo, os):
     # Constants: where packs are looked for, what a pack contains, and the glossary.
 
-    TOOL_VERSION = "0.3.1"
+    TOOL_VERSION = "0.3.2"
     PACK_FILES = (
         "pack.json",
         "cases.csv.gz",
@@ -1591,7 +1591,7 @@ def _(
             [
                 f"# BAC Antenna Visualizer · {_name}",
                 f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Antenna Visualizer {TOOL_VERSION}, "
-                f"bac-utils/tools/bac-antenna-visualizer. Pack: {_name}, packed {PACK['meta']['generated']} with {PACK['meta']['tool']}"
+                f"bac-utils/notebooks/bac-antenna-visualizer. Pack: {_name}, packed {PACK['meta']['generated']} with {PACK['meta']['tool']}"
                 + (f" {PACK['meta']['tool_version']}" if PACK["meta"].get("tool_version") else "")
                 + ".",
                 "## Slider Position",
@@ -1707,6 +1707,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.3.2 | 2026-10-02 | Moved from `tools/` to the `notebooks/` group of bac-utils with its four siblings; the paths it names follow. No change to what it shows. |
     | 0.3.1 | 2026-10-02 | Conventions pass in bac-utils (SPDX header, ruff, tests under the workspace pytest); no change to what it shows. |
     | 0.3.0 | 2026-09-28 | Runs locally only: the WebAssembly (molab) code paths, the GitHub fallback and the wheel are gone. Packs are discovered in `BAC_ANTENNA_PACKS`, the notebook's `packs/` folder and the antenna folders of a bac-hardware checkout next to bac-utils; a path, URL or upload of a pack folder or pack zip works too. Geometry is always rebuilt live from the optimizer. The status line names the pack's source and release when the pack carries them. |
     | 0.2.3 | 2026-09-25 | Fixes: the band strip no longer pulls the frequency axis down to zero; the pattern cuts keep their legend and full colors (the opposite-hand layer has its own color scale). |
