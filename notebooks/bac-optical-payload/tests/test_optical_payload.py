@@ -20,7 +20,7 @@ def _run(profile_toml: str) -> dict:
 
 
 def test_version_and_defaults():
-    assert D["TOOL_VERSION"] == "0.7.2"
+    assert D["TOOL_VERSION"] == "0.7.3"
     assert D["profile_tool"] == "bac_optical_payload"
     assert not D["profile_warnings"]
     assert D["focus_invalid"] is False
@@ -93,7 +93,7 @@ def test_focus_inside_focal_length_is_refused():
 def test_profile_export_contract():
     p = tomllib.loads(D["profile_toml"])
     assert p["tool"] == "bac_optical_payload"
-    assert p["tool_version"] == "0.7.2"
+    assert p["tool_version"] == "0.7.3"
     assert "map" in p
     res = p["results"]["optical_payload"]
     assert res["reach_km"] == pytest.approx(98.2, abs=0.05)

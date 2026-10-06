@@ -6,12 +6,12 @@ Build a CubeSat – the marimo notebooks that estimate a mission's numbers: link
 
 | Notebook | File | Published | Version |
 | :-- | :-- | :-- | :-- |
-| Link Budget | `bac-link-budget/bac_link_budget.py` | [bac.page/link-budget-tool](https://bac.page/link-budget-tool) | 0.7.2 |
-| Optical Payload | `bac-optical-payload/bac_optical_payload.py` | [bac.page/optical-payload-tool](https://bac.page/optical-payload-tool) | 0.7.2 |
-| Power Budget | `bac-power-budget/bac_power_budget.py` | [bac.page/power-budget-tool](https://bac.page/power-budget-tool) | 0.5.2 |
-| Orbital Lifetime | `bac-orbital-lifetime/bac_orbital_lifetime.py` | bac.page/orbital-lifetime-tool (link pending) | 0.2.3 |
-| Antenna Visualizer | `bac-antenna-visualizer/bac_antenna_visualizer.py` | runs locally only (needs `bac-antenna-optimizer`) | 0.3.3 |
-| Antenna Visualizer demo | `bac-antenna-visualizer/demo/bac_antenna_visualizer_demo.py` | mirrored to molab from GitHub; fetches its packs from `demo/packs/`; frozen snapshot, not a version of its own | of 0.3.3 |
+| Link Budget | `bac-link-budget/bac_link_budget.py` | [bac.page/molab-link-budget](https://bac.page/molab-link-budget) | 0.7.3 |
+| Optical Payload | `bac-optical-payload/bac_optical_payload.py` | [bac.page/molab-optical-payload](https://bac.page/molab-optical-payload) | 0.7.3 |
+| Power Budget | `bac-power-budget/bac_power_budget.py` | [bac.page/molab-power-budget](https://bac.page/molab-power-budget) | 0.5.3 |
+| Orbital Lifetime | `bac-orbital-lifetime/bac_orbital_lifetime.py` | [bac.page/molab-orbital-lifetime](https://bac.page/molab-orbital-lifetime) | 0.2.4 |
+| Antenna Visualizer | `bac-antenna-visualizer/bac_antenna_visualizer.py` | runs locally only (needs `bac-antenna-optimizer`) | 0.3.4 |
+| Antenna Visualizer demo | `bac-antenna-visualizer/demo/bac_antenna_visualizer_demo.py` | [bac.page/molab-antenna-viz-demo](https://bac.page/molab-antenna-viz-demo), mirrored from GitHub; fetches its packs from `demo/packs/`; frozen snapshot, not a version of its own | of 0.3.4 |
 
 Every notebook directory has the same shape: the notebook, a `README.md` with a version history, `tests/` with the headless checks, for the four published notebooks `examples/` with the profiles they ship as TOML files, and a small `pyproject.toml` that makes the directory a workspace member so `uv sync --all-packages` installs what the tests need. The orbital lifetime also carries `scripts/`, the offline builders of its embedded data tables.
 
@@ -40,6 +40,7 @@ This page follows the repository version; each notebook keeps its own history in
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.8.5 | 2026-10-06 | The bac.page links are the molab short links (`bac.page/molab-<tool>`, plus `molab-antenna-viz-demo`); link budget 0.7.3, optical payload 0.7.3, power budget 0.5.3, orbital lifetime 0.2.4, visualizer 0.3.4. |
 | 0.8.4 | 2026-10-06 | The orbital lifetime's "Solar Activity Assumed" chart drew nothing in the browser (a dotted field name) – 0.2.3; the visualizer demo fetches its packs from `demo/packs/` in the repository when none are beside it, so the molab mirror works without uploads. |
 | 0.8.3 | 2026-10-06 | Chart titles that Altair clipped at the chart width are split into a short title and a subtitle in all five notebooks – `chart_title(text, *notes)` joins the chart-conventions cell; link budget 0.7.2, optical payload 0.7.2, power budget 0.5.2, orbital lifetime 0.2.2, visualizer 0.3.3. |
 | 0.8.2 | 2026-10-06 | The BAC planning orbit moves to 500 km in the four published notebooks (link budget 0.7.1, optical payload 0.7.1, power budget 0.5.1, orbital lifetime 0.2.1), their profiles, defaults, tests and READMEs; the lifetime takes the siblings' chart-conventions and style cells; the four files formatted and linted by ruff from now on, the exemptions dropped. |

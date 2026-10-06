@@ -32,9 +32,9 @@ def _(mo):
     data that comes down per pass and per day, and which line of the budget
     costs the margin.
 
-    This tool is published at [bac.page/link-budget-tool](https://bac.page/link-budget-tool);
-    its siblings are the [Optical Payload](https://bac.page/optical-payload-tool)
-    and [Power Budget](https://bac.page/power-budget-tool) tools. All three
+    This tool is published at [bac.page/molab-link-budget](https://bac.page/molab-link-budget);
+    its siblings are the [Optical Payload](https://bac.page/molab-optical-payload)
+    and [Power Budget](https://bac.page/molab-power-budget) tools. All three
     belong to the [Build a CubeSat](https://buildacubesat.space) project and
     their source is in [bac-utils](https://github.com/buildacubesat/bac-utils).
     """),
@@ -114,7 +114,7 @@ def _():
 def _(np):
     # Constants, reference data and the small set of formulas everything uses.
 
-    TOOL_VERSION = "0.7.2"
+    TOOL_VERSION = "0.7.3"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -3287,7 +3287,7 @@ def _(
     _sections = [
         f"# BAC Link Budget · {station_name}",
         f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with "
-        f"BAC Link Budget {TOOL_VERSION}, bac.page/link-budget-tool."
+        f"BAC Link Budget {TOOL_VERSION}, bac.page/molab-link-budget."
         + (f" Profile: {profile_name}." if profile_name else "")
         + " Every value below is a planning input or a result derived from one; nothing here "
         "is measured. Enter the settings into the tool to reproduce it.",
@@ -3775,8 +3775,8 @@ def _(mo):
     are independent in the FER view; fades and interference correlate them.
 
     Linked terms go to the CubeSat Resources glossary, [bac.page/glossary](https://bac.page/glossary).
-    The sibling tools are the [Optical Payload](https://bac.page/optical-payload-tool)
-    and the [Power Budget](https://bac.page/power-budget-tool); a profile saved
+    The sibling tools are the [Optical Payload](https://bac.page/molab-optical-payload)
+    and the [Power Budget](https://bac.page/molab-power-budget); a profile saved
     from either loads here, and this tool's profile loads there. Source and
     issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
 
@@ -3813,6 +3813,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped at the chart width are split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell). No change to the numbers. |
     | 0.7.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): both BAC profiles and the panel default move to 500 km; the sun-synchronous inclination for 500 km is 97.4° (the 450 km profiles carried that value already, computed for 500 km). Every result of the UHF and S-band profiles moves with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.7.0 | 2026-09-14 | Review fixes: duplex is an explicit hardware setting under Spacecraft (half or full) and no longer inferred from a frequency difference, with a callout for full duplex on one frequency; the 10th-percentile day counts every simulated station-day, the ones without a pass as zero, and sits under the card whose margin it uses; a mode name that repeats an earlier row's is skipped and reported, since every curve and card looks a mode up by name; LoRa volumes use the packet payload over its time on air (SX1276 datasheet §4.1.1.7) from new payload and preamble inputs instead of the nominal rate less framing overhead; the target check covers every enabled direction, uplinks named as such; mode-table numbers must be finite or the row is skipped and reported; profile export escapes newlines, tabs and carriage returns. Follow-up round, mirroring the optical payload: dependencies as minimum bounds; profile names its tool and writes `[results.link_budget]` with the usable volume, its role, pass statistics and frequencies; a role dropdown (low rate / high rate); optical payload and power budget profiles load with their orbit and target or station, and their `[results]` tables feed two callouts – payload demand against this link and affordable pass minutes against the station's; two-column control panel with the custom station and custom antenna in accordions, in its own cell so the duplex note can sit under its dropdown and change with it; a station map with the visibility circle, one day of ground track and the samples in view; profile values clamped to control ranges and reported when unreadable; `fmt_num`; one `[[results.link_budget.modes]]` table per mode in the profile, so the power budget can take the LoRa backstop's airtime from the SF12 row. Homogenization: intro at the siblings' length with the tool's URL, its siblings, the project and the repository; the preliminary warning as a callout; export labels and profile file name as in the siblings; the "At 0 dB Margin" card captioned with its own per-pass figure. |

@@ -1,8 +1,8 @@
-# bac-optical-payload v0.7.2
+# bac-optical-payload v0.7.3
 
 Build a CubeSat – a first-order model of what a camera on a small satellite produces, as a marimo notebook with two modes. **Earth observation**: sensor, lens and orbit in; ground sample distance, swath and field of view, Rayleigh spot and sampling factor Q, motion and attitude smear, rolling-shutter skew, the footprint envelope and geolocation uncertainty, frame sizes raw, compressed and as a thumbnail, days to downlink, and access and illumination over a target with the access edges solved between samples. **Boom**: the same camera on a deployable boom looking back at the spacecraft – fill fraction, corners in frame, side view, a sweep of fill against boom length, and a depth-of-field check. A camera dropdown sets sensor and lens from a product (Raspberry Pi cameras, CHC5 modules, action cameras, DJI O4 air units, a phone).
 
-Published at [bac.page/optical-payload-tool](https://bac.page/optical-payload-tool). Its siblings are the [Link Budget](../bac-link-budget/) and [Power Budget](../bac-power-budget/) notebooks, with which it exchanges mission profiles.
+Published at [bac.page/molab-optical-payload](https://bac.page/molab-optical-payload). Its siblings are the [Link Budget](../bac-link-budget/) and [Power Budget](../bac-power-budget/) notebooks, with which it exchanges mission profiles.
 
 ## 1. Run
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.7.3 | 2026-10-06 | bac.page links point at the molab short links. |
 | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped split into a short title and a subtitle (`chart_title`); numbers unchanged. |
 | 0.7.1 | 2026-10-06 | The BAC planning orbit moves to 500 km (was 450 km) in the two BAC profiles and the panel default; the primary-imager profile takes the link budget 0.7.1 volumes; the regression figures re-recorded. First edit made in the repository. |
 | 0.7.0 | 2026-09-14 | Review fixes (accesses solved between samples, saved sensor and lens win over the preset, capacity import says when it has nothing, impossible focus refused, one spherical ground geometry, IMX296 color with a mono row); DJI O4 presets; power budget profiles load; `[map]` shared with the link budget; `reach_km` in the results; homogenized intro, warning, headings and assumptions. Into bac-utils on 2026-10-02 as a byte-identical copy. |

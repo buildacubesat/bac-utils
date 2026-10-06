@@ -36,9 +36,9 @@ def _(mo):
     plus the Raspberry Pi cameras and a few consumer cameras for scale; a
     sensor or lens not in the libraries goes in through the Custom fields.
 
-    This tool is published at [bac.page/optical-payload-tool](https://bac.page/optical-payload-tool);
-    its siblings are the [Link Budget](https://bac.page/link-budget-tool)
-    and [Power Budget](https://bac.page/power-budget-tool) tools. All three
+    This tool is published at [bac.page/molab-optical-payload](https://bac.page/molab-optical-payload);
+    its siblings are the [Link Budget](https://bac.page/molab-link-budget)
+    and [Power Budget](https://bac.page/molab-power-budget) tools. All three
     belong to the [Build a CubeSat](https://buildacubesat.space) project and
     their source is in [bac-utils](https://github.com/buildacubesat/bac-utils).
     """),
@@ -118,7 +118,7 @@ def _():
 def _(np):
     # Constants, reference data and the formulas everything uses.
 
-    TOOL_VERSION = "0.7.2"
+    TOOL_VERSION = "0.7.3"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -1931,7 +1931,7 @@ def _(
                         "That is usually margin rather than bit rate: a faster waveform needs more signal, so it "
                         "closes for a shorter part of each pass. The fix is on the ground – a better front end, "
                         "tighter tracking, a bigger antenna, or coherent demodulation – and the "
-                        "[link budget](https://bac.page/link-budget-tool) is where those are traded."
+                        "[link budget](https://bac.page/molab-link-budget) is where those are traded."
                     ),
                     kind="info",
                     title="High Rate Below Low Rate",
@@ -3439,7 +3439,7 @@ def _(
     _head = [
         f"# BAC Optical Payload – {ui_mode.value} mode",
         "",
-        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Optical Payload {TOOL_VERSION}, bac.page/optical-payload-tool."
+        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Optical Payload {TOOL_VERSION}, bac.page/molab-optical-payload."
         + (f" Profile: {profile_name}." if profile_name else "")
         + " Every value below is a planning input or a result derived from one; nothing here is measured.",
         "",
@@ -3766,8 +3766,8 @@ def _(mo):
     it does not state law.
 
     Linked terms go to the CubeSat Resources glossary, [bac.page/glossary](https://bac.page/glossary).
-    The sibling tools are the [Link Budget](https://bac.page/link-budget-tool)
-    and the [Power Budget](https://bac.page/power-budget-tool); a profile saved
+    The sibling tools are the [Link Budget](https://bac.page/molab-link-budget)
+    and the [Power Budget](https://bac.page/molab-power-budget); a profile saved
     from either loads here, and this tool's profile loads there. Source and
     issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
     """
@@ -3794,6 +3794,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped at the chart width are split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell). No change to the numbers. |
     | 0.7.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the primary-imager and boom profiles and the panel default move to 500 km, and the primary-imager profile takes the link budget 0.7.1 volumes at that orbit (3'171 kB/day UHF, 2'395 S-band). GSD, swath, reach and the access count move with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.7.0 | 2026-09-14 | Review fixes: access entry and exit are solved between the 10 s samples – every closest approach that could dip inside the reach is refined on a fine grid and bisected to a tenth of a second – so an access shorter than a sample is found and timed, and the access list shows the closest approach; a saved profile's explicit sensor and lens win over its camera preset on load, and the preset applies only when the camera dropdown is changed; a link budget profile without `[results.link_budget]` says so in a callout instead of claiming an import; a focus distance at or inside the focal length is refused with a callout, and a spacecraft part inside the focal length gets no blur figure and its own callout; the focal-length advice and the diffraction callout now say what the equations say (a longer lens at constant f-number resolves more and leaves Q alone); every angle-to-ground distance – access reach, footprint shift, geolocation – uses the off-nadir chart's spherical geometry with the horizon limit; the Raspberry Pi Global Shutter Camera is the color IMX296LQR-C, with the mono IMX296 kept as its own provisional row; the libraries are described as reference tables, with the Custom fields as the way in. DJI O4 Air Unit and O4 Air Unit Pro as camera presets, sensor rows provisional. Interoperability: a power budget profile loads (orbit, activation location, planned activations as frames) and its affordable activations feed a callout; map settings move to a `[map]` table shared with the link budget, old `[target]` keys still load; `reach_km` in the results; profile values clamped to control ranges and reported when unreadable; newlines escaped in the profile. Homogenization: intro at the siblings' length with the tool's URL, its siblings, the project and the repository; the preliminary warning as a callout; "Headline Numbers"; assumptions as structured paragraphs with glossary links; equal-width panel columns. |

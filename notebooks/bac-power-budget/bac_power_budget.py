@@ -31,9 +31,9 @@ def _(mo):
     Compare the requested margin with the result after safe-mode load shedding.
     Pass and activation allowances are independent daily energy limits.
 
-    This tool is published at [bac.page/power-budget-tool](https://bac.page/power-budget-tool);
-    its siblings are the [Link Budget](https://bac.page/link-budget-tool)
-    and [Optical Payload](https://bac.page/optical-payload-tool) tools. All three
+    This tool is published at [bac.page/molab-power-budget](https://bac.page/molab-power-budget);
+    its siblings are the [Link Budget](https://bac.page/molab-link-budget)
+    and [Optical Payload](https://bac.page/molab-optical-payload) tools. All three
     belong to the [Build a CubeSat](https://buildacubesat.space) project and
     their source is in [bac-utils](https://github.com/buildacubesat/bac-utils).
     """),
@@ -111,7 +111,7 @@ def _():
 
 @app.cell
 def _():
-    TOOL_VERSION = "0.5.2"
+    TOOL_VERSION = "0.5.3"
     R_EARTH_KM = 6371.0
     SOLAR_CONST_W_M2 = 1361.0  # AM0, mean Earth distance
 
@@ -3269,7 +3269,7 @@ def _(
     _head = [
         f"# BAC Power Budget – {scenario} scenario",
         "",
-        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Power Budget {TOOL_VERSION}, bac.page/power-budget-tool."
+        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Power Budget {TOOL_VERSION}, bac.page/molab-power-budget."
         + (f" Profile: {profile_name}." if profile_name else "")
         + " Every value below is a planning input or a result derived from one; nothing here is measured.",
         "",
@@ -3648,8 +3648,8 @@ def _(mo):
     and the optical payload's access count is a check, not the schedule.
 
     Linked terms go to the CubeSat Resources glossary, [bac.page/glossary](https://bac.page/glossary).
-    The sibling tools are the [Link Budget](https://bac.page/link-budget-tool)
-    and the [Optical Payload](https://bac.page/optical-payload-tool); a profile
+    The sibling tools are the [Link Budget](https://bac.page/molab-link-budget)
+    and the [Optical Payload](https://bac.page/molab-optical-payload); a profile
     saved from either loads here, and this tool's profile loads there. Source
     and issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
     """
@@ -3676,6 +3676,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.5.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.5.2 | 2026-10-06 | The `chart_title` helper of the chart-conventions cell, shared with the siblings; its two chart titles fit and keep their one line. No change to the numbers. |
     | 0.5.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the BAC profile and the panel default move to 500 km (the generic profile was there already). The orbital period, eclipse fraction and pass count move with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.5.0 | 2026-09-14 | Homogenization with the siblings at their 0.7.0: intro names the tool's URL, its siblings, the project and the repository; the preliminary warning as a callout; "Headline Numbers" and title-case headings and callout titles throughout; assumptions as structured paragraphs with glossary links; report header and export text as in the siblings. Two cross-checks from the sibling profiles' results tables: the link budget's eight-phase pass statistics against this run's single phase, with the affordable pass minutes against its contact minutes, and the optical payload's accesses per day against the scheduled and affordable activations. Profile author detection by signature table as in the siblings. The LoRa backstop's time on air defaults to the SF12 row's packet airtime from a link budget 0.7.0 profile's per-mode results; the BAC profile documents the beacon ladder in its `[beacon]` comments. |

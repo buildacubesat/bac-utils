@@ -48,12 +48,13 @@ def _(mo):
     beside itself and otherwise fetches the Build a CubeSat S-band packs from the
     bac-utils repository; a path, a URL or an upload under Other Packs works too.
 
-    This is the demo snapshot of the visualizer, which runs locally from
+    This is the demo snapshot of the visualizer, published at
+    [bac.page/molab-antenna-viz-demo](https://bac.page/molab-antenna-viz-demo); the full tool runs locally from
     [bac-utils](https://github.com/buildacubesat/bac-utils)
-    (`notebooks/bac-antenna-visualizer`); its siblings are the [Link Budget](https://bac.page/link-budget-tool),
-    [Optical Payload](https://bac.page/optical-payload-tool),
-    [Power Budget](https://bac.page/power-budget-tool) and
-    [Orbital Lifetime](https://bac.page/orbital-lifetime-tool) tools. All of them
+    (`notebooks/bac-antenna-visualizer`); its siblings are the [Link Budget](https://bac.page/molab-link-budget),
+    [Optical Payload](https://bac.page/molab-optical-payload),
+    [Power Budget](https://bac.page/molab-power-budget) and
+    [Orbital Lifetime](https://bac.page/molab-orbital-lifetime) tools. All of them
     belong to the [Build a CubeSat](https://buildacubesat.space) project.
     """),
             mo.callout(
@@ -158,7 +159,7 @@ def _():
 def _(Path, mo):
     # Constants: the snapshot, where packs are looked for, what a pack contains, and the glossary.
 
-    TOOL_VERSION = "0.3.3"  # the visualizer version this demo is a snapshot of
+    TOOL_VERSION = "0.3.4"  # the visualizer version this demo is a snapshot of
     SNAPSHOT_DATE = "2026-10-06"
     DEMO_PACKS = ("s-band-cross-patch-2200", "s-band-cross-patch-2400")  # the packs it was frozen and tested with
     # Where the packs are fetched from when none sit beside the file: the demo's own
@@ -1945,6 +1946,7 @@ def _(SNAPSHOT_DATE, TOOL_VERSION, mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.3.4 | 2026-10-06 | The sibling links point at the molab short links; the demo's own link (bac.page/molab-antenna-viz-demo) named in the intro. No other change. |
     | 0.3.3 | 2026-10-06 | Two chart titles that were clipped at the chart width split into a short title and a subtitle (`chart_title` in the chart-conventions cell, shared with the siblings). No change to what it shows otherwise. |
     | 0.3.2 | 2026-10-02 | Moved from `tools/` to the `notebooks/` group of bac-utils with its four siblings; the paths it names follow. No change to what it shows. |
     | 0.3.1 | 2026-10-02 | Conventions pass in bac-utils (SPDX header, ruff, tests under the workspace pytest); no change to what it shows. |

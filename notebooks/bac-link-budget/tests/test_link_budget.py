@@ -26,7 +26,7 @@ def _mode(defs, name):
 
 
 def test_version_and_defaults():
-    assert D["TOOL_VERSION"] == "0.7.2"
+    assert D["TOOL_VERSION"] == "0.7.3"
     assert D["profile_tool"] == "bac_link_budget"
     assert D["half_duplex"] is True
     assert not D["profile_warnings"]
@@ -82,7 +82,7 @@ def test_lora_rows_use_packet_airtime():
 def test_profile_export_contract():
     p = tomllib.loads(D["profile_toml"])
     assert p["tool"] == "bac_link_budget"
-    assert p["tool_version"] == "0.7.2"
+    assert p["tool_version"] == "0.7.3"
     assert p["spacecraft"]["duplex"] == "half"
     res = p["results"]["link_budget"]
     assert res["featured_mode"] == "50k GFSK"

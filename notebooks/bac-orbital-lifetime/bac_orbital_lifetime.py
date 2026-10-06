@@ -26,7 +26,7 @@ def _(mo):
 
     Compare the lifetime band against the planned mission and the disposal rules (5 years after end of mission for the FCC and ESA, 25 years for the IADC and ISO 24113), the altitude at end of mission that the siblings can evaluate at, and how much a deployable, a lighter build or a lower orbit moves the band.
 
-    This tool lives at [bac.page/orbital-lifetime-tool](https://bac.page/orbital-lifetime-tool). Its siblings are the [link budget](https://bac.page/link-budget-tool), the [optical payload](https://bac.page/optical-payload-tool) and the [power budget](https://bac.page/power-budget-tool). The project is [buildacubesat.space](https://buildacubesat.space); source and issues are in [bac-utils](https://github.com/buildacubesat/bac-utils).
+    This tool lives at [bac.page/molab-orbital-lifetime](https://bac.page/molab-orbital-lifetime). Its siblings are the [link budget](https://bac.page/molab-link-budget), the [optical payload](https://bac.page/molab-optical-payload) and the [power budget](https://bac.page/molab-power-budget). The project is [buildacubesat.space](https://buildacubesat.space); source and issues are in [bac-utils](https://github.com/buildacubesat/bac-utils).
     """
     )
     _warn = mo.callout(
@@ -117,8 +117,8 @@ def _(
     math,
     np,
 ):
-    TOOL_VERSION = "0.2.3"
-    TOOL_SLUG = "orbital-lifetime-tool"
+    TOOL_VERSION = "0.2.4"
+    TOOL_SLUG = "molab-orbital-lifetime"
 
     MU = 3.986004418e14  # m^3/s^2
     R_MEAN_KM = 6371.0  # altitude reference, as in the siblings
@@ -393,7 +393,7 @@ def _(textwrap):
         # and launch date are placeholders; the orbit is the standard planning orbit.
         name = "BAC demo mission, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.3"
+        tool_version = "0.2.4"
 
         [orbit]
         altitude_km = 500
@@ -436,7 +436,7 @@ def _(textwrap):
         # BAC Orbital Lifetime profile – generic 3U with two deployed panels
         name = "Generic 3U, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.3"
+        tool_version = "0.2.4"
 
         [orbit]
         altitude_km = 500
@@ -2321,6 +2321,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.2.4 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.2.3 | 2026-10-06 | The "Solar Activity Assumed" chart drew nothing in the browser since 0.1.0: its data column was named `F10.7 (sfu)` and Vega-Lite reads the dot as nested field access. Column renamed; axis and tooltip still say F10.7. No change to the numbers. |
     | 0.2.2 | 2026-10-06 | Every chart title split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell) – the long ones were clipped at the chart width; the decay chart's title no longer repeats the legend. No change to the numbers. |
     | 0.2.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the BAC profile, its name and the panel defaults move to 500 km and the matching sun-synchronous inclination 97.4°; the lifetime figures move the most of the four tools. Style cell replaced by the siblings' byte-identical one and the chart-conventions cell rewritten in their shape (nebula series colors in place of the semantic yellow/red/green; the scenario map and the chart titles follow), the revision table's indentation fixed, the file formatted with the repository's ruff. First edit made in the bac-utils repository; the molab copy is taken from here. |

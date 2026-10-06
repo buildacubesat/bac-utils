@@ -1,8 +1,8 @@
-# bac-power-budget v0.5.2
+# bac-power-budget v0.5.3
 
 Build a CubeSat – a first-order energy balance on one timeline, as a marimo notebook. The optical payload's propagator (two-body plus J2, RAAN from the LTDN, Almanac Sun, 10 s steps) is extended with the link budget's station test and a per-face illumination model, so one run gives, per sample, sunlit or in shadow, over the station, over the target and whether the target is lit. Generation comes from the cells on each face under one of three attitude models, consumption from an editable table of average watts per mode, the beacon from cadence arithmetic, and the two integrate into a battery state of charge with a safe-mode fallback. Payload activations come from one of nine trigger modes with gates and caps. Six cards answer what duty cycle the radio and the camera can have before the battery goes negative.
 
-Published at [bac.page/power-budget-tool](https://bac.page/power-budget-tool). Its siblings are the [Link Budget](../bac-link-budget/) and [Optical Payload](../bac-optical-payload/) notebooks, with which it exchanges mission profiles.
+Published at [bac.page/molab-power-budget](https://bac.page/molab-power-budget). Its siblings are the [Link Budget](../bac-link-budget/) and [Optical Payload](../bac-optical-payload/) notebooks, with which it exchanges mission profiles.
 
 ## 1. Run
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.5.3 | 2026-10-06 | bac.page links point at the molab short links. |
 | 0.5.2 | 2026-10-06 | The shared `chart_title` helper added to the chart-conventions cell; numbers unchanged. |
 | 0.5.1 | 2026-10-06 | The BAC planning orbit moves to 500 km (was 450 km) in the BAC profile and the panel default; the regression figures re-recorded. First edit made in the repository. |
 | 0.5.0 | 2026-09-14 | Homogenization with the siblings: intro, warning, title-case headings, assumptions with glossary links, report header and export text; two cross-checks from the siblings' results tables; profile author detection by signature table; the LoRa backstop's airtime from a link budget 0.7.0 profile; the beacon ladder documented in the BAC profile. Into bac-utils on 2026-10-02 as a byte-identical copy. |
