@@ -117,7 +117,7 @@ def _(
     math,
     np,
 ):
-    TOOL_VERSION = "0.2.2"
+    TOOL_VERSION = "0.2.3"
     TOOL_SLUG = "orbital-lifetime-tool"
 
     MU = 3.986004418e14  # m^3/s^2
@@ -393,7 +393,7 @@ def _(textwrap):
         # and launch date are placeholders; the orbit is the standard planning orbit.
         name = "BAC demo mission, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.2"
+        tool_version = "0.2.3"
 
         [orbit]
         altitude_km = 500
@@ -436,7 +436,7 @@ def _(textwrap):
         # BAC Orbital Lifetime profile – generic 3U with two deployed panels
         name = "Generic 3U, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.2"
+        tool_version = "0.2.3"
 
         [orbit]
         altitude_km = 500
@@ -1737,9 +1737,7 @@ def _(
         _t, _f = _r["t"], _r["f107"]
         _stride = max(1, len(_t) // 300)
         for _i in range(0, len(_t), _stride):
-            _rows.append(
-                {"Years": _t[_i] / 365.25, "F10.7 (sfu)": _f[_i], "Scenario": _r["name"], "group": _r["group"]}
-            )
+            _rows.append({"Years": _t[_i] / 365.25, "Flux (sfu)": _f[_i], "Scenario": _r["name"], "group": _r["group"]})
     _df = pd.DataFrame(_rows)
     _order = [r["name"] for r in runs]
     _colors = {r["name"]: scenario_color(r["which"], r["group"]) for r in runs}
@@ -1747,13 +1745,18 @@ def _(
         alt.Chart(_df)
         .encode(
             x=alt.X("Years:Q", title=f"Years after {epoch.isoformat()}"),
-            y=alt.Y("F10.7 (sfu):Q", title="F10.7 (sfu)", scale=alt.Scale(zero=False)),
+            # the column is not called "F10.7 (sfu)": Vega-Lite reads a dot in a field name as nested access
+            y=alt.Y("Flux (sfu):Q", title="F10.7 (sfu)", scale=alt.Scale(zero=False)),
             color=alt.Color(
                 "Scenario:N", scale=alt.Scale(domain=_order, range=[_colors[n] for n in _order]), legend=None
             ),
             strokeDash=alt.condition(alt.datum.group == "constant", alt.value([6, 4]), alt.value([1, 0])),
             strokeWidth=alt.condition(alt.datum.group == "analog", alt.value(1.0), alt.value(2.2)),
-            tooltip=["Scenario:N", alt.Tooltip("Years:Q", format=".2f"), alt.Tooltip("F10.7 (sfu):Q", format=".0f")],
+            tooltip=[
+                "Scenario:N",
+                alt.Tooltip("Years:Q", format=".2f"),
+                alt.Tooltip("Flux (sfu):Q", title="F10.7 (sfu)", format=".0f"),
+            ],
         )
         .mark_line()
     )
@@ -2318,6 +2321,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.2.3 | 2026-10-06 | The "Solar Activity Assumed" chart drew nothing in the browser since 0.1.0: its data column was named `F10.7 (sfu)` and Vega-Lite reads the dot as nested field access. Column renamed; axis and tooltip still say F10.7. No change to the numbers. |
     | 0.2.2 | 2026-10-06 | Every chart title split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell) – the long ones were clipped at the chart width; the decay chart's title no longer repeats the legend. No change to the numbers. |
     | 0.2.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the BAC profile, its name and the panel defaults move to 500 km and the matching sun-synchronous inclination 97.4°; the lifetime figures move the most of the four tools. Style cell replaced by the siblings' byte-identical one and the chart-conventions cell rewritten in their shape (nebula series colors in place of the semantic yellow/red/green; the scenario map and the chart titles follow), the revision table's indentation fixed, the file formatted with the repository's ruff. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.2.0 | 2026-09-18 | Lifetime against launch date sweep (quarterly over eight years, three NOAA scenarios); deployables can deploy at end of mission (drag sail, boom); scenario sources in the CSV. |

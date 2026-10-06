@@ -14,11 +14,12 @@
 #
 # Demo snapshot of notebooks/bac-antenna-visualizer/bac_antenna_visualizer.py for molab
 # (WebAssembly). It has no optimizer dependency: the geometry comes from the stored models
-# in the pack instead of a live rebuild. See the Snapshot cell and the README's demo section.
+# in the pack instead of a live rebuild, and the packs are fetched from the bac-utils
+# repository on GitHub when none sit beside the file. See the Snapshot cell and README §6.
 
 import marimo
 
-__generated_with = "0.24.2"
+__generated_with = "0.25.0"
 app = marimo.App(width="medium", auto_download=["html"])
 
 
@@ -44,7 +45,8 @@ def _(mo):
     which drives the open-source field solver [openEMS](https://openems.de). The first
     packs are the Build a CubeSat S-band camera-through patch in its two bands; any
     antenna the optimizer models can be packed the same way. This demo looks for packs
-    beside itself; a path or an upload under Other Packs works too.
+    beside itself and otherwise fetches the Build a CubeSat S-band packs from the
+    bac-utils repository; a path, a URL or an upload under Other Packs works too.
 
     This is the demo snapshot of the visualizer, which runs locally from
     [bac-utils](https://github.com/buildacubesat/bac-utils)
@@ -77,11 +79,11 @@ def _(DEMO_PACKS, SNAPSHOT_DATE, TOOL_VERSION, mo):
             f"This notebook is a demo snapshot of **BAC Antenna Visualizer {TOOL_VERSION}**, frozen on "
             f"{SNAPSHOT_DATE} to run on molab without the optimizer installed, with the packs "
             + ", ".join(f"`{_p}`" for _p in DEMO_PACKS)
-            + ". Three things differ from the tracked notebook: the 3D geometry is interpolated between "
-            "the two nearest simulated cases' stored models instead of being rebuilt from the optimizer; "
-            "packs are found beside this file instead of in a bac-hardware checkout; and a pack cannot be "
-            "loaded from a URL. The tracked notebook in bac-utils is the current version; this copy is not "
-            "updated with it."
+            + ". Two things differ from the tracked notebook: the 3D geometry is interpolated between "
+            "the two nearest simulated cases' stored models instead of being rebuilt from the optimizer, "
+            "and packs are found beside this file or fetched from the bac-utils repository on GitHub "
+            "instead of from a bac-hardware checkout. The tracked notebook in bac-utils is the current "
+            "version; this copy is not updated with it."
         ),
         kind="info",
         title="Demo Snapshot",
@@ -139,6 +141,7 @@ def _():
     import gzip
     import io
     import json
+    import sys
     import zipfile
     from pathlib import Path
 
@@ -148,16 +151,25 @@ def _():
     import pandas as pd
     import plotly.graph_objects as go
 
-    return Path, alt, dt, go, gzip, io, json, mo, np, pd, zipfile
+    return Path, alt, dt, go, gzip, io, json, mo, np, pd, sys, zipfile
 
 
 @app.cell
 def _(Path, mo):
     # Constants: the snapshot, where packs are looked for, what a pack contains, and the glossary.
 
-    TOOL_VERSION = "0.3.2"  # the visualizer version this demo is a snapshot of
+    TOOL_VERSION = "0.3.3"  # the visualizer version this demo is a snapshot of
     SNAPSHOT_DATE = "2026-10-06"
     DEMO_PACKS = ("s-band-cross-patch-2200", "s-band-cross-patch-2400")  # the packs it was frozen and tested with
+    # Where the packs are fetched from when none sit beside the file: the demo's own
+    # packs/ folder in the public repository (raw.githubusercontent.com allows browser fetches).
+    DEMO_PACK_BASE = (
+        "https://raw.githubusercontent.com/buildacubesat/bac-utils/main/notebooks/bac-antenna-visualizer/demo/packs/"
+    )
+
+    def pack_url(name):
+        return f"{DEMO_PACK_BASE}{name}-pack.zip"
+
     PACK_FILES = (
         "pack.json",
         "cases.csv.gz",
@@ -195,15 +207,39 @@ def _(Path, mo):
     def gl(text, slug):
         return f"[{text}]({GLOSSARY}{slug})"
 
-    return DEMO_PACKS, GLOSSARY, PACK_FILES, SEARCH_ROOTS, SNAPSHOT_DATE, TOOL_VERSION, gl
+    return (
+        DEMO_PACKS,
+        PACK_FILES,
+        SEARCH_ROOTS,
+        SNAPSHOT_DATE,
+        TOOL_VERSION,
+        gl,
+        pack_url,
+    )
 
 
 @app.cell
-def _(PACK_FILES, Path, gzip, io, json, pd, zipfile):
+def _(PACK_FILES, Path, gzip, io, json, pd, sys, zipfile):
     # Pack readers. A pack is the folder `bac-antenna pack` writes, or the zip of it
     # (`pack --zip`, the form attached to an antenna's release). Either arrives here
-    # as a dict of file name -> bytes, from a local path or an upload. The tracked
-    # notebook also takes a URL; WebAssembly has no sockets, so the demo does not.
+    # as a dict of file name -> bytes, from a local path, an upload or a zip URL.
+
+    def is_url(x):
+        return str(x).startswith(("http://", "https://"))
+
+    async def fetch_bytes(url):
+        """The bytes behind a URL: the browser's fetch under WebAssembly (no sockets there), urllib on CPython."""
+        if sys.platform == "emscripten":
+            from pyodide.http import pyfetch
+
+            _resp = await pyfetch(url)
+            if not _resp.ok:
+                raise OSError(f"HTTP {_resp.status} for {url}")
+            return await _resp.bytes()
+        import urllib.request
+
+        with urllib.request.urlopen(url, timeout=120) as _r:
+            return _r.read()
 
     def read_zip(data):
         _out = {}
@@ -219,7 +255,7 @@ def _(PACK_FILES, Path, gzip, io, json, pd, zipfile):
         return {_n: (_f / _n).read_bytes() for _n in PACK_FILES if (_f / _n).exists()}
 
     def read_location(location):
-        """Bytes of a pack from a folder or a zip file."""
+        """Bytes of a pack from a local folder or zip file; URLs go through fetch_bytes."""
         location = str(location).strip()
         if not location:
             return {}
@@ -268,14 +304,22 @@ def _(PACK_FILES, Path, gzip, io, json, pd, zipfile):
             return None
         return None
 
-    return pack_name_of, parse_pack, read_location, read_zip
+    return (
+        fetch_bytes,
+        is_url,
+        pack_name_of,
+        parse_pack,
+        read_location,
+        read_zip,
+    )
 
 
 @app.cell
-def _(SEARCH_ROOTS, pack_name_of):
-    # Discovery: every pack folder or pack zip under the search roots, one level deep.
-    # First hit per name wins.
-    FOUND = {}  # name -> location (Path)
+def _(DEMO_PACKS, SEARCH_ROOTS, pack_name_of, pack_url):
+    # Discovery: every pack folder or pack zip under the search roots, one level deep,
+    # then the demo packs from the repository for every name not found locally. First
+    # hit per name wins, so a local copy always beats the download.
+    FOUND = {}  # name -> location (Path, or the URL of a zip)
 
     def _consider(loc):
         _name = pack_name_of(loc)
@@ -288,6 +332,8 @@ def _(SEARCH_ROOTS, pack_name_of):
         _consider(_root)
         for _c in sorted(_root.glob("*")):
             _consider(_c)
+    for _name in DEMO_PACKS:
+        FOUND.setdefault(_name, pack_url(_name))
     return (FOUND,)
 
 
@@ -297,27 +343,45 @@ def _(FOUND, mo):
     # UI element it defines.
     _names = list(FOUND) or ["(no pack found)"]  # discovery order: the notebook's folder first
     ui_pack = mo.ui.dropdown(options=_names, value=_names[0], label="Pack")
-    ui_pack_path = mo.ui.text(value="", label="Path of a pack folder or pack zip (optional)", full_width=True)
+    ui_pack_path = mo.ui.text(
+        value="", label="Path of a pack folder or pack zip, or URL of a pack zip (optional)", full_width=True
+    )
     ui_pack_upload = mo.ui.file(filetypes=[".zip"], kind="button", label="Load a pack (.zip)")
     return ui_pack, ui_pack_path, ui_pack_upload
 
 
 @app.cell
-def _(FOUND, SEARCH_ROOTS, mo, parse_pack, read_location, read_zip, ui_pack, ui_pack_path, ui_pack_upload):
+async def _(
+    FOUND,
+    SEARCH_ROOTS,
+    fetch_bytes,
+    is_url,
+    mo,
+    parse_pack,
+    read_location,
+    read_zip,
+    ui_pack,
+    ui_pack_path,
+    ui_pack_upload,
+):
     # Parse the chosen pack. An upload wins over a typed path or URL, and that over the
-    # dropdown of discovered packs.
+    # dropdown of discovered packs. A URL is fetched here (the cell is async for the
+    # browser's fetch under WebAssembly); a failed fetch leaves the pack unloaded and
+    # says why in the callout below.
     _blobs = {}
     if ui_pack_upload.value:
         _blobs = read_zip(ui_pack_upload.value[0].contents)
         pack_source = f"uploaded {ui_pack_upload.value[0].name}"
-    elif ui_pack_path.value.strip():
-        _blobs = read_location(ui_pack_path.value)
-        pack_source = ui_pack_path.value.strip()
-    elif ui_pack.value in FOUND:
-        _blobs = read_location(FOUND[ui_pack.value])
-        pack_source = str(FOUND[ui_pack.value])
     else:
-        pack_source = "nothing selected"
+        _loc = ui_pack_path.value.strip() or (str(FOUND[ui_pack.value]) if ui_pack.value in FOUND else "")
+        pack_source = _loc or "nothing selected"
+        if is_url(_loc):
+            try:
+                _blobs = read_zip(await fetch_bytes(_loc))
+            except Exception as _exc:
+                pack_source = f"{_loc} – fetch failed: {_exc}"
+        elif _loc:
+            _blobs = read_location(_loc)
     PACK = parse_pack(_blobs) if "pack.json" in _blobs else None
     mo.stop(
         PACK is None,
@@ -326,8 +390,8 @@ def _(FOUND, SEARCH_ROOTS, mo, parse_pack, read_location, read_zip, ui_pack, ui_
                 f"No pack loaded ({pack_source}). A pack is the folder `bac-antenna pack` writes – pack.json, "
                 "cases.csv.gz and the rest – or its zip. Looked in: "
                 + ", ".join(f"`{_r}`" for _r in SEARCH_ROOTS)
-                + ". Put the pack zip beside this notebook (on molab: upload it into the notebook's folder), "
-                "or give a path or an upload under Other Packs."
+                + ", and the bac-utils repository on GitHub for the demo packs. Put a pack zip beside this "
+                "notebook, or give a path, a URL or an upload under Other Packs."
             ),
             kind="danger",
             title="No Pack Loaded",
@@ -398,11 +462,30 @@ def _(PACK, mo):
     ui_show_pattern = mo.ui.switch(value=True, label="3D pattern")
     ui_show_efield = mo.ui.switch(value=True, label="3D electric field")
     ui_sidebar = mo.ui.switch(value=False, label="Controls in a sidebar")
-    return AXES, ui_axes, ui_band, ui_freq, ui_planes, ui_show_efield, ui_show_geometry, ui_show_pattern, ui_sidebar
+    return (
+        AXES,
+        ui_axes,
+        ui_band,
+        ui_freq,
+        ui_planes,
+        ui_show_efield,
+        ui_show_geometry,
+        ui_show_pattern,
+        ui_sidebar,
+    )
 
 
 @app.cell
-def _(mo, ui_axes, ui_band, ui_freq, ui_planes, ui_show_efield, ui_show_geometry, ui_show_pattern):
+def _(
+    mo,
+    ui_axes,
+    ui_band,
+    ui_freq,
+    ui_planes,
+    ui_show_efield,
+    ui_show_geometry,
+    ui_show_pattern,
+):
     # Two columns: the geometry you move on the left, how to look at it on the right.
     _left = [
         mo.md("**Geometry**"),
@@ -467,7 +550,17 @@ def _(AXES, PACK, ui_axes, ui_band, ui_freq, ui_planes):
     PLANES = [float(_p) for _p in ui_planes.value] or [0.0]
     AXIS_LABEL = {_a["id"]: _a["label"] for _a in AXES}
     AXIS_UNIT = {_a["id"]: _a.get("unit", "") for _a in AXES}
-    return ACTIVE, AXIS_LABEL, AXIS_UNIT, BAND, F_PICK, MODE, MOVED, PLANES, VALUES
+    return (
+        ACTIVE,
+        AXIS_LABEL,
+        AXIS_UNIT,
+        BAND,
+        F_PICK,
+        MODE,
+        MOVED,
+        PLANES,
+        VALUES,
+    )
 
 
 @app.cell
@@ -541,7 +634,15 @@ def _(AXES, PACK, pd):
             return table[table["case"] == NOMINAL].drop(columns=["case"]).reset_index(drop=True), ""
         return blend_table(table, keys, active, values[active])
 
-    return CASES, NOMINAL, NUMERIC, axis_cases, blend_table, bracket, nominal_scalars, scalars_at, table_for
+    return (
+        CASES,
+        NOMINAL,
+        axis_cases,
+        bracket,
+        nominal_scalars,
+        scalars_at,
+        table_for,
+    )
 
 
 @app.cell
@@ -660,6 +761,10 @@ def _(alt, mo):
             .configure_view(strokeWidth=0)
         )
 
+    def chart_title(text, *notes):
+        """A short title with the reading notes as subtitle lines – Altair never wraps a title, so a long one is clipped."""
+        return alt.Title(text, subtitle=list(notes), subtitleColor=MUTED, subtitleFontSize=11) if notes else text
+
     def plotly_layout(fig, title, height=520):
         fig.update_layout(
             title=title,
@@ -689,23 +794,29 @@ def _(alt, mo):
         )
 
     return (
-        FONT,
         IS_DARK,
-        MUTED,
         PALETTE,
-        TEXT,
         band_strip,
+        chart_title,
         plotly_layout,
-        rule_label,
-        rule_x,
-        rule_y,
         series_style,
         style_chart,
     )
 
 
 @app.cell
-def _(ACTIVE, AXIS_LABEL, AXIS_UNIT, BAND, MODE, MOVED, NUMBERS, VALUES, gl, mo):
+def _(
+    ACTIVE,
+    AXIS_LABEL,
+    AXIS_UNIT,
+    BAND,
+    MODE,
+    MOVED,
+    NUMBERS,
+    VALUES,
+    gl,
+    mo,
+):
     # Headline cards. Gray, no direction coloring: the callouts below do the judging.
     def _stat(value, label, caption):
         return mo.stat(value=value, label=label, caption=caption, bordered=True)
@@ -835,7 +946,21 @@ def _(AXIS_LABEL, BAND, MODE, MOVED, NUMBERS, mo):
 
 
 @app.cell
-def _(ACTIVE, BAND, MODE, PACK, VALUES, alt, band_strip, gl, mo, pd, series_style, style_chart, table_for):
+def _(
+    ACTIVE,
+    BAND,
+    MODE,
+    PACK,
+    VALUES,
+    alt,
+    band_strip,
+    gl,
+    mo,
+    pd,
+    series_style,
+    style_chart,
+    table_for,
+):
     # Reflection and coupling versus frequency.
     _df, _note = table_for(PACK["sweeps"], ["frequency_hz"], MODE, ACTIVE, VALUES)
     _traces = [("s11_in_db", "network input"), ("s11_db", "one probe alone"), ("s21_db", "probe to probe")]
@@ -893,7 +1018,21 @@ def _(ACTIVE, BAND, MODE, PACK, VALUES, alt, band_strip, gl, mo, pd, series_styl
 
 
 @app.cell
-def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, gl, mo, np, pd, style_chart, table_for):
+def _(
+    ACTIVE,
+    BAND,
+    MODE,
+    PACK,
+    PALETTE,
+    VALUES,
+    alt,
+    gl,
+    mo,
+    np,
+    pd,
+    style_chart,
+    table_for,
+):
     # Smith chart of one probe, 0.1 GHz either side of the band, beside the impedance
     # at the band edges and centre – the numbers to hold a VNA measurement against.
     import tomllib as _tomllib
@@ -1048,11 +1187,25 @@ def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, gl, mo, np, pd, style_char
             _out,
         ]
     )
-    return SMITH_TABLE, Z0
+    return
 
 
 @app.cell
-def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, band_strip, gl, mo, style_chart, table_for):
+def _(
+    ACTIVE,
+    BAND,
+    MODE,
+    PACK,
+    PALETTE,
+    VALUES,
+    alt,
+    band_strip,
+    chart_title,
+    gl,
+    mo,
+    style_chart,
+    table_for,
+):
     # Broadside gain and axial ratio versus frequency.
     _df, _note = table_for(PACK["samples"], ["frequency_hz"], MODE, ACTIVE, VALUES)
     if len(_df) == 0:
@@ -1081,7 +1234,10 @@ def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, band_strip, gl, mo, style_
             alt.layer(band_strip(BAND["low_hz"] / 1e9, BAND["high_hz"] / 1e9) + _g, _a)
             .resolve_scale(y="independent")
             .properties(
-                title="Broadside gain (solid) and axial ratio (dashed) versus frequency (the yellow strip is the band)",
+                title=chart_title(
+                    "Broadside gain (solid) and axial ratio (dashed) versus frequency",
+                    "The yellow strip is the band",
+                ),
                 width="container",
                 height=280,
             )
@@ -1104,7 +1260,24 @@ def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, band_strip, gl, mo, style_
 
 
 @app.cell
-def _(ACTIVE, F_PICK, IS_DARK, MODE, PACK, PALETTE, PLANES, VALUES, alt, gl, mo, np, pd, style_chart, table_for):
+def _(
+    ACTIVE,
+    F_PICK,
+    IS_DARK,
+    MODE,
+    PACK,
+    PALETTE,
+    PLANES,
+    VALUES,
+    alt,
+    chart_title,
+    gl,
+    mo,
+    np,
+    pd,
+    style_chart,
+    table_for,
+):
     # Pattern cuts: co- and cross-polar gain versus angle in the chosen planes. The
     # planes take the four most distinct colors of the family palette (teal, ochre,
     # indigo, green – the deep violet sits too close to the indigo), each with its own
@@ -1189,7 +1362,10 @@ def _(ACTIVE, F_PICK, IS_DARK, MODE, PACK, PALETTE, PLANES, VALUES, alt, gl, mo,
                 for _pl, _c in zip(_order, _cols, strict=True)
             ]
             _chart = alt.layer(*_cross_layers, _co_lines, _co_marks).properties(
-                title=f"Pattern cuts at {_f / 1e9:.3f} GHz – wanted hand bold with markers, opposite hand thin and dashed",
+                title=chart_title(
+                    f"Pattern cuts at {_f / 1e9:.3f} GHz",
+                    "Wanted hand bold with markers, opposite hand thin and dashed",
+                ),
                 width="container",
                 height=340,
             )
@@ -1212,7 +1388,18 @@ def _(ACTIVE, F_PICK, IS_DARK, MODE, PACK, PALETTE, PLANES, VALUES, alt, gl, mo,
 
 
 @app.cell
-def _(ACTIVE, MODE, PACK, VALUES, go, mo, np, plotly_layout, table_for, ui_show_pattern):
+def _(
+    ACTIVE,
+    MODE,
+    PACK,
+    VALUES,
+    go,
+    mo,
+    np,
+    plotly_layout,
+    table_for,
+    ui_show_pattern,
+):
     # 3D realized gain at band centre, radius = gain above -15 dBic.
     if not ui_show_pattern.value:
         _out = None
@@ -1287,7 +1474,18 @@ def _(ACTIVE, MODE, PACK, VALUES, go, mo, np, plotly_layout, table_for, ui_show_
 
 
 @app.cell
-def _(ACTIVE, MODE, PACK, VALUES, go, mo, np, plotly_layout, table_for, ui_show_efield):
+def _(
+    ACTIVE,
+    MODE,
+    PACK,
+    VALUES,
+    go,
+    mo,
+    np,
+    plotly_layout,
+    table_for,
+    ui_show_efield,
+):
     # 3D electric field: |E| on each dumped plane, placed where the plane sits.
     if not ui_show_efield.value:
         _out = None
@@ -1417,7 +1615,7 @@ def _(ACTIVE, AXIS_LABEL, AXIS_UNIT, MODE, NOMINAL, PACK, VALUES, bracket):
         return [], f"No stored geometry in this pack around {_where}."
 
     GEOMETRY, GEOMETRY_NOTE = stored_model()
-    return GEOMETRY, GEOMETRY_NOTE, blend_models, stored_model
+    return GEOMETRY, GEOMETRY_NOTE
 
 
 @app.cell
@@ -1747,6 +1945,7 @@ def _(SNAPSHOT_DATE, TOOL_VERSION, mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.3.3 | 2026-10-06 | Two chart titles that were clipped at the chart width split into a short title and a subtitle (`chart_title` in the chart-conventions cell, shared with the siblings). No change to what it shows otherwise. |
     | 0.3.2 | 2026-10-02 | Moved from `tools/` to the `notebooks/` group of bac-utils with its four siblings; the paths it names follow. No change to what it shows. |
     | 0.3.1 | 2026-10-02 | Conventions pass in bac-utils (SPDX header, ruff, tests under the workspace pytest); no change to what it shows. |
     | 0.3.0 | 2026-09-28 | Runs locally only: the WebAssembly (molab) code paths, the GitHub fallback and the wheel are gone. Packs are discovered in `BAC_ANTENNA_PACKS`, the notebook's `packs/` folder and the antenna folders of a bac-hardware checkout next to bac-utils; a path, URL or upload of a pack folder or pack zip works too. Geometry is always rebuilt live from the optimizer. The status line names the pack's source and release when the pack carries them. |

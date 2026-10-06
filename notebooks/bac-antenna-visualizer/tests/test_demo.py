@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: MIT
 """Headless checks of the molab demo snapshot (demo/bac_antenna_visualizer_demo.py).
 
-The demo is the visualizer without the optimizer: packs are found beside the file and the geometry comes from
-the pack's stored models. SyntheticPackTests copies the demo into a temporary folder next to a synthetic pack
+The demo is the visualizer without the optimizer: packs are found beside the file (or fetched from the repository on
+GitHub when none are) and the geometry comes from the pack's stored models. SyntheticPackTests copies the demo into a temporary folder next to a synthetic pack
 and runs it there; StoredGeometryTests compares the blended stored models with the optimizer's live model, which
-is what the tracked notebook shows; RealPackTests runs the demo on the pack zips that sit beside it in the
-checkout (not tracked) and is skipped when there are none.
+is what the tracked notebook shows; RealPackTests runs the demo on the pack zips in demo/packs/ and is skipped when there are none.
 """
 
 import importlib
@@ -78,7 +77,7 @@ class FileTests(unittest.TestCase):
         text = DEMO.read_text()
         self.assertNotIn("bac_antenna", text.replace("bac_antenna_visualizer", ""))
         self.assertNotIn("bac-antenna-optimizer", text.split("# ///")[1])  # the PEP 723 block
-        self.assertNotIn("urllib", text)  # no sockets in WebAssembly
+        self.assertIn("pyfetch", text)  # URLs go through the browser's fetch under WebAssembly, urllib only on CPython
         self.assertNotIn("os.environ", text)  # no BAC_ANTENNA_PACKS on molab
         self.assertNotIn("tool.uv.sources", text)  # no path dependency in the PEP 723 block
 
@@ -103,7 +102,10 @@ class SyntheticPackTests(unittest.TestCase):
 
     def test_pack_found_beside_the_file(self):
         d = self.defs
-        self.assertEqual(list(d["FOUND"]), ["synthetic-2200"])
+        self.assertEqual(list(d["FOUND"])[0], "synthetic-2200")  # local packs first
+        # the demo packs from the repository follow as URLs, never fetched unless chosen
+        for name in d["DEMO_PACKS"]:
+            self.assertTrue(d["is_url"](d["FOUND"][name]) and d["FOUND"][name].endswith(f"{name}-pack.zip"))
         self.assertEqual(Path(d["pack_source"]).resolve(), (self.folder / "synthetic-2200").resolve())
         self.assertIn(self.folder.resolve(), [Path(r).resolve() for r in d["SEARCH_ROOTS"]])
         self.assertEqual(d["MODE"], "nominal")
@@ -203,14 +205,15 @@ class RealPackTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        zips = sorted(DEMO.parent.glob("*.zip"))
+        zips = sorted((DEMO.parent / "packs").glob("*.zip"))
         if not zips:
-            raise unittest.SkipTest("no pack zip beside the demo")
+            raise unittest.SkipTest("no pack zip in demo/packs/")
         cls.tmp = Path(tempfile.mkdtemp())
         cls.addClassCleanup(shutil.rmtree, cls.tmp, ignore_errors=True)
         shutil.copy(DEMO, cls.tmp / DEMO.name)
+        (cls.tmp / "packs").mkdir()
         for z in zips:
-            shutil.copy(z, cls.tmp / z.name)
+            shutil.copy(z, cls.tmp / "packs" / z.name)
         cls.zips = zips
         _, cls.defs = _run_demo(cls.tmp)
 
@@ -221,7 +224,9 @@ class RealPackTests(unittest.TestCase):
             with zipfile.ZipFile(z) as zf:
                 meta = next(n for n in zf.namelist() if n.endswith("pack.json"))
                 names.append(json.loads(zf.read(meta))["name"])
-        self.assertEqual(sorted(d["FOUND"]), sorted(names))
+        self.assertEqual(
+            sorted(k for k, v in d["FOUND"].items() if not d["is_url"](v)), sorted(names)
+        )  # local copies win
         self.assertEqual(d["MODE"], "nominal")
         self.assertGreater(len(d["PACK"]["sphere"]), 0)
         self.assertEqual(len(d["SMITH_TABLE"]), 3)

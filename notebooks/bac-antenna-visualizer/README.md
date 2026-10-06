@@ -63,22 +63,22 @@ Every number between simulated levels is a linear interpolation along one axis. 
 
 ## 6. Demo for molab
 
-`demo/bac_antenna_visualizer_demo.py` is a frozen snapshot of the notebook that runs on [molab](https://molab.marimo.io) without the optimizer. Upload the file and a pack zip into the same molab folder; the demo finds packs beside itself (also in a `packs/` subfolder, the working directory and the file's own folder), and a path or an upload under Other Packs works too. Three things differ from the tracked notebook:
+`demo/bac_antenna_visualizer_demo.py` is a frozen snapshot of the notebook that runs on [molab](https://molab.marimo.io) without the optimizer. Mirror it from GitHub there (or upload the file); the demo finds packs beside itself (also in a `packs/` subfolder, the working directory and the file's own folder) and otherwise fetches the two Build a CubeSat S-band packs from `demo/packs/` in this repository through the browser's `fetch` – a local copy always wins over the download. A path, a zip URL or an upload under Other Packs works too. Two things differ from the tracked notebook:
 
 - **Geometry from the pack.** Instead of rebuilding the model live from the optimizer, the demo takes the stored models in `models.json`: at a simulated level the case's own model, between two levels a straight-line blend of the two neighboring models along the axis moved furthest – the same rule the charts use. For dimensions that move the primitives linearly – all five swept in the S-band packs do – the blend equals the live model to floating-point precision (`tests/test_demo.py` checks the synthetic pack against the optimizer's live model, and for both S-band packs that the blend of the two outermost cases reproduces every inner case's stored model). It falls back to the nearer case when the two models differ in structure, and to the nearest case with a stored model when one is missing. With several sliders off nominal the geometry follows the axis moved furthest, where the tracked notebook shows the combined position.
-- **Packs beside the file** instead of a bac-hardware checkout or `BAC_ANTENNA_PACKS`.
-- **No URL loading** – WebAssembly has no sockets.
+- **Packs beside the file or from the repository** instead of a bac-hardware checkout or `BAC_ANTENNA_PACKS`; under WebAssembly a URL is fetched with `pyodide.http.pyfetch` in an async cell, on CPython with `urllib`.
 
-A Snapshot callout at the top names the visualizer version and the packs it was frozen with (`TOOL_VERSION`, `SNAPSHOT_DATE`, `DEMO_PACKS` in the constants cell); the file has no version of its own and is not updated when the notebook changes – a new snapshot replaces it. The pack zips beside it are not tracked (`.gitignore`); the uploaded copy on molab is by hand, like the four published notebooks. `tests/test_demo.py` runs the demo headless on a synthetic pack, compares the blended geometry with the optimizer's live model, and – when pack zips sit in `demo/` – on those too.
+A Snapshot callout at the top names the visualizer version and the packs it was frozen with (`TOOL_VERSION`, `SNAPSHOT_DATE`, `DEMO_PACKS` in the constants cell); the file has no version of its own and is not updated when the notebook changes – a new snapshot replaces it. The two S-band pack zips are tracked under `demo/packs/` (1.8 MB each) so the mirrored notebook can fetch them; the release zip attached to the antenna stays the archival copy. `tests/test_demo.py` runs the demo headless on a synthetic pack, compares the blended geometry with the optimizer's live model, and on the pack zips in `demo/packs/`; the GitHub fetch itself is not exercised by the tests (no network in CI), only its failure path.
 
 ## 7. Files
 
 ```
 bac_antenna_visualizer.py     the notebook
 packs/                        local pack folders or zips (gitignored)
-demo/bac_antenna_visualizer_demo.py   the frozen demo snapshot for molab (§6); pack zips beside it are gitignored
+demo/bac_antenna_visualizer_demo.py   the frozen demo snapshot for molab (§6)
+demo/packs/                   the two S-band pack zips the demo fetches from GitHub when none are beside it
 tests/test_notebook.py        headless run on a pack the tool builds during the test, and on any pack found on the machine
-tests/test_demo.py            the demo on the same synthetic pack, its geometry against the live model, and the pack zips in demo/
+tests/test_demo.py            the demo on the same synthetic pack, its geometry against the live model, and the pack zips in demo/packs/
 tests/visualizer_testkit.py   builds the synthetic pack for both test modules
 pyproject.toml                dependencies; the optimizer as a workspace dependency
 tests/conftest.py             puts the notebook and the test helper on the path for the workspace pytest
@@ -90,7 +90,7 @@ The notebook's own revision history (its last cell) has the detail per version.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
-| 0.3.3 | 2026-10-06 | Two clipped chart titles split into title and subtitle (`chart_title`); nothing else changes. |
+| 0.3.3 | 2026-10-06 | Two clipped chart titles split into title and subtitle (`chart_title`); nothing else changes. Demo re-snapshotted from 0.3.3: it fetches its packs from `demo/packs/` on GitHub when none are beside it, which is what a molab mirror needs. |
 | 0.3.2 | 2026-10-06 | Demo snapshot for molab added under `demo/` with tests (§6); README headings numbered. No change to the notebook. |
 | 0.3.2 | 2026-10-02 | Moved from `tools/` to the `notebooks/` group with its four siblings; the paths it names follow. No change to what it shows. |
 | 0.3.1 | 2026-10-02 | Brought onto the bac-utils conventions: SPDX header, ruff, tests collectable by the workspace pytest, a minimum version on the optimizer dependency. No change to what it shows. |
