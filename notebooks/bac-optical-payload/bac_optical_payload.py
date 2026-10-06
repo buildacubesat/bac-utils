@@ -118,7 +118,7 @@ def _():
 def _(np):
     # Constants, reference data and the formulas everything uses.
 
-    TOOL_VERSION = "0.7.0"
+    TOOL_VERSION = "0.7.1"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -141,41 +141,158 @@ def _(np):
         "Note",
     ]
     SENSORS = {
-        "IMX477": (4056, 3040, 1.55, 12, "rolling", "RGB", "reference", "1/2.3\", Raspberry Pi HQ camera; CHC5 module"),
-        "IMX500": (4056, 3040, 1.55, 12, "rolling", "RGB", "reference", "1/2.3\", Raspberry Pi AI camera, inference on the sensor"),
-        "IMX708": (4608, 2592, 1.40, 10, "rolling", "RGB", "reference", "1/2.43\", Raspberry Pi camera module 3"),
-        "IMX219": (3280, 2464, 1.12, 10, "rolling", "RGB", "reference", "1/4\", Raspberry Pi camera module 2"),
+        "IMX477": (4056, 3040, 1.55, 12, "rolling", "RGB", "reference", '1/2.3", Raspberry Pi HQ camera; CHC5 module'),
+        "IMX500": (
+            4056,
+            3040,
+            1.55,
+            12,
+            "rolling",
+            "RGB",
+            "reference",
+            '1/2.3", Raspberry Pi AI camera, inference on the sensor',
+        ),
+        "IMX708": (4608, 2592, 1.40, 10, "rolling", "RGB", "reference", '1/2.43", Raspberry Pi camera module 3'),
+        "IMX219": (3280, 2464, 1.12, 10, "rolling", "RGB", "reference", '1/4", Raspberry Pi camera module 2'),
         # The Raspberry Pi Global Shutter Camera carries the color IMX296LQR-C
         # with an integrated IR-cut filter (raspberrypi.com product page); the
         # mono IMX296LLR is a different part, kept as its own row.
-        "IMX296": (1456, 1088, 3.45, 10, "global", "RGB", "reference", "1/2.9\", Raspberry Pi Global Shutter Camera; color IMX296LQR-C with IR-cut filter"),
-        "IMX296 mono": (1456, 1088, 3.45, 10, "global", "mono", "provisional", "1/2.9\", monochrome IMX296LLR as used in industrial modules; not the Raspberry Pi camera"),
-        "IMX678": (3840, 2160, 2.00, 12, "rolling", "RGB", "provisional", "1/1.8\", Starvis 2; CHC5 module"),
-        "IMX585": (3840, 2160, 2.90, 12, "rolling", "RGB", "provisional", "1/1.2\", Starvis 2; CHC5 module"),
-        "IMX585 mono": (3840, 2160, 2.90, 12, "rolling", "mono", "provisional", "1/1.2\", Starvis 2; CHC5 module"),
-        "IMX283": (5472, 3648, 2.40, 12, "rolling", "RGB", "provisional", "1\", Exmor R; CHC5 module"),
-        "IMX565": (4128, 3008, 2.74, 12, "global", "RGB", "provisional", "1/1.1\", Pregius S; CHC5 module, global shutter option B"),
-        "IMX568": (2472, 2064, 2.74, 12, "global", "RGB", "provisional", "2/3\", Pregius S; CHC5 module, global shutter option A"),
-        "IMX294": (3792, 2824, 4.63, 14, "rolling", "RGB", "provisional", "4/3\", Exmor R; CHC5 module"),
-        "OX08B40": (3840, 2160, 2.10, 12, "rolling", "RGB", "provisional", "1/1.8\", automotive HDR; CHC5 module"),
-        "OV5640": (2592, 1944, 1.40, 10, "rolling", "RGB", "provisional", "1/4\", parallel DVP output; STM32 DCMI candidate"),
+        "IMX296": (
+            1456,
+            1088,
+            3.45,
+            10,
+            "global",
+            "RGB",
+            "reference",
+            '1/2.9", Raspberry Pi Global Shutter Camera; color IMX296LQR-C with IR-cut filter',
+        ),
+        "IMX296 mono": (
+            1456,
+            1088,
+            3.45,
+            10,
+            "global",
+            "mono",
+            "provisional",
+            '1/2.9", monochrome IMX296LLR as used in industrial modules; not the Raspberry Pi camera',
+        ),
+        "IMX678": (3840, 2160, 2.00, 12, "rolling", "RGB", "provisional", '1/1.8", Starvis 2; CHC5 module'),
+        "IMX585": (3840, 2160, 2.90, 12, "rolling", "RGB", "provisional", '1/1.2", Starvis 2; CHC5 module'),
+        "IMX585 mono": (3840, 2160, 2.90, 12, "rolling", "mono", "provisional", '1/1.2", Starvis 2; CHC5 module'),
+        "IMX283": (5472, 3648, 2.40, 12, "rolling", "RGB", "provisional", '1", Exmor R; CHC5 module'),
+        "IMX565": (
+            4128,
+            3008,
+            2.74,
+            12,
+            "global",
+            "RGB",
+            "provisional",
+            '1/1.1", Pregius S; CHC5 module, global shutter option B',
+        ),
+        "IMX568": (
+            2472,
+            2064,
+            2.74,
+            12,
+            "global",
+            "RGB",
+            "provisional",
+            '2/3", Pregius S; CHC5 module, global shutter option A',
+        ),
+        "IMX294": (3792, 2824, 4.63, 14, "rolling", "RGB", "provisional", '4/3", Exmor R; CHC5 module'),
+        "OX08B40": (3840, 2160, 2.10, 12, "rolling", "RGB", "provisional", '1/1.8", automotive HDR; CHC5 module'),
+        "OV5640": (
+            2592,
+            1944,
+            1.40,
+            10,
+            "rolling",
+            "RGB",
+            "provisional",
+            '1/4", parallel DVP output; STM32 DCMI candidate',
+        ),
         # Consumer action cameras, for a sense of scale rather than as candidates.
         # Pitches are derived from the published sensor format and pixel count.
-        "GoPro Hero 13 Black": (5568, 4872, 1.27, 10, "rolling", "RGB", "provisional", "1/1.9\", 27 MP 8:7 sensor; consumer action camera, for scale"),
-        "DJI Osmo Action 4": (3840, 2880, 2.40, 10, "rolling", "RGB", "provisional", "1/1.3\", 4:3 video frame at the 2.4 µm binned pitch; consumer action camera, for scale"),
-        "RunCam Thumb Pro (IMX577)": (4056, 3040, 1.55, 10, "rolling", "RGB", "provisional", "1/2.3\", 16 g FPV camera, 155° lens; for scale"),
-        "RunCam 5 Orange (IMX377)": (4000, 3000, 1.55, 12, "rolling", "RGB", "provisional", "1/2.3\", 56 g cube action camera, 145° lens; for scale"),
+        "GoPro Hero 13 Black": (
+            5568,
+            4872,
+            1.27,
+            10,
+            "rolling",
+            "RGB",
+            "provisional",
+            '1/1.9", 27 MP 8:7 sensor; consumer action camera, for scale',
+        ),
+        "DJI Osmo Action 4": (
+            3840,
+            2880,
+            2.40,
+            10,
+            "rolling",
+            "RGB",
+            "provisional",
+            '1/1.3", 4:3 video frame at the 2.4 µm binned pitch; consumer action camera, for scale',
+        ),
+        "RunCam Thumb Pro (IMX577)": (
+            4056,
+            3040,
+            1.55,
+            10,
+            "rolling",
+            "RGB",
+            "provisional",
+            '1/2.3", 16 g FPV camera, 155° lens; for scale',
+        ),
+        "RunCam 5 Orange (IMX377)": (
+            4000,
+            3000,
+            1.55,
+            12,
+            "rolling",
+            "RGB",
+            "provisional",
+            '1/2.3", 56 g cube action camera, 145° lens; for scale',
+        ),
         # DJI's current FPV air units (O4 series, dji.com/o4-air-unit/specs):
         # DJI publishes the format and the 3840 × 2880 4:3 video frame but no
         # pixel count or pitch, so the pitch is the format width over the
         # frame width and the rows are provisional. The 8.2 g unit is a boom
         # camera candidate by mass; the Pro is the one FPV builders mean.
-        "DJI O4 Air Unit": (3840, 2880, 1.67, 10, "rolling", "RGB", "provisional", "1/2\", 4:3 video frame at a pitch derived from the format; 8.2 g air unit with camera, 13.4 × 12.4 × 16.5 mm camera module"),
-        "DJI O4 Air Unit Pro": (3840, 2880, 2.40, 10, "rolling", "RGB", "provisional", "1/1.3\", 4:3 video frame at the same derived pitch as the Osmo Action 4; 32 g air unit with camera, 25.6 × 20 × 23.3 mm camera module"),
+        "DJI O4 Air Unit": (
+            3840,
+            2880,
+            1.67,
+            10,
+            "rolling",
+            "RGB",
+            "provisional",
+            '1/2", 4:3 video frame at a pitch derived from the format; 8.2 g air unit with camera, 13.4 × 12.4 × 16.5 mm camera module',
+        ),
+        "DJI O4 Air Unit Pro": (
+            3840,
+            2880,
+            2.40,
+            10,
+            "rolling",
+            "RGB",
+            "provisional",
+            '1/1.3", 4:3 video frame at the same derived pitch as the Osmo Action 4; 32 g air unit with camera, 25.6 × 20 × 23.3 mm camera module',
+        ),
         # A current phone, for the same reason. The main camera is a 48 MP
         # quad-pixel sensor that bins to 12 MP at 2.44 µm in normal use; the
         # row carries the individual pixel so the 48 MP frame is what is priced.
-        "iPhone 18 Pro main": (8064, 6048, 1.22, 12, "rolling", "RGB", "provisional", "1/1.28\", 48 MP quad-pixel, 2.44 µm binned in normal use; current phone, for scale"),
+        "iPhone 18 Pro main": (
+            8064,
+            6048,
+            1.22,
+            12,
+            "rolling",
+            "RGB",
+            "provisional",
+            '1/1.28", 48 MP quad-pixel, 2.44 µm binned in normal use; current phone, for scale',
+        ),
     }
 
     # The sensor dropdown shows the product a sensor ships in beside its part
@@ -206,32 +323,68 @@ def _(np):
     # the sensor is fine, the reverse vignettes.
     LENS_KEYS = ["Lens", "Focal (mm)", "f-number", "Mount", "Image circle (mm)", "Note"]
     LENSES = {
-        "S-mount 4 mm f/2.0": (4.0, 2.0, "S (M12)", 7.7, "1/2.3\" board lens"),
-        "S-mount 8 mm f/2.0": (8.0, 2.0, "S (M12)", 7.7, "1/2.3\" board lens"),
-        "S-mount 12 mm f/2.5": (12.0, 2.5, "S (M12)", 8.0, "1/2\" board lens"),
-        "CS-mount 6 mm f/1.2": (6.0, 1.2, "CS", 8.0, "1/2\" format, Raspberry Pi wide-angle lens"),
-        "C-mount 16 mm f/1.4": (16.0, 1.4, "C", 16.0, "1\" format, Raspberry Pi HQ lens"),
-        "C-mount 25 mm f/1.4": (25.0, 1.4, "C", 16.0, "1\" format"),
-        "C-mount 35 mm f/1.8": (35.0, 1.8, "C", 16.0, "1\" format"),
-        "C-mount 50 mm f/2.8": (50.0, 2.8, "C", 16.0, "1\" format"),
+        "S-mount 4 mm f/2.0": (4.0, 2.0, "S (M12)", 7.7, '1/2.3" board lens'),
+        "S-mount 8 mm f/2.0": (8.0, 2.0, "S (M12)", 7.7, '1/2.3" board lens'),
+        "S-mount 12 mm f/2.5": (12.0, 2.5, "S (M12)", 8.0, '1/2" board lens'),
+        "CS-mount 6 mm f/1.2": (6.0, 1.2, "CS", 8.0, '1/2" format, Raspberry Pi wide-angle lens'),
+        "C-mount 16 mm f/1.4": (16.0, 1.4, "C", 16.0, '1" format, Raspberry Pi HQ lens'),
+        "C-mount 25 mm f/1.4": (25.0, 1.4, "C", 16.0, '1" format'),
+        "C-mount 35 mm f/1.8": (35.0, 1.8, "C", 16.0, '1" format'),
+        "C-mount 50 mm f/2.8": (50.0, 2.8, "C", 16.0, '1" format'),
         # A single fused-silica element sold for CubeSats; the image circle is
         # the 3.7° fully corrected field at 240 mm, and the mount is whatever
         # the buyer specifies. tinytelescope.com, product page, 2025.
-        "Tiny Telescope TT240-40, 240 mm f/6": (240.0, 6.0, "custom", 15.5, "Single athermal element, 40 mm aperture, 147 g, 75.5 mm to the detector; fits a 1U along its axis"),
+        "Tiny Telescope TT240-40, 240 mm f/6": (
+            240.0,
+            6.0,
+            "custom",
+            15.5,
+            "Single athermal element, 40 mm aperture, 147 g, 75.5 mm to the detector; fits a 1U along its axis",
+        ),
         "AI camera 4.8 mm f/1.8": (4.8, 1.8, "fixed", 7.7, "Raspberry Pi AI camera, fixed"),
         "Camera module 3, 4.7 mm f/1.8": (4.74, 1.8, "fixed", 7.4, "Raspberry Pi camera module 3, fixed"),
         # Action-camera lenses, provisional: focal lengths back-computed from the
         # published 35 mm equivalent, and all three are wide enough that the
         # rectilinear pinhole model overstates the edge of the field.
         "GoPro Hero 13 Black lens, 2.9 mm f/2.5": (2.9, 2.5, "fixed", 9.4, "Consumer action camera, fixed"),
-        "DJI Osmo Action 4 lens, 3.5 mm f/2.8": (3.5, 2.8, "fixed", 12.0, "155° fisheye; consumer action camera, fixed"),
+        "DJI Osmo Action 4 lens, 3.5 mm f/2.8": (
+            3.5,
+            2.8,
+            "fixed",
+            12.0,
+            "155° fisheye; consumer action camera, fixed",
+        ),
         "RunCam Thumb Pro lens, 2.5 mm f/2.8": (2.5, 2.8, "fixed", 7.9, "155° lens; f-number is a placeholder"),
-        "RunCam 5 Orange lens, 3.0 mm f/2.8": (3.0, 2.8, "fixed", 7.9, "145° lens; focal length from the field of view and format, f-number a placeholder"),
+        "RunCam 5 Orange lens, 3.0 mm f/2.8": (
+            3.0,
+            2.8,
+            "fixed",
+            7.9,
+            "145° lens; focal length from the field of view and format, f-number a placeholder",
+        ),
         # DJI O4 lenses: f-numbers and 35 mm equivalents from the DJI spec page,
         # focal lengths from the equivalent over the format diagonal.
-        "DJI O4 Air Unit lens, 2.6 mm f/2.8": (2.6, 2.8, "fixed", 8.1, "117.6° lens, 14 mm equivalent; focal length from the equivalent and the 1/2\" format"),
-        "DJI O4 Air Unit Pro lens, 3.3 mm f/2.8": (3.3, 2.8, "fixed", 12.0, "155° fisheye, 12 mm equivalent; focal length from the equivalent and the 1/1.3\" format"),
-        "iPhone 18 Pro main lens, 6.8 mm f/1.48": (6.8, 1.48, "fixed", 12.3, "24 mm equivalent, variable aperture to f/4.0; focal length from the equivalent"),
+        "DJI O4 Air Unit lens, 2.6 mm f/2.8": (
+            2.6,
+            2.8,
+            "fixed",
+            8.1,
+            '117.6° lens, 14 mm equivalent; focal length from the equivalent and the 1/2" format',
+        ),
+        "DJI O4 Air Unit Pro lens, 3.3 mm f/2.8": (
+            3.3,
+            2.8,
+            "fixed",
+            12.0,
+            '155° fisheye, 12 mm equivalent; focal length from the equivalent and the 1/1.3" format',
+        ),
+        "iPhone 18 Pro main lens, 6.8 mm f/1.48": (
+            6.8,
+            1.48,
+            "fixed",
+            12.3,
+            "24 mm equivalent, variable aperture to f/4.0; focal length from the equivalent",
+        ),
     }
 
     # Camera presets: a product sets its sensor and, where the lens is fixed,
@@ -346,7 +499,7 @@ def _():
     # panel starts from; the BAC boom one is the engineering camera; the generic
     # one is a different mission and exists to show the tool is not the mission.
     PROFILE_BAC = """
-    # Build a CubeSat demo mission, primary imager, as of 2026-09-10.
+    # Build a CubeSat demo mission, primary imager, as of 2026-10-06 (planning orbit 500 km).
     # A candidate, not a decision: the sensor and lens are the January 2027
     # evaluation pair. Change them and the numbers follow.
     name = "Build a CubeSat demo mission, primary imager"
@@ -355,7 +508,7 @@ def _():
     mode = "Earth observation"
 
     [orbit]
-    altitude_km = 450
+    altitude_km = 500
     inclination_deg = 97.4
     ltdn_hours = 10.5
     epoch = "2027-06-21"
@@ -379,12 +532,12 @@ def _():
     wavelength_nm = 550
     compression_ratio = 10
     frames_per_day = 4
-    # From the link budget v0.6.0 at Bern, 450 km, 10°, 3 dB: the UHF 50k link
+    # From the link budget v0.7.1 at Bern, 500 km, 10°, 3 dB: the UHF 50k link
     # and the S-band 100k link as they stand today. S-band carries less because
-    # it clears the margin target for about a minute per pass, not because it is
-    # slower; a 2.4 GHz LNA and tracking under 2-3° take it to about 8'500.
-    low_rate_kb_per_day = 3221
-    high_rate_kb_per_day = 2539
+    # it clears the margin target for only part of each pass, not because it is
+    # slower; a 2.4 GHz LNA and finer tracking are what lift it.
+    low_rate_kb_per_day = 3171
+    high_rate_kb_per_day = 2395
     max_off_nadir_deg = 0
     min_sun_elevation_deg = 20
     """
@@ -399,7 +552,7 @@ def _():
     mode = "Boom"
 
     [orbit]
-    altitude_km = 450
+    altitude_km = 500
 
     [sensor]
     name = "OV5640"
@@ -521,7 +674,11 @@ def _(tomllib, ui_profile):
     # budget [storage], this tool [sensor].
     _tool = _doc.get("tool")
     if not _tool:
-        _tool = "bac_link_budget" if "modes" in _doc else ("bac_power_budget" if "storage" in _doc else "bac_optical_payload")
+        _tool = (
+            "bac_link_budget"
+            if "modes" in _doc
+            else ("bac_power_budget" if "storage" in _doc else "bac_optical_payload")
+        )
     profile_tool = str(_tool)
     return P, PH, profile_error, profile_name, profile_tool, profile_warnings
 
@@ -541,9 +698,7 @@ def _(
 ):
     if profile_error:
         _status = mo.callout(
-            mo.md(
-                f"That file could not be read as TOML, so the defaults are unchanged. {profile_error}"
-            ),
+            mo.md(f"That file could not be read as TOML, so the defaults are unchanged. {profile_error}"),
             kind="warn",
             title="Profile Not Loaded",
         )
@@ -580,13 +735,7 @@ def _(
         )
 
     def _dedent_toml(text):
-        return (
-            "\n".join(
-                _l[4:] if _l.startswith("    ") else _l
-                for _l in text.strip("\n").splitlines()
-            )
-            + "\n"
-        )
+        return "\n".join(_l[4:] if _l.startswith("    ") else _l for _l in text.strip("\n").splitlines()) + "\n"
 
     def _shipped(label, text, slug):
         return mo.download(
@@ -613,15 +762,9 @@ def _(
                             ),
                             mo.hstack(
                                 [
-                                    _shipped(
-                                        "BAC primary imager", PROFILE_BAC, "profile-bac-primary"
-                                    ),
-                                    _shipped(
-                                        "BAC boom camera", PROFILE_BOOM, "profile-bac-boom"
-                                    ),
-                                    _shipped(
-                                        "Generic 1U", PROFILE_GENERIC, "profile-generic"
-                                    ),
+                                    _shipped("BAC primary imager", PROFILE_BAC, "profile-bac-primary"),
+                                    _shipped("BAC boom camera", PROFILE_BOOM, "profile-bac-boom"),
+                                    _shipped("Generic 1U", PROFILE_GENERIC, "profile-generic"),
                                 ],
                                 justify="start",
                                 gap=1,
@@ -712,33 +855,64 @@ def _(
         value="Earth observation" if _mode == "Earth-looking" else _mode,  # pre-0.5.0 profiles
         label="Mode",
     )
-    ui_altitude = S(start=300, stop=1200, step=10, value=P("orbit", "altitude_km", 450), show_value=True, label="Orbit altitude (km)")
+    ui_altitude = S(
+        start=300,
+        stop=1200,
+        step=10,
+        value=P("orbit", "altitude_km", 500),
+        show_value=True,
+        label="Orbit altitude (km)",
+    )
 
     # Custom sensor and lens fields; the dropdowns are in the cell above.
     ui_sensor_w = N(start=64, stop=20000, step=1, value=P("sensor", "width_px", 4056), label="Custom width (px)")
     ui_sensor_h = N(start=64, stop=20000, step=1, value=P("sensor", "height_px", 3040), label="Custom height (px)")
     ui_sensor_pitch = N(start=0.5, stop=20, step=0.01, value=P("sensor", "pitch_um", 1.55), label="Custom pitch (µm)")
     ui_sensor_bits = N(start=8, stop=16, step=1, value=P("sensor", "bits", 12), label="Custom bit depth")
-    ui_sensor_global = mo.ui.switch(value=P("sensor", "global_shutter", False), label="Custom sensor has a global shutter")
+    ui_sensor_global = mo.ui.switch(
+        value=P("sensor", "global_shutter", False), label="Custom sensor has a global shutter"
+    )
     ui_focal = N(start=1, stop=1000, step=0.1, value=P("lens", "focal_mm", 16.0), label="Custom focal length (mm)")
     ui_fnum = N(start=0.8, stop=32, step=0.1, value=P("lens", "f_number", 1.4), label="Custom f-number")
-    ui_circle = N(start=1, stop=100, step=0.1, value=P("lens", "image_circle_mm", 16.0), label="Custom image circle (mm)")
+    ui_circle = N(
+        start=1, stop=100, step=0.1, value=P("lens", "image_circle_mm", 16.0), label="Custom image circle (mm)"
+    )
 
     # Earth observation
-    ui_exposure = S(start=0.05, stop=20, step=0.05, value=P("imaging", "exposure_ms", 0.5), show_value=True, include_input=True, label="Exposure (ms)")
-    ui_readout = N(start=0.1, stop=200, step=0.1, value=P("imaging", "readout_ms", 20.0), label="Rolling-shutter readout (ms)")
-    ui_att_rate = N(start=0, stop=10, step=0.01, value=P("imaging", "attitude_rate_deg_s", 0.5), label="Attitude rate (deg/s)")
-    ui_point_err = N(start=0, stop=45, step=0.1, value=P("imaging", "pointing_error_deg", 5.0), label="Pointing error (deg)")
-    ui_point_know = N(start=0, stop=45, step=0.01, value=P("imaging", "pointing_knowledge_deg", 5.0), label="Pointing knowledge (deg)")
+    ui_exposure = S(
+        start=0.05,
+        stop=20,
+        step=0.05,
+        value=P("imaging", "exposure_ms", 0.5),
+        show_value=True,
+        include_input=True,
+        label="Exposure (ms)",
+    )
+    ui_readout = N(
+        start=0.1, stop=200, step=0.1, value=P("imaging", "readout_ms", 20.0), label="Rolling-shutter readout (ms)"
+    )
+    ui_att_rate = N(
+        start=0, stop=10, step=0.01, value=P("imaging", "attitude_rate_deg_s", 0.5), label="Attitude rate (deg/s)"
+    )
+    ui_point_err = N(
+        start=0, stop=45, step=0.1, value=P("imaging", "pointing_error_deg", 5.0), label="Pointing error (deg)"
+    )
+    ui_point_know = N(
+        start=0, stop=45, step=0.01, value=P("imaging", "pointing_knowledge_deg", 5.0), label="Pointing knowledge (deg)"
+    )
     ui_wavelength = N(start=300, stop=1100, step=10, value=P("imaging", "wavelength_nm", 550), label="Wavelength (nm)")
-    ui_compression = N(start=1, stop=100, step=0.5, value=P("imaging", "compression_ratio", 10.0), label="Compression ratio (n:1)")
+    ui_compression = N(
+        start=1, stop=100, step=0.5, value=P("imaging", "compression_ratio", 10.0), label="Compression ratio (n:1)"
+    )
     # A power budget profile plans its activations as a per-day cap, or, with
     # no cap, as whatever its triggers scheduled; either is the frames per day
     # here. What its energy affords is a callout, not an input.
     _pb_cap = P("payload", "cap_per_day", 0)
     _pb_sched = P("results.power_budget", "activations_scheduled_per_day", 0)
     _frames_default = int(round(_pb_cap)) if _pb_cap > 0 else (int(round(_pb_sched)) if _pb_sched > 0 else 4)
-    ui_frames_day = N(start=0, stop=1000, step=1, value=P("imaging", "frames_per_day", _frames_default), label="Frames per day")
+    ui_frames_day = N(
+        start=0, stop=1000, step=1, value=P("imaging", "frames_per_day", _frames_default), label="Frames per day"
+    )
     # A link budget profile carries one usable-data figure under
     # [results.link_budget]; it lands in the slot its "role" key names, low
     # rate by default. This tool's own [imaging] keys win when present. A
@@ -747,21 +921,59 @@ def _(
     _lb_role = str(P("results.link_budget", "role", "low rate")).lower()
     _low_default = _lb_kb if _lb_kb is not None and _lb_role != "high rate" else 1000
     _high_default = _lb_kb if _lb_kb is not None and _lb_role == "high rate" else 10000
-    ui_low_rate = N(start=0, stop=1_000_000, step=1, value=P("imaging", "low_rate_kb_per_day", _low_default), label="Low-rate downlink (kB/day)")
-    ui_high_rate = N(start=0, stop=10_000_000, step=1, value=P("imaging", "high_rate_kb_per_day", _high_default), label="High-rate downlink (kB/day)")
+    ui_low_rate = N(
+        start=0,
+        stop=1_000_000,
+        step=1,
+        value=P("imaging", "low_rate_kb_per_day", _low_default),
+        label="Low-rate downlink (kB/day)",
+    )
+    ui_high_rate = N(
+        start=0,
+        stop=10_000_000,
+        step=1,
+        value=P("imaging", "high_rate_kb_per_day", _high_default),
+        label="High-rate downlink (kB/day)",
+    )
 
     # Boom
     ui_cubesat = mo.ui.dropdown(options=list(CUBESATS), value=P("boom", "cubesat", "1.5U"), label="CubeSat size")
     ui_face = mo.ui.dropdown(options=list(FACES), value=P("boom", "face", "+Z"), label="Deploying face")
-    ui_off_x = N(start=-200, stop=200, step=1, value=P("boom", "offset_x_mm", 35.0), label="Root offset, first face axis (mm)")
-    ui_off_y = N(start=-200, stop=200, step=1, value=P("boom", "offset_y_mm", 35.0), label="Root offset, second face axis (mm)")
-    ui_boom_len = S(start=50, stop=2000, step=10, value=P("boom", "length_mm", 500), show_value=True, include_input=True, label="Boom length (mm)")
-    ui_sweep = N(start=0, stop=90, step=1, value=P("boom", "sweep_deg", 0.0), label="Boom sweep from the face normal (deg)")
-    ui_sweep_dir = N(start=0, stop=360, step=1, value=P("boom", "sweep_dir_deg", 45.0), label="Sweep direction in the face plane (deg)")
+    ui_off_x = N(
+        start=-200, stop=200, step=1, value=P("boom", "offset_x_mm", 35.0), label="Root offset, first face axis (mm)"
+    )
+    ui_off_y = N(
+        start=-200, stop=200, step=1, value=P("boom", "offset_y_mm", 35.0), label="Root offset, second face axis (mm)"
+    )
+    ui_boom_len = S(
+        start=50,
+        stop=2000,
+        step=10,
+        value=P("boom", "length_mm", 500),
+        show_value=True,
+        include_input=True,
+        label="Boom length (mm)",
+    )
+    ui_sweep = N(
+        start=0, stop=90, step=1, value=P("boom", "sweep_deg", 0.0), label="Boom sweep from the face normal (deg)"
+    )
+    ui_sweep_dir = N(
+        start=0,
+        stop=360,
+        step=1,
+        value=P("boom", "sweep_dir_deg", 45.0),
+        label="Sweep direction in the face plane (deg)",
+    )
     ui_aim = mo.ui.switch(value=P("boom", "aim_at_center", True), label="Aim the boresight at the spacecraft center")
-    ui_pitch = N(start=0, stop=90, step=0.5, value=P("boom", "pitch_deg", 15.0), label="Camera pitch from the boom axis (deg)")
-    ui_yaw = N(start=0, stop=360, step=1, value=P("boom", "yaw_deg", 225.0), label="Pitch direction in the face plane (deg)")
-    ui_focus = N(start=0, stop=5000, step=1, value=P("boom", "focus_mm", 0.0), label="Focus distance (mm, 0 = at the center)")
+    ui_pitch = N(
+        start=0, stop=90, step=0.5, value=P("boom", "pitch_deg", 15.0), label="Camera pitch from the boom axis (deg)"
+    )
+    ui_yaw = N(
+        start=0, stop=360, step=1, value=P("boom", "yaw_deg", 225.0), label="Pitch direction in the face plane (deg)"
+    )
+    ui_focus = N(
+        start=0, stop=5000, step=1, value=P("boom", "focus_mm", 0.0), label="Focus distance (mm, 0 = at the center)"
+    )
     ui_show_focus = mo.ui.switch(value=P("boom", "show_focus", False), label="Show depth of field in the views")
 
     # Target, access and illumination. A preset city or "Custom" with the
@@ -785,31 +997,57 @@ def _(
     ui_target = mo.ui.dropdown(options=list(TARGETS) + ["Custom"], value=_tname, label="Target")
     ui_target_lat = N(start=-90, stop=90, step=0.01, value=_tlat, label="Custom target latitude (deg N)")
     ui_target_lon = N(start=-180, stop=180, step=0.01, value=_tlon, label="Custom target longitude (deg E)")
-    ui_inclination = N(start=0, stop=180, step=0.1, value=P("orbit", "inclination_deg", 97.4), label="Inclination (deg)")
-    ui_ltdn = N(start=0, stop=24, step=0.25, value=P("orbit", "ltdn_hours", 10.5), label="Local time of descending node (h)")
+    ui_inclination = N(
+        start=0, stop=180, step=0.1, value=P("orbit", "inclination_deg", 97.4), label="Inclination (deg)"
+    )
+    ui_ltdn = N(
+        start=0, stop=24, step=0.25, value=P("orbit", "ltdn_hours", 10.5), label="Local time of descending node (h)"
+    )
     ui_epoch = mo.ui.text(value=str(P("orbit", "epoch", "2027-06-21")), label="Epoch (YYYY-MM-DD)")
-    ui_sim_days = S(start=1, stop=60, step=1, value=P("orbit", "sim_days", 30), show_value=True, label="Days to simulate")
-    ui_off_nadir = N(start=0, stop=60, step=1, value=P("imaging", "max_off_nadir_deg", 0), label="Maximum off-nadir angle for targeting (deg)")
-    ui_min_sun = N(start=-10, stop=90, step=1, value=P("imaging", "min_sun_elevation_deg", P("payload", "min_sun_elevation_deg", 20)), label="Minimum Sun elevation at the target (deg)")
+    ui_sim_days = S(
+        start=1, stop=60, step=1, value=P("orbit", "sim_days", 30), show_value=True, label="Days to simulate"
+    )
+    ui_off_nadir = N(
+        start=0,
+        stop=60,
+        step=1,
+        value=P("imaging", "max_off_nadir_deg", 0),
+        label="Maximum off-nadir angle for targeting (deg)",
+    )
+    ui_min_sun = N(
+        start=-10,
+        stop=90,
+        step=1,
+        value=P("imaging", "min_sun_elevation_deg", P("payload", "min_sun_elevation_deg", 20)),
+        label="Minimum Sun elevation at the target (deg)",
+    )
 
     # Map. The three keys live under [map], shared with the link budget;
     # profiles from before 0.7.0 kept them under [target].
     ui_tiles = mo.ui.switch(value=P("map", "tiles", P("target", "map_tiles", True)), label="Map tiles from CARTO")
-    ui_map_zoom = S(start=2, stop=9, step=1, value=P("map", "zoom", P("target", "map_zoom", 5)), show_value=True, label="Map zoom (tile level)")
+    ui_map_zoom = S(
+        start=2,
+        stop=9,
+        step=1,
+        value=P("map", "zoom", P("target", "map_zoom", 5)),
+        show_value=True,
+        label="Map zoom (tile level)",
+    )
     # CARTO basemaps need a key since August 2026; a free one comes from
     # carto.com/basemaps/apikey. Without it the tiles still load, watermarked.
     # The shipped key is BAC's; it is visible to anyone running the notebook,
     # which CARTO expects for browser use.
-    ui_tile_key = mo.ui.text(value=str(P("map", "key", P("target", "map_key", "cb1_3hdr_1_de5c1c882378bcd2934e6ba2"))), label="CARTO basemap key (free)")
+    ui_tile_key = mo.ui.text(
+        value=str(P("map", "key", P("target", "map_key", "cb1_3hdr_1_de5c1c882378bcd2934e6ba2"))),
+        label="CARTO basemap key (free)",
+    )
 
     ui_sidebar = mo.ui.switch(value=False, label="Controls in a sidebar")
 
     # The libraries as tables, for reference; a sensor or lens that is not in
     # them goes in through the Custom fields.
     sensor_table = mo.ui.table(
-        pd.DataFrame(
-            [[_k, *_v] for _k, _v in SENSORS.items()], columns=SENSOR_KEYS
-        ),
+        pd.DataFrame([[_k, *_v] for _k, _v in SENSORS.items()], columns=SENSOR_KEYS),
         selection=None,
         show_column_summaries=False,
         pagination=False,
@@ -936,7 +1174,9 @@ def _(
             ui_altitude,
             mo.md("**Camera**"),
             ui_camera,
-            mo.md("Sets the sensor and, for a fixed lens, the lens; both stay editable. A loaded profile's own sensor and lens win until the camera is changed."),
+            mo.md(
+                "Sets the sensor and, for a fixed lens, the lens; both stay editable. A loaded profile's own sensor and lens win until the camera is changed."
+            ),
             mo.md("**Sensor**"),
             ui_sensor,
             mo.accordion(
@@ -1126,15 +1366,8 @@ def _(
     v_ground_m_s = ground_speed_km_s(h_km) * 1000
     smear_m = v_ground_m_s * float(ui_exposure.value) / 1000
     smear_px = smear_m / gsd_m
-    att_smear_px = (
-        np.radians(float(ui_att_rate.value)) * float(ui_exposure.value) / 1000
-        / (pitch_um / 1000 / f_mm)
-    )
-    skew_px = (
-        v_ground_m_s * float(ui_readout.value) / 1000 / gsd_m
-        if sensor["shutter"] == "rolling"
-        else 0.0
-    )
+    att_smear_px = np.radians(float(ui_att_rate.value)) * float(ui_exposure.value) / 1000 / (pitch_um / 1000 / f_mm)
+    skew_px = v_ground_m_s * float(ui_readout.value) / 1000 / gsd_m if sensor["shutter"] == "rolling" else 0.0
 
     # Pointing: error moves the footprint, knowledge limits geolocation. Both
     # use the spherical-Earth offset the off-nadir chart and the access reach
@@ -1243,15 +1476,8 @@ def _(
     boom_dir = np.cos(_sa) * normal + np.sin(_sa) * (np.cos(_sd) * face_axes[0] + np.sin(_sd) * face_axes[1])
 
     _hx, _hy, _hz = dims / 2
-    corners = np.array(
-        [[sx * _hx, sy * _hy, sz * _hz] for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)]
-    )
-    edges = [
-        (a, b)
-        for a in range(8)
-        for b in range(a + 1, 8)
-        if np.sum(corners[a] != corners[b]) == 1
-    ]
+    corners = np.array([[sx * _hx, sy * _hy, sz * _hz] for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)])
+    edges = [(a, b) for a in range(8) for b in range(a + 1, 8) if np.sum(corners[a] != corners[b]) == 1]
     half_w, half_h = sensor["width_mm"] / 2, sensor["height_mm"] / 2
 
     def _hull(pts):
@@ -1295,17 +1521,15 @@ def _(
                 break
             poly = clip_edge(
                 poly,
-                lambda p, a=axis, l=lim, s=sign: s * p[a] <= s * l,
-                lambda p, q, a=axis, l=lim: lerp(p, q, (l - p[a]) / (q[a] - p[a])),
+                lambda p, a=axis, lim_=lim, s=sign: s * p[a] <= s * lim_,
+                lambda p, q, a=axis, lim_=lim: lerp(p, q, (lim_ - p[a]) / (q[a] - p[a])),
             )
         return poly
 
     def _area(poly):
         if len(poly) < 3:
             return 0.0
-        return 0.5 * abs(
-            sum(poly[i][0] * poly[i - 1][1] - poly[i - 1][0] * poly[i][1] for i in range(len(poly)))
-        )
+        return 0.5 * abs(sum(poly[i][0] * poly[i - 1][1] - poly[i - 1][0] * poly[i][1] for i in range(len(poly))))
 
     def boom_view(length_mm):
         # Everything the frame contains for one boom length, with the aim and
@@ -1341,11 +1565,20 @@ def _(
         px = np.where(d > 1e-9, lens["f_mm"] * (v @ right) / np.maximum(d, 1e-9), np.nan)
         py = np.where(d > 1e-9, lens["f_mm"] * (v @ up) / np.maximum(d, 1e-9), np.nan)
         inside = (np.abs(px) <= half_w) & (np.abs(py) <= half_h) & (d > 0)
-        pts = [(float(x), float(y)) for x, y, dd in zip(px, py, d) if dd > 0]
+        pts = [(float(x), float(y)) for x, y, dd in zip(px, py, d, strict=True) if dd > 0]
         fill = _area(_clip(_hull(pts), half_w, half_h)) / (4 * half_w * half_h) if pts else 0.0
         return dict(
-            cam=cam, bore=bore, up=up, right=right, pitch=pitch, yaw=yaw, depth=d,
-            px=px, py=py, corners_in=int(inside.sum()), fill=fill,
+            cam=cam,
+            bore=bore,
+            up=up,
+            right=right,
+            pitch=pitch,
+            yaw=yaw,
+            depth=d,
+            px=px,
+            py=py,
+            corners_in=int(inside.sum()),
+            fill=fill,
         )
 
     _now = boom_view(ui_boom_len.value)
@@ -1396,7 +1629,9 @@ def _(
             else focus_mm * hyperfocal_mm / (hyperfocal_mm - (focus_mm - lens["f_mm"]))
         )
     object_inside_f = bool(dist_near_mm <= lens["f_mm"]) if dist_near_mm == dist_near_mm else False
-    box_in_focus = (not focus_inside_f) and (not object_inside_f) and dof_near_mm <= dist_near_mm and dof_far_mm >= dist_far_mm
+    box_in_focus = (
+        (not focus_inside_f) and (not object_inside_f) and dof_near_mm <= dist_near_mm and dof_far_mm >= dist_far_mm
+    )
 
     def blur_px(dist_mm):
         # Blur-circle diameter in pixels for a point at that distance along the
@@ -1522,11 +1757,17 @@ def _(
         _row1 = mo.hstack(
             [
                 _stat(f"{fmt_num(gsd_m, 1)} m", "GSD at Nadir", "meters per pixel"),
-                _stat(f"{fmt_num(swath_x_km, 0)} × {fmt_num(swath_y_km, 0)} km", "Swath", f"{fov_x_deg:.1f}° × {fov_y_deg:.1f}° field of view"),
+                _stat(
+                    f"{fmt_num(swath_x_km, 0)} × {fmt_num(swath_y_km, 0)} km",
+                    "Swath",
+                    f"{fov_x_deg:.1f}° × {fov_y_deg:.1f}° field of view",
+                ),
                 _stat(
                     f"{fmt_num(rayleigh_ground_m, 1)} m",
                     "Rayleigh Spot",
-                    "larger than the GSD – diffraction limited" if diffraction_limited else "smaller than the GSD – detector limited",
+                    "larger than the GSD – diffraction limited"
+                    if diffraction_limited
+                    else "smaller than the GSD – detector limited",
                 ),
             ],
             widths="equal",
@@ -1759,7 +2000,11 @@ def _(
     if profile_warnings:
         _items.append(
             mo.callout(
-                mo.md("These profile values were not numbers and fell back to the defaults: " + ", ".join(profile_warnings[:8]) + (" and more." if len(profile_warnings) > 8 else ".")),
+                mo.md(
+                    "These profile values were not numbers and fell back to the defaults: "
+                    + ", ".join(profile_warnings[:8])
+                    + (" and more." if len(profile_warnings) > 8 else ".")
+                ),
                 kind="warn",
                 title="Profile Values Ignored",
             )
@@ -1837,17 +2082,31 @@ def _(
                 }
             )
 
-        _boxes = pd.concat([_rect(swath_x_km, swath_y_km, "Footprint"), _rect(envelope_x_km, envelope_y_km, "Pointing envelope")])
+        _boxes = pd.concat(
+            [_rect(swath_x_km, swath_y_km, "Footprint"), _rect(envelope_x_km, envelope_y_km, "Pointing envelope")]
+        )
         _n_day = int(86400 / step_s)
         _every = max(int(60 / step_s), 1)  # one point a minute is plenty for a line
         _track = pd.DataFrame({"lon": sub_lon[:_n_day:_every], "lat": sub_lat[:_n_day:_every]})
         _track["i"] = range(len(_track))
-        _track["orbit"] = (np.abs(np.diff(_track["lon"], prepend=_track["lon"].iloc[0])) > 180).cumsum()  # split at the date line either way
+        _track["orbit"] = (
+            np.abs(np.diff(_track["lon"], prepend=_track["lon"].iloc[0])) > 180
+        ).cumsum()  # split at the date line either way
         _acc_rows = []
         for _k, _a in enumerate(accesses[:12]):
             _i0 = int(_a["t_mid"] / step_s)
             _lo, _hi = max(_i0 - 60, 0), min(_i0 + 60, len(sub_lon))
-            _acc_rows.append(pd.DataFrame({"lon": sub_lon[_lo:_hi], "lat": sub_lat[_lo:_hi], "i": range(_hi - _lo), "k": _k, "lit": "lit" if _a["lit"] else "dark"}))
+            _acc_rows.append(
+                pd.DataFrame(
+                    {
+                        "lon": sub_lon[_lo:_hi],
+                        "lat": sub_lat[_lo:_hi],
+                        "i": range(_hi - _lo),
+                        "k": _k,
+                        "lit": "lit" if _a["lit"] else "dark",
+                    }
+                )
+            )
         _acc = pd.concat(_acc_rows) if _acc_rows else pd.DataFrame(columns=["lon", "lat", "i", "k", "lit"])
 
         _proj = alt.Projection(type="mercator", center=[_tlon, _tlat], scale=_scale, clipExtent=[[0, 0], [_w, _h]])
@@ -1858,9 +2117,19 @@ def _(
                 .mark_image(width=256, height=256, align="left", baseline="top", clip=True)
                 .encode(x=alt.X("x:Q").scale(None).axis(None), y=alt.Y("y:Q").scale(None).axis(None), url="url:N")
             )
-        _world = alt.topo_feature("https://cdn.jsdelivr.net/npm/vega-datasets@v1.29.0/data/world-110m.json", "countries")
-        _layers.append(alt.Chart(_world).mark_geoshape(fill="transparent", stroke=MUTED, strokeWidth=0.8, opacity=0.5 if ui_tiles.value else 1, clip=True))
-        _layers.append(alt.Chart(_track).mark_line(color=TEXT, strokeWidth=1, opacity=0.55, clip=True).encode(longitude="lon:Q", latitude="lat:Q", detail="orbit:N", order="i:O"))
+        _world = alt.topo_feature(
+            "https://cdn.jsdelivr.net/npm/vega-datasets@v1.29.0/data/world-110m.json", "countries"
+        )
+        _layers.append(
+            alt.Chart(_world).mark_geoshape(
+                fill="transparent", stroke=MUTED, strokeWidth=0.8, opacity=0.5 if ui_tiles.value else 1, clip=True
+            )
+        )
+        _layers.append(
+            alt.Chart(_track)
+            .mark_line(color=TEXT, strokeWidth=1, opacity=0.55, clip=True)
+            .encode(longitude="lon:Q", latitude="lat:Q", detail="orbit:N", order="i:O")
+        )
         _layers.append(
             alt.Chart(_acc)
             .mark_line(strokeWidth=3, clip=True)
@@ -1869,7 +2138,12 @@ def _(
                 latitude="lat:Q",
                 detail="k:N",
                 order="i:O",
-                color=alt.Color("lit:N", title="Access", scale=alt.Scale(domain=["lit", "dark"], range=[PALETTE[2], PALETTE[1]]), legend=alt.Legend(orient="bottom", direction="horizontal", titleOrient="left")),
+                color=alt.Color(
+                    "lit:N",
+                    title="Access",
+                    scale=alt.Scale(domain=["lit", "dark"], range=[PALETTE[2], PALETTE[1]]),
+                    legend=alt.Legend(orient="bottom", direction="horizontal", titleOrient="left"),
+                ),
             )
         )
         _layers.append(
@@ -1880,11 +2154,20 @@ def _(
                 latitude="lat:Q",
                 detail="what:N",
                 order="order:O",
-                strokeDash=alt.StrokeDash("what:N", title=None, scale=alt.Scale(domain=["Footprint", "Pointing envelope"], range=[[1, 0], [6, 4]]), legend=alt.Legend(orient="bottom", direction="horizontal")),
+                strokeDash=alt.StrokeDash(
+                    "what:N",
+                    title=None,
+                    scale=alt.Scale(domain=["Footprint", "Pointing envelope"], range=[[1, 0], [6, 4]]),
+                    legend=alt.Legend(orient="bottom", direction="horizontal"),
+                ),
                 color=alt.value(PALETTE[0]),
             )
         )
-        _layers.append(alt.Chart(pd.DataFrame({"lon": [_tlon], "lat": [_tlat]})).mark_point(color=PALETTE[2], size=110, filled=True, stroke=TEXT, strokeWidth=1, clip=True).encode(longitude="lon:Q", latitude="lat:Q"))
+        _layers.append(
+            alt.Chart(pd.DataFrame({"lon": [_tlon], "lat": [_tlat]}))
+            .mark_point(color=PALETTE[2], size=110, filled=True, stroke=TEXT, strokeWidth=1, clip=True)
+            .encode(longitude="lon:Q", latitude="lat:Q")
+        )
         _map = style_chart(
             alt.layer(*_layers).properties(
                 width=_w,
@@ -1893,7 +2176,11 @@ def _(
                 title=f"Around {'the custom target' if target_name == 'Custom' else target_name} – nadir footprint, pointing envelope, one day of ground track, and up to twelve access passes",
             )
         )
-        _credit = "Map tiles © OpenStreetMap contributors, © CARTO. Coastline: Natural Earth via vega-datasets." if ui_tiles.value else "Coastline: Natural Earth via vega-datasets."
+        _credit = (
+            "Map tiles © OpenStreetMap contributors, © CARTO. Coastline: Natural Earth via vega-datasets."
+            if ui_tiles.value
+            else "Coastline: Natural Earth via vega-datasets."
+        )
         _out = mo.vstack(
             [
                 mo.md("## Map"),
@@ -1940,6 +2227,7 @@ def _(
 ):
     # Access and illumination report.
     if ui_mode.value == "Earth observation":
+
         def _gap(h):
             if h != h:
                 return "–"
@@ -1947,9 +2235,24 @@ def _(
 
         _stats = mo.hstack(
             [
-                mo.stat(value=f"{acc_per_day:.2f}", label="Accesses per Day", caption="target inside the reach", bordered=True),
-                mo.stat(value=f"{lit_per_day:.2f}", label="Lit Accesses per Day", caption=f"Sun above {ui_min_sun.value:g}° at the target", bordered=True),
-                mo.stat(value=_gap(mean_lit_gap_h), label="Mean Gap, Lit", caption=f"longest {_gap(max_lit_gap_h)}", bordered=True),
+                mo.stat(
+                    value=f"{acc_per_day:.2f}",
+                    label="Accesses per Day",
+                    caption="target inside the reach",
+                    bordered=True,
+                ),
+                mo.stat(
+                    value=f"{lit_per_day:.2f}",
+                    label="Lit Accesses per Day",
+                    caption=f"Sun above {ui_min_sun.value:g}° at the target",
+                    bordered=True,
+                ),
+                mo.stat(
+                    value=_gap(mean_lit_gap_h),
+                    label="Mean Gap, Lit",
+                    caption=f"longest {_gap(max_lit_gap_h)}",
+                    bordered=True,
+                ),
             ],
             widths="equal",
         )
@@ -1985,7 +2288,9 @@ def _(
         if not accesses:
             _items.append(
                 mo.callout(
-                    mo.md("No access in the simulated span. Widen the off-nadir angle, lengthen the simulation, or check the inclination against the target latitude."),
+                    mo.md(
+                        "No access in the simulated span. Widen the off-nadir angle, lengthen the simulation, or check the inclination against the target latitude."
+                    ),
                     kind="warn",
                     title="No Access",
                 )
@@ -1993,7 +2298,9 @@ def _(
         elif not lit_acc:
             _items.append(
                 mo.callout(
-                    mo.md("Every access is on the night side. For a sun-synchronous orbit that usually means the local time of the descending node puts the daylit pass on the ascending side; try LTDN near 10:30 for a morning descending pass."),
+                    mo.md(
+                        "Every access is on the night side. For a sun-synchronous orbit that usually means the local time of the descending node puts the daylit pass on the ascending side; try LTDN near 10:30 for a morning descending pass."
+                    ),
                     kind="warn",
                     title="No Lit Access",
                 )
@@ -2039,21 +2346,46 @@ def _(
         _days = np.arange(len(sun_el_deg))[::_every] * step_s / 86400
         _sun = pd.DataFrame({"day": _days, "sun_el_deg": sun_el_deg[::_every]})
         _acc = pd.DataFrame(
-            [{"day": a["t_mid"] / 86400, "sun_el_deg": a["sun_el_deg"], "lit": "lit" if a["lit"] else "dark"} for a in accesses],
+            [
+                {"day": a["t_mid"] / 86400, "sun_el_deg": a["sun_el_deg"], "lit": "lit" if a["lit"] else "dark"}
+                for a in accesses
+            ],
             columns=["day", "sun_el_deg", "lit"],
         )
-        _sun_line = alt.Chart(_sun).mark_line(color=MUTED, strokeWidth=1).encode(
-            x=alt.X("day:Q", title="Days from the epoch"), y=alt.Y("sun_el_deg:Q", title="Sun elevation at the target (deg)")
+        _sun_line = (
+            alt.Chart(_sun)
+            .mark_line(color=MUTED, strokeWidth=1)
+            .encode(
+                x=alt.X("day:Q", title="Days from the epoch"),
+                y=alt.Y("sun_el_deg:Q", title="Sun elevation at the target (deg)"),
+            )
         )
-        _acc_pts = alt.Chart(_acc).mark_point(size=60, filled=True).encode(
-            x="day:Q",
-            y="sun_el_deg:Q",
-            color=alt.Color("lit:N", title="Access", scale=alt.Scale(domain=["lit", "dark"], range=[PALETTE[2], PALETTE[1]])),
-            tooltip=[alt.Tooltip("day:Q", title="Day", format=".2f"), alt.Tooltip("sun_el_deg:Q", title="Sun elevation", format=".0f")],
+        _acc_pts = (
+            alt.Chart(_acc)
+            .mark_point(size=60, filled=True)
+            .encode(
+                x="day:Q",
+                y="sun_el_deg:Q",
+                color=alt.Color(
+                    "lit:N", title="Access", scale=alt.Scale(domain=["lit", "dark"], range=[PALETTE[2], PALETTE[1]])
+                ),
+                tooltip=[
+                    alt.Tooltip("day:Q", title="Day", format=".2f"),
+                    alt.Tooltip("sun_el_deg:Q", title="Sun elevation", format=".0f"),
+                ],
+            )
         )
-        _floor = alt.Chart(alt.Data(values=[{"y": float(ui_min_sun.value)}])).mark_rule(strokeDash=[6, 4], color=MUTED).encode(y="y:Q")
+        _floor = (
+            alt.Chart(alt.Data(values=[{"y": float(ui_min_sun.value)}]))
+            .mark_rule(strokeDash=[6, 4], color=MUTED)
+            .encode(y="y:Q")
+        )
         _timeline = style_chart(
-            (_sun_line + _floor + _acc_pts).properties(width="container", height=240, title="Sun elevation at the target, with each access marked – dashed is the illumination floor")
+            (_sun_line + _floor + _acc_pts).properties(
+                width="container",
+                height=240,
+                title="Sun elevation at the target, with each access marked – dashed is the illumination floor",
+            )
         )
 
         # 2. GSD against off-nadir angle, spherical Earth. Along-track grows
@@ -2071,8 +2403,22 @@ def _(
         _ground_km = R_EARTH_KM * _lam
         _off = pd.concat(
             [
-                pd.DataFrame({"off_nadir_deg": np.degrees(_theta), "meters": _gsd_along, "ground_km": _ground_km, "series": "Along-track GSD"}),
-                pd.DataFrame({"off_nadir_deg": np.degrees(_theta), "meters": _gsd_cross, "ground_km": _ground_km, "series": "Cross-track GSD"}),
+                pd.DataFrame(
+                    {
+                        "off_nadir_deg": np.degrees(_theta),
+                        "meters": _gsd_along,
+                        "ground_km": _ground_km,
+                        "series": "Along-track GSD",
+                    }
+                ),
+                pd.DataFrame(
+                    {
+                        "off_nadir_deg": np.degrees(_theta),
+                        "meters": _gsd_cross,
+                        "ground_km": _ground_km,
+                        "series": "Cross-track GSD",
+                    }
+                ),
             ]
         )
         _order = ["Along-track GSD", "Cross-track GSD"]
@@ -2083,7 +2429,9 @@ def _(
                 .encode(
                     x=alt.X("off_nadir_deg:Q", title="Off-nadir angle (deg)"),
                     y=alt.Y("meters:Q", title="Meters per pixel"),
-                    color=alt.Color("series:N", title=None, sort=_order, scale=alt.Scale(domain=_order, range=PALETTE[:2])),
+                    color=alt.Color(
+                        "series:N", title=None, sort=_order, scale=alt.Scale(domain=_order, range=PALETTE[:2])
+                    ),
                     tooltip=[
                         alt.Tooltip("series:N", title="Series"),
                         alt.Tooltip("off_nadir_deg:Q", title="Off nadir (deg)", format=".1f"),
@@ -2092,7 +2440,11 @@ def _(
                     ],
                 )
                 + rule_x(float(ui_off_nadir.value))
-            ).properties(width="container", height=280, title="Resolution against off-nadir angle – the dashed line is the targeting slew in use; hover for the ground distance")
+            ).properties(
+                width="container",
+                height=280,
+                title="Resolution against off-nadir angle – the dashed line is the targeting slew in use; hover for the ground distance",
+            )
         )
 
         # 3. GSD and Rayleigh spot against focal length.
@@ -2101,7 +2453,13 @@ def _(
         _df = pd.concat(
             [
                 pd.DataFrame({"focal_mm": _f, "meters": sensor["pitch_um"] * h_km / _f, "series": "GSD"}),
-                pd.DataFrame({"focal_mm": _f, "meters": 1.22 * _lamu * h_km / (_f / lens["n"]), "series": f"Rayleigh spot at f/{lens['n']:g}"}),
+                pd.DataFrame(
+                    {
+                        "focal_mm": _f,
+                        "meters": 1.22 * _lamu * h_km / (_f / lens["n"]),
+                        "series": f"Rayleigh spot at f/{lens['n']:g}",
+                    }
+                ),
             ]
         )
         _focal_chart = style_chart(
@@ -2112,10 +2470,18 @@ def _(
                     x=alt.X("focal_mm:Q", title="Focal length (mm)", scale=alt.Scale(type="log")),
                     y=alt.Y("meters:Q", title="Meters on the ground", scale=alt.Scale(type="log")),
                     color=alt.Color("series:N", title=None, scale=alt.Scale(range=PALETTE[:2])),
-                    tooltip=[alt.Tooltip("series:N", title="Series"), alt.Tooltip("focal_mm:Q", title="Focal (mm)", format=".1f"), alt.Tooltip("meters:Q", title="Meters", format=".1f")],
+                    tooltip=[
+                        alt.Tooltip("series:N", title="Series"),
+                        alt.Tooltip("focal_mm:Q", title="Focal (mm)", format=".1f"),
+                        alt.Tooltip("meters:Q", title="Meters", format=".1f"),
+                    ],
                 )
                 + rule_x(lens["f_mm"])
-            ).properties(width="container", height=280, title=f"{sensor['name']} at {fmt_num(h_km, 0)} km – the dashed line is the selected lens")
+            ).properties(
+                width="container",
+                height=280,
+                title=f"{sensor['name']} at {fmt_num(h_km, 0)} km – the dashed line is the selected lens",
+            )
         )
         _out = mo.vstack(
             [
@@ -2224,11 +2590,35 @@ def _(
                 for _k in range(_n_pieces):
                     _bmax = float(np.max([_blur[_k], _blur[_k + 1]]))
                     _seg = _i * 100 + _k
-                    _rows.append({"seg": _seg, "order": 0, "x": _x[_k], "y": _y[_k], "focus": _focus_class(_bmax), "blur_px": _bmax, "depth_mm": float(_d[_k])})
-                    _rows.append({"seg": _seg, "order": 1, "x": _x[_k + 1], "y": _y[_k + 1], "focus": _focus_class(_bmax), "blur_px": _bmax, "depth_mm": float(_d[_k + 1])})
+                    _rows.append(
+                        {
+                            "seg": _seg,
+                            "order": 0,
+                            "x": _x[_k],
+                            "y": _y[_k],
+                            "focus": _focus_class(_bmax),
+                            "blur_px": _bmax,
+                            "depth_mm": float(_d[_k]),
+                        }
+                    )
+                    _rows.append(
+                        {
+                            "seg": _seg,
+                            "order": 1,
+                            "x": _x[_k + 1],
+                            "y": _y[_k + 1],
+                            "focus": _focus_class(_bmax),
+                            "blur_px": _bmax,
+                            "depth_mm": float(_d[_k + 1]),
+                        }
+                    )
         _df = pd.DataFrame(_rows, columns=["seg", "order", "x", "y", "focus", "blur_px", "depth_mm"])
         _frame = pd.DataFrame(
-            {"x": [-half_w, half_w, half_w, -half_w, -half_w], "y": [-half_h, -half_h, half_h, half_h, -half_h], "order": range(5)}
+            {
+                "x": [-half_w, half_w, half_w, -half_w, -half_w],
+                "y": [-half_h, -half_h, half_h, half_h, -half_h],
+                "order": range(5),
+            }
         )
         _pad = 1.25
         _lim_x = alt.Scale(domain=[-half_w * _pad, half_w * _pad])
@@ -2238,13 +2628,21 @@ def _(
         _frame_chart = (
             alt.Chart(_frame)
             .mark_line(color=MUTED, strokeDash=[6, 4])
-            .encode(x=alt.X("x:Q", scale=_lim_x, title="Sensor width (mm)"), y=alt.Y("y:Q", scale=_lim_y, title="Sensor height (mm)"), order="order:O")
+            .encode(
+                x=alt.X("x:Q", scale=_lim_x, title="Sensor width (mm)"),
+                y=alt.Y("y:Q", scale=_lim_y, title="Sensor height (mm)"),
+                order="order:O",
+            )
         )
-        _box_base = alt.Chart(_df).mark_line(strokeWidth=2.5 if _show_focus else 2).encode(
-            x=alt.X("x:Q", scale=_lim_x),
-            y=alt.Y("y:Q", scale=_lim_y),
-            detail="seg:N",
-            order="order:O",
+        _box_base = (
+            alt.Chart(_df)
+            .mark_line(strokeWidth=2.5 if _show_focus else 2)
+            .encode(
+                x=alt.X("x:Q", scale=_lim_x),
+                y=alt.Y("y:Q", scale=_lim_y),
+                detail="seg:N",
+                order="order:O",
+            )
         )
         if _show_focus:
             _box_chart = _box_base.encode(
@@ -2255,8 +2653,16 @@ def _(
                     scale=alt.Scale(domain=_focus_order, range=[PALETTE[0], PALETTE[2], MUTED]),
                     legend=alt.Legend(orient="bottom", direction="horizontal", titleOrient="left"),
                 ),
-                strokeDash=alt.StrokeDash("focus:N", sort=_focus_order, scale=alt.Scale(domain=_focus_order, range=[[1, 0], [1, 0], [3, 3]]), legend=None),
-                tooltip=[alt.Tooltip("blur_px:Q", title="Blur circle (px)", format=".1f"), alt.Tooltip("depth_mm:Q", title="Distance (mm)", format=".0f")],
+                strokeDash=alt.StrokeDash(
+                    "focus:N",
+                    sort=_focus_order,
+                    scale=alt.Scale(domain=_focus_order, range=[[1, 0], [1, 0], [3, 3]]),
+                    legend=None,
+                ),
+                tooltip=[
+                    alt.Tooltip("blur_px:Q", title="Blur circle (px)", format=".1f"),
+                    alt.Tooltip("depth_mm:Q", title="Distance (mm)", format=".0f"),
+                ],
             )
         else:
             _box_chart = _box_base.encode(color=alt.value(PALETTE[0]))
@@ -2304,7 +2710,10 @@ def _(
         # The diagonal half-angle bounds the field of view in any cutting plane.
         _half = np.arctan(np.hypot(half_w, half_h) / lens["f_mm"])
         _reach = float(np.linalg.norm(cam)) * 1.6
-        _rot = lambda v, a: np.array([v[0] * np.cos(a) - v[1] * np.sin(a), v[0] * np.sin(a) + v[1] * np.cos(a)])
+
+        def _rot(v, a):
+            return np.array([v[0] * np.cos(a) - v[1] * np.sin(a), v[0] * np.sin(a) + v[1] * np.cos(a)])
+
         _ray1 = _rot(_bore2, _half) * _reach
         _ray2 = _rot(_bore2, -_half) * _reach
         # Depth-of-field limits as lines across the field of view at the near
@@ -2312,28 +2721,71 @@ def _(
         # at the edge of the plot.
         _perp2 = np.array([-_bore2[1], _bore2[0]])
         _dof_rows = []
-        for _lim in ((dof_near_mm, dof_far_mm if np.isfinite(dof_far_mm) else _reach) if _show_focus and dof_near_mm == dof_near_mm else ()):
+        for _lim in (
+            (dof_near_mm, dof_far_mm if np.isfinite(dof_far_mm) else _reach)
+            if _show_focus and dof_near_mm == dof_near_mm
+            else ()
+        ):
             _hw = _lim * np.tan(_half)
             _c = np.array(_cam2) + _bore2 * _lim
-            _dof_rows.append(pd.DataFrame({"x": [_c[0] - _perp2[0] * _hw, _c[0] + _perp2[0] * _hw], "y": [_c[1] - _perp2[1] * _hw, _c[1] + _perp2[1] * _hw], "order": [0, 1], "what": "Depth of field", "lim": _lim}))
+            _dof_rows.append(
+                pd.DataFrame(
+                    {
+                        "x": [_c[0] - _perp2[0] * _hw, _c[0] + _perp2[0] * _hw],
+                        "y": [_c[1] - _perp2[1] * _hw, _c[1] + _perp2[1] * _hw],
+                        "order": [0, 1],
+                        "what": "Depth of field",
+                        "lim": _lim,
+                    }
+                )
+            )
         _side = pd.concat(
             [
                 pd.DataFrame({"x": _hull_x, "y": _hull_y, "order": range(5), "what": "Envelope"}),
                 pd.DataFrame({"x": [_root2[0], _cam2[0]], "y": [_root2[1], _cam2[1]], "order": [0, 1], "what": "Boom"}),
-                pd.DataFrame({"x": [_cam2[0], _cam2[0] + _bore2[0] * _reach], "y": [_cam2[1], _cam2[1] + _bore2[1] * _reach], "order": [0, 1], "what": "Boresight"}),
-                pd.DataFrame({"x": [_cam2[0] + _ray1[0], _cam2[0], _cam2[0] + _ray2[0]], "y": [_cam2[1] + _ray1[1], _cam2[1], _cam2[1] + _ray2[1]], "order": [0, 1, 2], "what": "Diagonal field of view"}),
+                pd.DataFrame(
+                    {
+                        "x": [_cam2[0], _cam2[0] + _bore2[0] * _reach],
+                        "y": [_cam2[1], _cam2[1] + _bore2[1] * _reach],
+                        "order": [0, 1],
+                        "what": "Boresight",
+                    }
+                ),
+                pd.DataFrame(
+                    {
+                        "x": [_cam2[0] + _ray1[0], _cam2[0], _cam2[0] + _ray2[0]],
+                        "y": [_cam2[1] + _ray1[1], _cam2[1], _cam2[1] + _ray2[1]],
+                        "order": [0, 1, 2],
+                        "what": "Diagonal field of view",
+                    }
+                ),
                 *_dof_rows,
             ]
         )
-        _order = ["Envelope", "Boom", "Boresight", "Diagonal field of view"] + (["Depth of field"] if _show_focus else [])
+        _order = ["Envelope", "Boom", "Boresight", "Diagonal field of view"] + (
+            ["Depth of field"] if _show_focus else []
+        )
         _side_chart = style_chart(
             alt.Chart(_side)
             .mark_line(strokeWidth=2)
             .encode(
                 x=alt.X("x:Q", title="Along the face, from the root direction (mm)"),
                 y=alt.Y("y:Q", title="Along the face normal (mm)"),
-                color=alt.Color("what:N", title=None, sort=_order, scale=alt.Scale(domain=_order, range=[PALETTE[0], PALETTE[2], PALETTE[1], MUTED, PALETTE[4]][: len(_order)]), legend=alt.Legend(orient="bottom", direction="horizontal")),
-                strokeDash=alt.StrokeDash("what:N", sort=_order, scale=alt.Scale(domain=_order, range=[[1, 0], [1, 0], [1, 0], [6, 4], [2, 2]][: len(_order)]), legend=None),
+                color=alt.Color(
+                    "what:N",
+                    title=None,
+                    sort=_order,
+                    scale=alt.Scale(
+                        domain=_order, range=[PALETTE[0], PALETTE[2], PALETTE[1], MUTED, PALETTE[4]][: len(_order)]
+                    ),
+                    legend=alt.Legend(orient="bottom", direction="horizontal"),
+                ),
+                strokeDash=alt.StrokeDash(
+                    "what:N",
+                    sort=_order,
+                    scale=alt.Scale(domain=_order, range=[[1, 0], [1, 0], [1, 0], [6, 4], [2, 2]][: len(_order)]),
+                    legend=None,
+                ),
                 order="order:O",
                 detail=alt.Detail(["what:N", "lim:N"]),
             )
@@ -2354,13 +2806,23 @@ def _(
                 .encode(
                     x=alt.X("length_mm:Q", title="Boom length (mm)"),
                     y=alt.Y("fill_pct:Q", title="Frame filled (%)"),
-                    tooltip=[alt.Tooltip("length_mm:Q", title="Boom (mm)"), alt.Tooltip("fill_pct:Q", title="Fill (%)", format=".1f"), alt.Tooltip("corners_in:Q", title="Corners in frame")],
+                    tooltip=[
+                        alt.Tooltip("length_mm:Q", title="Boom (mm)"),
+                        alt.Tooltip("fill_pct:Q", title="Fill (%)", format=".1f"),
+                        alt.Tooltip("corners_in:Q", title="Corners in frame"),
+                    ],
                 )
                 + alt.Chart(_sw[_sw["corners_in"] == 8])
                 .mark_point(color=PALETTE[2], size=18, filled=True)
                 .encode(x="length_mm:Q", y="fill_pct:Q")
-                + alt.Chart(alt.Data(values=[{"x": float(ui_boom_len.value)}])).mark_rule(strokeDash=[6, 4], color=MUTED).encode(x="x:Q")
-            ).properties(width="container", height=260, title="Fill against boom length at the same aim – copper marks where all eight corners are in the frame")
+                + alt.Chart(alt.Data(values=[{"x": float(ui_boom_len.value)}]))
+                .mark_rule(strokeDash=[6, 4], color=MUTED)
+                .encode(x="x:Q")
+            ).properties(
+                width="container",
+                height=260,
+                title="Fill against boom length at the same aim – copper marks where all eight corners are in the frame",
+            )
         )
 
         _aim = (
@@ -2448,7 +2910,10 @@ def _(
         _geom = pd.DataFrame(
             [
                 ("Altitude", f"{fmt_num(h_km, 0)} km"),
-                ("Sensor", f"{sensor['name']}, {sensor['w']} × {sensor['h']} px, {sensor['pitch_um']:g} µm, {sensor['bits']} bit, {sensor['shutter']} shutter"),
+                (
+                    "Sensor",
+                    f"{sensor['name']}, {sensor['w']} × {sensor['h']} px, {sensor['pitch_um']:g} µm, {sensor['bits']} bit, {sensor['shutter']} shutter",
+                ),
                 ("Lens", f"{lens['name']}, {lens['f_mm']:g} mm f/{lens['n']:g}, aperture {lens['aperture_mm']:.1f} mm"),
                 ("GSD at nadir", f"{fmt_num(gsd_m, 1)} m"),
                 ("Instantaneous field of view", f"{fmt_num(ifov_arcsec, 1)} arcsec per pixel"),
@@ -2456,10 +2921,16 @@ def _(
                 ("Field of view", f"{fov_x_deg:.2f}° × {fov_y_deg:.2f}°"),
                 ("Rayleigh spot on the ground", f"{fmt_num(rayleigh_ground_m, 1)} m"),
                 ("Sampling factor Q", f"{q_factor:.2f}"),
-                ("Ground speed", f"{fmt_num(v_ground_m_s / 1000, 2)} km/s – {fmt_num(v_ground_m_s / 1000, 1)} m per ms"),
+                (
+                    "Ground speed",
+                    f"{fmt_num(v_ground_m_s / 1000, 2)} km/s – {fmt_num(v_ground_m_s / 1000, 1)} m per ms",
+                ),
                 ("Motion smear", f"{fmt_num(smear_m, 1)} m, {smear_px:.2f} px"),
                 ("Attitude-rate smear", f"{att_smear_px:.1f} px"),
-                ("Rolling-shutter skew", f"{skew_px:.0f} px" if sensor["shutter"] == "rolling" else "none, global shutter"),
+                (
+                    "Rolling-shutter skew",
+                    f"{skew_px:.0f} px" if sensor["shutter"] == "rolling" else "none, global shutter",
+                ),
                 ("Footprint shift at the pointing error", f"{fmt_num(point_shift_km, 1)} km"),
                 ("Footprint envelope", f"{fmt_num(envelope_x_km, 0)} × {fmt_num(envelope_y_km, 0)} km"),
                 ("Geolocation uncertainty from pointing knowledge", f"{fmt_num(geoloc_km, 1)} km"),
@@ -2525,8 +2996,16 @@ def _(
                 ("Spectral bands", _bands),
                 ("Radiometric resolution", f"{sensor['bits']} bit RAW at the sensor"),
                 ("Swath", f"{fmt_int(swath_x_km)} × {fmt_int(swath_y_km)} km"),
-                ("Revisit interval, lit", "no lit access in the simulated span" if mean_lit_gap_h != mean_lit_gap_h else f"{mean_lit_gap_h / 24:.1f} days mean, at the stated target and slew"),
-                ("Off-nadir capability", f"{ui_off_nadir.value:g}° used for targeting; the platform's slew range decides"),
+                (
+                    "Revisit interval, lit",
+                    "no lit access in the simulated span"
+                    if mean_lit_gap_h != mean_lit_gap_h
+                    else f"{mean_lit_gap_h / 24:.1f} days mean, at the stated target and slew",
+                ),
+                (
+                    "Off-nadir capability",
+                    f"{ui_off_nadir.value:g}° used for targeting; the platform's slew range decides",
+                ),
                 ("Geolocation accuracy", f"{fmt_num(geoloc_km, 1)} km from pointing knowledge alone"),
                 ("Imaging of objects other than the Earth", "possible whenever the attitude control permits it"),
             ],
@@ -2581,18 +3060,30 @@ def _(
         _t = pd.DataFrame(
             [
                 ("Spacecraft envelope", f"{dims[0]:g} × {dims[1]:g} × {dims[2]:g} mm"),
-                ("Boom direction", f"({boom_dir[0]:.3f}, {boom_dir[1]:.3f}, {boom_dir[2]:.3f}), {ui_sweep.value:g}° off the normal"),
-                ("Camera position in the body frame", f"({fmt_num(cam[0], 0)}, {fmt_num(cam[1], 0)}, {fmt_num(cam[2], 0)}) mm"),
+                (
+                    "Boom direction",
+                    f"({boom_dir[0]:.3f}, {boom_dir[1]:.3f}, {boom_dir[2]:.3f}), {ui_sweep.value:g}° off the normal",
+                ),
+                (
+                    "Camera position in the body frame",
+                    f"({fmt_num(cam[0], 0)}, {fmt_num(cam[1], 0)}, {fmt_num(cam[2], 0)}) mm",
+                ),
                 ("Boresight unit vector", f"({boresight[0]:.3f}, {boresight[1]:.3f}, {boresight[2]:.3f})"),
                 ("Face axes in the image", f"{face_axis_names[0]} across, {face_axis_names[1]} up, before the tilt"),
                 ("Distance to the center", f"{fmt_int(dist_center_mm)} mm"),
-                ("Nearest and farthest corner", f"{fmt_int(dist_near_mm)} – {fmt_int(dist_far_mm)} mm along the boresight"),
+                (
+                    "Nearest and farthest corner",
+                    f"{fmt_int(dist_near_mm)} – {fmt_int(dist_far_mm)} mm along the boresight",
+                ),
                 ("Scale at the center", f"{gsd_center_mm_px:.2f} mm per pixel"),
                 ("Lens", f"{lens['name']}, {lens['f_mm']:g} mm f/{lens['n']:g}"),
                 ("Circle of confusion", f"2 px = {2 * sensor['pitch_um'] / 1000:.4f} mm"),
                 ("Hyperfocal distance", f"{fmt_int(hyperfocal_mm)} mm"),
                 ("Focus distance", f"{fmt_int(focus_mm)} mm"),
-                ("Depth of field", f"{fmt_int(dof_near_mm)} mm to {'infinity' if dof_far_mm == float('inf') else fmt_int(dof_far_mm) + ' mm'}"),
+                (
+                    "Depth of field",
+                    f"{fmt_int(dof_near_mm)} mm to {'infinity' if dof_far_mm == float('inf') else fmt_int(dof_far_mm) + ' mm'}",
+                ),
             ],
             columns=["Quantity", "Value"],
         )
@@ -2651,7 +3142,7 @@ def _(
         epoch_error = ""
     except ValueError:
         _epoch = dt.datetime(2027, 6, 21, tzinfo=dt.timezone.utc)
-        epoch_error = f"Epoch \"{ui_epoch.value}\" is not YYYY-MM-DD; using 2027-06-21."
+        epoch_error = f'Epoch "{ui_epoch.value}" is not YYYY-MM-DD; using 2027-06-21.'
 
     def _jd(when):
         return 2440587.5 + when.timestamp() / 86400
@@ -2708,7 +3199,9 @@ def _(
         _sun = np.atleast_2d(sun_eci(_jd))
         _g = np.atleast_1d(gmst_rad(_jd))
         _cg, _sg = np.cos(_g), np.sin(_g)
-        _sun_ecef = np.stack([_cg * _sun[:, 0] + _sg * _sun[:, 1], -_sg * _sun[:, 0] + _cg * _sun[:, 1], _sun[:, 2]], axis=-1)
+        _sun_ecef = np.stack(
+            [_cg * _sun[:, 0] + _sg * _sun[:, 1], -_sg * _sun[:, 0] + _cg * _sun[:, 1], _sun[:, 2]], axis=-1
+        )
         return np.degrees(np.arcsin(np.clip(_sun_ecef @ _tv, -1, 1)))
 
     _lat_s, _lon_s = _sub_point(_t)
@@ -2918,7 +3411,9 @@ def _(
     _head = [
         f"# BAC Optical Payload – {ui_mode.value} mode",
         "",
-        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Optical Payload {TOOL_VERSION}, bac.page/optical-payload-tool." + (f" Profile: {profile_name}." if profile_name else "") + " Every value below is a planning input or a result derived from one; nothing here is measured.",
+        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Optical Payload {TOOL_VERSION}, bac.page/optical-payload-tool."
+        + (f" Profile: {profile_name}." if profile_name else "")
+        + " Every value below is a planning input or a result derived from one; nothing here is measured.",
         "",
         f"Sensor {sensor['name']}, {sensor['w']} × {sensor['h']} px, {sensor['pitch_um']:g} µm, {sensor['bits']} bit, {sensor['shutter']} shutter ({sensor['status']}). "
         f"Lens {lens['name']}, {lens['f_mm']:g} mm f/{lens['n']:g}. Field of view {fov_x_deg:.1f}° × {fov_y_deg:.1f}°.",
@@ -2946,7 +3441,8 @@ def _(
     else:
         _body = [
             f"{ui_cubesat.value} envelope, boom on {ui_face.value} at ({ui_off_x.value:g}, {ui_off_y.value:g}) mm, {fmt_int(ui_boom_len.value)} mm long, swept {ui_sweep.value:g}° toward {ui_sweep_dir.value:g}°. "
-            f"Boresight pitch {pitch_used:.1f}° toward {yaw_used:.0f}°" + (" (aimed at the center)." if ui_aim.value else " (manual)."),
+            f"Boresight pitch {pitch_used:.1f}° toward {yaw_used:.0f}°"
+            + (" (aimed at the center)." if ui_aim.value else " (manual)."),
             "",
             "| Quantity | Value |",
             "|---|---|",
@@ -2956,7 +3452,14 @@ def _(
             f"| Raw frame | {fmt_int(raw_kb)} kB, {fmt_int(comp_kb)} kB compressed |",
             "",
         ]
-    report_md = "\n".join(_head + _body) + "\n" + "\n".join(_l[4:] if _l.startswith("    ") else _l for _l in ASSUMPTIONS_MD.strip("\n").splitlines()) + "\n\n" + "\n".join(_l[4:] if _l.startswith("    ") else _l for _l in ACKNOWLEDGMENT_MD.strip("\n").splitlines()) + "\n"
+    report_md = (
+        "\n".join(_head + _body)
+        + "\n"
+        + "\n".join(_l[4:] if _l.startswith("    ") else _l for _l in ASSUMPTIONS_MD.strip("\n").splitlines())
+        + "\n\n"
+        + "\n".join(_l[4:] if _l.startswith("    ") else _l for _l in ACKNOWLEDGMENT_MD.strip("\n").splitlines())
+        + "\n"
+    )
 
     # Hand-rolled TOML, the link budget's writer: strings escaped including
     # newlines, numpy scalars unwrapped, NaN and infinity left out rather than
@@ -2967,8 +3470,17 @@ def _(
         if hasattr(v, "item"):
             v = v.item()
         if isinstance(v, (int, float)):
-            return "" if v != v or v in (float("inf"), float("-inf")) else repr(round(v, 6) if isinstance(v, float) else v)
-        _s = str(v).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
+            return (
+                "" if v != v or v in (float("inf"), float("-inf")) else repr(round(v, 6) if isinstance(v, float) else v)
+            )
+        _s = (
+            str(v)
+            .replace("\\", "\\\\")
+            .replace('"', '\\"')
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+        )
         return '"' + _s + '"'
 
     def _kv(key, v):
@@ -3098,8 +3610,18 @@ def _(
             ),
             mo.hstack(
                 [
-                    mo.download(data=report_md.encode("utf-8"), filename=f"bac-optical-payload-{_slug}-{_today}.md", mimetype="text/markdown", label="Download report (.md)"),
-                    mo.download(data=profile_toml.encode("utf-8"), filename=f"bac-optical-payload-profile-{_today}.toml", mimetype="application/toml", label="Download profile (.toml)"),
+                    mo.download(
+                        data=report_md.encode("utf-8"),
+                        filename=f"bac-optical-payload-{_slug}-{_today}.md",
+                        mimetype="text/markdown",
+                        label="Download report (.md)",
+                    ),
+                    mo.download(
+                        data=profile_toml.encode("utf-8"),
+                        filename=f"bac-optical-payload-profile-{_today}.toml",
+                        mimetype="application/toml",
+                        label="Download profile (.toml)",
+                    ),
                 ],
                 justify="start",
                 gap=1,
@@ -3169,8 +3691,8 @@ def _(mo):
     high-rate link, in kB per day, with no assumption about their frequency
     bands. An empty panel starts at 1'000 and 10'000 kB/day, round figures an
     order of magnitude apart. The BAC profiles carry the
-    [link budget](https://cubesat-resources.space/references/glossary/#link-budget)'s figures at Bern, 450 km, 10°, 3 dB:
-    3'221 kB/day on UHF and 2'539 on S-band. The high-rate link carrying less
+    [link budget](https://cubesat-resources.space/references/glossary/#link-budget)'s figures at Bern, 500 km, 10°, 3 dB:
+    3'171 kB/day on UHF and 2'395 on S-band. The high-rate link carrying less
     is a margin result, not a bit-rate one, and a callout says so whenever it
     happens.
 
@@ -3244,6 +3766,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the primary-imager and boom profiles and the panel default move to 500 km, and the primary-imager profile takes the link budget 0.7.1 volumes at that orbit (3'171 kB/day UHF, 2'395 S-band). GSD, swath, reach and the access count move with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.7.0 | 2026-09-14 | Review fixes: access entry and exit are solved between the 10 s samples – every closest approach that could dip inside the reach is refined on a fine grid and bisected to a tenth of a second – so an access shorter than a sample is found and timed, and the access list shows the closest approach; a saved profile's explicit sensor and lens win over its camera preset on load, and the preset applies only when the camera dropdown is changed; a link budget profile without `[results.link_budget]` says so in a callout instead of claiming an import; a focus distance at or inside the focal length is refused with a callout, and a spacecraft part inside the focal length gets no blur figure and its own callout; the focal-length advice and the diffraction callout now say what the equations say (a longer lens at constant f-number resolves more and leaves Q alone); every angle-to-ground distance – access reach, footprint shift, geolocation – uses the off-nadir chart's spherical geometry with the horizon limit; the Raspberry Pi Global Shutter Camera is the color IMX296LQR-C, with the mono IMX296 kept as its own provisional row; the libraries are described as reference tables, with the Custom fields as the way in. DJI O4 Air Unit and O4 Air Unit Pro as camera presets, sensor rows provisional. Interoperability: a power budget profile loads (orbit, activation location, planned activations as frames) and its affordable activations feed a callout; map settings move to a `[map]` table shared with the link budget, old `[target]` keys still load; `reach_km` in the results; profile values clamped to control ranges and reported when unreadable; newlines escaped in the profile. Homogenization: intro at the siblings' length with the tool's URL, its siblings, the project and the repository; the preliminary warning as a callout; "Headline Numbers"; assumptions as structured paragraphs with glossary links; equal-width panel columns. |
     | 0.6.0 | 2026-09-13 | Camera dropdown: a product sets its sensor and, where fixed, its lens (Raspberry Pi Camera Module 3, HQ Camera, AI Camera and Global Shutter Camera, the three CHC5 evaluation modules, the action cameras and the phone); the sensor dropdown names the product each sensor ships in. Tiny Telescope TT240-40 in the lens library. Interoperability: the saved profile names the tool and its version and carries a `[results.optical_payload]` table with the figures the siblings take; a link budget profile loads directly, its station standing in for the target and its `[results.link_budget]` figure for the downlink volume. Profile writer replaced with the link budget's. |
     | 0.5.3 | 2026-09-13 | Library additions: RunCam 5 and the iPhone 18 Pro main camera as scale references, each with its fixed lens; the RunCam Thumb Pro lens circle raised to cover its own sensor so the fixed pair no longer trips the image-circle callout; and the Raspberry Pi 6 mm CS-mount lens so the HQ and Global Shutter cameras have both of their official lenses to choose from. |

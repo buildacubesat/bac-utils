@@ -7,7 +7,7 @@ name = "Build a CubeSat demo mission, boom camera"
 mode = "Boom"
 
 [orbit]
-altitude_km = 450
+altitude_km = 500
 
 [sensor]
 name = "OV5640"

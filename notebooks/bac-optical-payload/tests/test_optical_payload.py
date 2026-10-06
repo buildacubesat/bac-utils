@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Regression checks for bac_optical_payload.py against the 0.7.0 handoff (§5, numbers at the defaults).
+"""Regression checks for bac_optical_payload.py against the 0.7.1 handoff (§5, numbers at the defaults, 500 km).
 
 From the bac-utils root: uv run pytest notebooks/bac-optical-payload -q
 """
@@ -20,41 +20,41 @@ def _run(profile_toml: str) -> dict:
 
 
 def test_version_and_defaults():
-    assert D["TOOL_VERSION"] == "0.7.0"
+    assert D["TOOL_VERSION"] == "0.7.1"
     assert D["profile_tool"] == "bac_optical_payload"
     assert not D["profile_warnings"]
     assert D["focus_invalid"] is False
 
 
 def test_primary_imager_geometry():
-    """BAC primary imager: IMX477, C-mount 16 mm f/1.4, 450 km, Bern."""
-    assert D["gsd_m"] == pytest.approx(43.6, abs=0.05)
-    assert D["swath_x_km"] == pytest.approx(176.8, abs=0.05)
-    assert D["swath_y_km"] == pytest.approx(132.5, abs=0.05)
+    """BAC primary imager: IMX477, C-mount 16 mm f/1.4, 500 km, Bern."""
+    assert D["gsd_m"] == pytest.approx(48.4, abs=0.05)
+    assert D["swath_x_km"] == pytest.approx(196.5, abs=0.05)
+    assert D["swath_y_km"] == pytest.approx(147.25, abs=0.05)
     assert D["fov_x_deg"] == pytest.approx(22.23, abs=0.01)
     assert D["fov_y_deg"] == pytest.approx(16.75, abs=0.01)
-    assert D["rayleigh_ground_m"] == pytest.approx(26.4, abs=0.05)
+    assert D["rayleigh_ground_m"] == pytest.approx(29.4, abs=0.05)
     assert D["q_factor"] == pytest.approx(0.50, abs=0.005)
-    assert D["smear_px"] == pytest.approx(0.08, abs=0.005)
-    assert D["skew_px"] == pytest.approx(3.3, abs=0.05)
-    assert D["period_min"] == pytest.approx(93.44, abs=0.01)
+    assert D["smear_px"] == pytest.approx(0.07, abs=0.005)
+    assert D["skew_px"] == pytest.approx(2.9, abs=0.05)
+    assert D["period_min"] == pytest.approx(94.47, abs=0.01)
 
 
 def test_data_volume():
     assert D["raw_kb"] == pytest.approx(18_495, abs=1)
     assert D["comp_kb"] == pytest.approx(1_850, abs=1)
-    # the panel's own daily volumes; with a link budget profile loaded the handoff's 5.74 / 7.28 days apply (test_cross)
+    # the panel's own daily volumes; with a link budget profile loaded the handoff's 5.83 / 7.72 days apply (test_cross)
     assert D["days_raw_low"] == pytest.approx(D["raw_kb"] / D["low_kb"], rel=1e-9)
     assert D["days_raw_high"] == pytest.approx(D["raw_kb"] / D["high_kb"], rel=1e-9)
 
 
 def test_reach_and_accesses_are_solved_between_samples():
-    assert D["reach_km"] == pytest.approx(88.4, abs=0.05)
-    assert D["reach_eff_km"] == pytest.approx(49.0, abs=0.05)
+    assert D["reach_km"] == pytest.approx(98.2, abs=0.05)
+    assert D["reach_eff_km"] == pytest.approx(54.5, abs=0.05)
     durations = sorted((a["duration_s"] for a in D["accesses"]), reverse=True)
-    assert durations == pytest.approx([12.8, 8.1], abs=0.1)
-    assert D["acc_per_day"] == pytest.approx(0.067, abs=0.001)
-    assert D["lit_per_day"] == pytest.approx(0.033, abs=0.001)
+    assert durations == pytest.approx([14.7, 14.2, 13.2, 12.2], abs=0.1)
+    assert D["acc_per_day"] == pytest.approx(0.133, abs=0.001)
+    assert D["lit_per_day"] == pytest.approx(0.067, abs=0.001)
     for a in D["accesses"]:
         assert a["t_end"] > a["t_start"]
         assert a["min_psi_km"] < D["reach_eff_km"]
@@ -62,8 +62,8 @@ def test_reach_and_accesses_are_solved_between_samples():
 
 def test_ground_offset_uses_the_spherical_earth():
     g = D["ground_offset_km"]
-    assert g(60.0, 450.0) == pytest.approx(890, abs=1)
-    assert g(5.0, 450.0) == pytest.approx(450.0 * math.tan(math.radians(5.0)), abs=0.05)
+    assert g(60.0, 500.0) == pytest.approx(1008, abs=1)
+    assert g(5.0, 500.0) == pytest.approx(500.0 * math.tan(math.radians(5.0)), abs=0.05)
 
 
 def test_boom_profile():
@@ -93,10 +93,10 @@ def test_focus_inside_focal_length_is_refused():
 def test_profile_export_contract():
     p = tomllib.loads(D["profile_toml"])
     assert p["tool"] == "bac_optical_payload"
-    assert p["tool_version"] == "0.7.0"
+    assert p["tool_version"] == "0.7.1"
     assert "map" in p
     res = p["results"]["optical_payload"]
-    assert res["reach_km"] == pytest.approx(88.4, abs=0.05)
+    assert res["reach_km"] == pytest.approx(98.2, abs=0.05)
     d2 = _run(D["profile_toml"])
     assert d2["profile_tool"] == "bac_optical_payload"
     assert d2["gsd_m"] == pytest.approx(D["gsd_m"], rel=1e-6)
