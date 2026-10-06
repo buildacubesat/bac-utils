@@ -22,7 +22,7 @@ dev = [
 line-length = 120
 target-version = "py311"
 extend-exclude = ["blender"]
-# honour the format exclude below even when a file is named explicitly (editors, pre-commit)
+# honour extend-exclude even when a file is named explicitly (editors, pre-commit)
 force-exclude = true
 
 [tool.ruff.lint]
@@ -34,25 +34,11 @@ ignore = ["B008"]
 # Prompt text and test fixtures are literal strings; wrapping them changes them.
 "**/llm.py" = ["E501"]
 "**/tests/*" = ["E501"]
-# marimo notebooks: markdown table rows must stay on one line, and a cell's last
-# bare expression is its output, not a useless statement.
-"notebooks/**/*.py" = ["E501", "B018"]
-# The four published notebooks are byte-identical to the copies on molab and are not
-# rewritten here (see notebooks/README.md); `marimo check` is their lint. The antenna
-# visualizer is local-only and stays under the normal rules.
-"notebooks/bac-link-budget/bac_link_budget.py" = ["ALL"]
-"notebooks/bac-optical-payload/bac_optical_payload.py" = ["ALL"]
-"notebooks/bac-power-budget/bac_power_budget.py" = ["ALL"]
-"notebooks/bac-orbital-lifetime/bac_orbital_lifetime.py" = ["ALL"]
-
-[tool.ruff.format]
-# the same four files: formatting would change bytes that must match molab
-exclude = [
-    "notebooks/bac-link-budget/bac_link_budget.py",
-    "notebooks/bac-optical-payload/bac_optical_payload.py",
-    "notebooks/bac-power-budget/bac_power_budget.py",
-    "notebooks/bac-orbital-lifetime/bac_orbital_lifetime.py",
-]
+# marimo notebooks: markdown table rows must stay on one line; a cell's last bare
+# expression is its output, not a useless statement; and a name assigned at the top of
+# a cell is a notebook global (the harness and the tests read it through `defs`) even
+# when no other cell uses it, so it is not an unused local.
+"notebooks/**/*.py" = ["E501", "B018", "F841"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["bac_common", "bac_kicad_common", "bac_suite_db", "notebook_harness"]

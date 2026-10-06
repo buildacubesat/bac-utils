@@ -32,10 +32,10 @@ This table is the record of what exists, what is being worked on and what is pla
 | `bac-shop-product-cropper` | media | Interactive crop of product photos with size-targeted WebP export | planned | – |
 | `bac-update-content-plan` | content | Renders the content plan from a Google Sheet into the docs repository and commits it | planned | – |
 | `bac-vse-tools` | Blender | One extension with three sub-panels: bulk import, sequential proxies, separate meta strips preserving trim | planned | – |
-| `bac-link-budget` | notebook | Link budget for a CubeSat radio link: passes, margins, data volume per day, validated against the AMSAT/IARU link model and SGP4 | available | v0.7.0 |
-| `bac-optical-payload` | notebook | Earth-observation and boom-camera optics: GSD, swath, smear, access and illumination over a target, days to downlink | available | v0.7.0 |
-| `bac-power-budget` | notebook | Generation, storage and loads over the orbit with a scheduler and safe mode | available | v0.5.0 |
-| `bac-orbital-lifetime` | notebook | Decay under drag with NRLMSIS 2.1 and ten solar-activity scenarios; lifetime against launch date; disposal rules | available | v0.2.0 |
+| `bac-link-budget` | notebook | Link budget for a CubeSat radio link: passes, margins, data volume per day, validated against the AMSAT/IARU link model and SGP4 | available | v0.7.1 |
+| `bac-optical-payload` | notebook | Earth-observation and boom-camera optics: GSD, swath, smear, access and illumination over a target, days to downlink | available | v0.7.1 |
+| `bac-power-budget` | notebook | Generation, storage and loads over the orbit with a scheduler and safe mode | available | v0.5.1 |
+| `bac-orbital-lifetime` | notebook | Decay under drag with NRLMSIS 2.1 and ten solar-activity scenarios; lifetime against launch date; disposal rules | available | v0.2.1 |
 | `bac-orbit-viewer` | notebook | 3D view of a mission's geometry around the globe from any sibling's profile | planned | – |
 | `bac-pv-aging` | notebook | Single-diode model of a solar cell string fitted to datasheet points and aged over the mission by UV, atomic oxygen, displacement damage and thermal cycling: BOL and EOL IV curves, the EOL power factor the power budget takes | planned | – |
 | `bac-battery-pack` | notebook | Battery pack configuration (cell, S × P, depth of discharge, temperature) and aging: cycle and calendar capacity fade over the mission, usable energy at end of life, the pack figures the power budget takes | planned | – |
@@ -67,7 +67,7 @@ uv run ruff check .
 
 ## 3. Notebooks
 
-The engineering notebooks under `notebooks/` – link budget, optical payload, power budget, orbital lifetime, and the local-only antenna visualizer (with a frozen demo snapshot that runs on molab) – are single marimo files with PEP 723 metadata. Run one in its own environment with `uvx marimo edit --sandbox notebooks/bac-link-budget/bac_link_budget.py`, or in the workspace environment with `uv run marimo edit <file>`. The four published ones are the molab copies behind the bac.page links, byte for byte apart from the SPDX line; each of them carries the shipped profiles as TOML files under `examples/` and headless regression tests. `notebooks/README.md` has the rules of the class.
+The engineering notebooks under `notebooks/` – link budget, optical payload, power budget, orbital lifetime, and the local-only antenna visualizer (with a frozen demo snapshot that runs on molab) – are single marimo files with PEP 723 metadata. Run one in its own environment with `uvx marimo edit --sandbox notebooks/bac-link-budget/bac_link_budget.py`, or in the workspace environment with `uv run marimo edit <file>`. The four published ones are the files behind the bac.page links – edited here and copied to molab, never the other way round; each of them carries the shipped profiles as TOML files under `examples/` and headless regression tests. The BAC profiles assume the 500 km planning orbit. `notebooks/README.md` has the rules of the class.
 
 ## 4. Layout
 
@@ -96,6 +96,7 @@ Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool n
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.8.2 | 2026-10-06 | The BAC planning orbit moves to 500 km (was 450 km): `bac-link-budget` v0.7.1, `bac-optical-payload` v0.7.1, `bac-power-budget` v0.5.1 and `bac-orbital-lifetime` v0.2.1 with their profiles, panel defaults, regression figures and READMEs; the lifetime takes the siblings' chart-conventions and style cells; the four notebooks are formatted and linted by ruff from now on (exemptions dropped, F841 added for cell globals). |
 | 0.8.1 | 2026-10-06 | `bac-antenna-visualizer`: a demo snapshot for molab under `notebooks/bac-antenna-visualizer/demo/` – the visualizer without the optimizer, geometry from the pack's stored models, packs found beside the file – with its own headless tests; the demo is covered by `marimo check` in CI. |
 | 0.8.0 | 2026-10-02 | The `notebooks/` group: `bac-link-budget` v0.7.0, `bac-optical-payload` v0.7.0, `bac-power-budget` v0.5.0 and `bac-orbital-lifetime` v0.2.0 come in as byte-identical copies of the published files with example profiles and regression tests from their handoffs; `bac-antenna-visualizer` v0.3.2 moves there from `tools/`; a shared headless harness; `marimo check` and the notebook tests in CI. `bac-convention-check` v0.2.1 stops flagging a notebook's build-system-less pyproject. |
 | 0.7.0 | 2026-10-02 | `bac-cad-preview` v0.5.0 joins on `bac-common`: STEP, STL and 3MF previews framed like the KiCad artifacts render, faces named with the project's axis letters, `--out-dir`, output collisions refused; the `step` extra carries OpenCascade. |
