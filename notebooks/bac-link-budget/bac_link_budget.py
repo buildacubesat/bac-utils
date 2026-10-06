@@ -114,7 +114,7 @@ def _():
 def _(np):
     # Constants, reference data and the small set of formulas everything uses.
 
-    TOOL_VERSION = "0.7.0"
+    TOOL_VERSION = "0.7.1"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -228,7 +228,7 @@ def _(np):
     # only a frequency; the generic one is a different mission entirely, and
     # exists to show that the tool is not the mission.
     PROFILE_BAC = """
-    # Build a CubeSat demo mission, UHF, as of 2026-09-10.
+    # Build a CubeSat demo mission, UHF, as of 2026-10-06 (planning orbit 500 km).
     # Sibling: "Build a CubeSat demo mission, S-band" – same orbit, station and
     # policy; only the band, antennas and modes differ. Change both together.
     name = "Build a CubeSat demo mission"
@@ -239,7 +239,7 @@ def _(np):
     link_role = "low rate"
 
     [orbit]
-    altitude_km = 450
+    altitude_km = 500
     inclination_deg = 97.4
     min_elevation_deg = 10
     target_margin_db = 3
@@ -298,7 +298,7 @@ def _(np):
     """
 
     PROFILE_SBAND = """
-    # Build a CubeSat demo mission, S-band downlink, as of 2026-09-10.
+    # Build a CubeSat demo mission, S-band downlink, as of 2026-10-06 (planning orbit 500 km).
     # Sibling: "Build a CubeSat demo mission" (UHF) – same orbit, station and
     # policy; only the band, antennas and modes differ. Change both together.
     #
@@ -320,7 +320,7 @@ def _(np):
     link_role = "high rate"
 
     [orbit]
-    altitude_km = 450
+    altitude_km = 500
     inclination_deg = 97.4
     min_elevation_deg = 10
     target_margin_db = 3
@@ -477,20 +477,17 @@ def _(np):
         f = f_mhz / 1000.0
         rp = rt = 1.0
         g_o = (
-            (
-                7.2 * rt**2.8 / (f**2 + 0.34 * rp**2 * rt**1.6)
-                + 0.62 / ((54 - f) ** 1.16 + 0.83)
-            )
-            * f**2
-            * rp**2
-            * 1e-3
+            (7.2 * rt**2.8 / (f**2 + 0.34 * rp**2 * rt**1.6) + 0.62 / ((54 - f) ** 1.16 + 0.83)) * f**2 * rp**2 * 1e-3
             if f < 54
             else 0.0
         )
         rho = 7.5
         eta1 = 0.955 * rp * rt**0.68 + 0.006 * rho
         eta2 = 0.735 * rp * rt**0.5 + 0.0353 * rt**4 * rho
-        g = lambda fi: 1 + ((f - fi) / (f + fi)) ** 2
+
+        def g(fi):
+            return 1 + ((f - fi) / (f + fi)) ** 2
+
         g_w = (
             (
                 3.98 * eta1 / ((f - 22.235) ** 2 + 9.42 * eta1**2) * g(22)
@@ -508,16 +505,8 @@ def _(np):
             * rho
             * 1e-4
         )
-        t1 = (
-            4.64
-            / (1 + 0.066 * rp**-2.3)
-            * np.exp(-(((f - 59.7) / (2.87 + 12.4 * np.exp(-7.9 * rp))) ** 2))
-        )
-        t2 = (
-            0.14
-            * np.exp(2.12 * rp)
-            / ((f - 118.75) ** 2 + 0.031 * np.exp(2.2 * rp))
-        )
+        t1 = 4.64 / (1 + 0.066 * rp**-2.3) * np.exp(-(((f - 59.7) / (2.87 + 12.4 * np.exp(-7.9 * rp))) ** 2))
+        t2 = 0.14 * np.exp(2.12 * rp) / ((f - 118.75) ** 2 + 0.031 * np.exp(2.2 * rp))
         t3 = (
             0.0114
             / (1 + 0.14 * rp**-2.6)
@@ -537,9 +526,7 @@ def _(np):
 
     def gaseous_loss_db(el_deg, f_mhz):
         a_o, h_o, a_w, h_w = gaseous_zenith_db(f_mhz)
-        return a_o * _shell_airmass(el_deg, h_o) + a_w * _shell_airmass(
-            el_deg, h_w
-        )
+        return a_o * _shell_airmass(el_deg, h_o) + a_w * _shell_airmass(el_deg, h_w)
 
     def atmospheric_loss_db(el_deg, f_mhz):
         # King's elevation table is an empirical allowance for everything the
@@ -561,9 +548,7 @@ def _(np):
     def slant_range_km(el_deg, h_km):
         el = np.radians(el_deg)
         re = R_EARTH_KM
-        return -re * np.sin(el) + np.sqrt(
-            (re * np.sin(el)) ** 2 + h_km**2 + 2 * re * h_km
-        )
+        return -re * np.sin(el) + np.sqrt((re * np.sin(el)) ** 2 + h_km**2 + 2 * re * h_km)
 
     def fspl_db(d_km, f_mhz):
         return 20 * np.log10(d_km) + 20 * np.log10(f_mhz) + 32.44
@@ -573,11 +558,7 @@ def _(np):
         # temperature attenuated by the feeder, the feeder's own thermal noise,
         # and the receiver. The signal is referenced to the same plane.
         _l = 10 ** (feed_loss_db / 10)
-        t_sys = (
-            t_ant_k / _l
-            + (1 - 1 / _l) * T0_K
-            + T0_K * (10 ** (nf_db / 10) - 1)
-        )
+        t_sys = t_ant_k / _l + (1 - 1 / _l) * T0_K + T0_K * (10 ** (nf_db / 10) - 1)
         return K_BOLTZMANN_DBW + 30 + 10 * np.log10(t_sys), t_sys
 
     def polarization_loss_db(ar1_db, ar2_db, worst_case):
@@ -587,9 +568,7 @@ def _(np):
         # sets them crossed, average takes the mean over that angle.
         r1, r2 = 10 ** (ar1_db / 20), 10 ** (ar2_db / 20)
         cos2 = -1.0 if worst_case else 0.0
-        plf = 0.5 + (4 * r1 * r2 + (r1**2 - 1) * (r2**2 - 1) * cos2) / (
-            2 * (r1**2 + 1) * (r2**2 + 1)
-        )
+        plf = 0.5 + (4 * r1 * r2 + (r1**2 - 1) * (r2**2 - 1) * cos2) / (2 * (r1**2 + 1) * (r2**2 + 1))
         return -10 * np.log10(plf)
 
     def ncfsk_ebn0_for_fer_db(fer, n_bits):
@@ -683,9 +662,7 @@ def _(tomllib, ui_profile):
     if _raw:
         try:
             _doc = tomllib.loads(_raw.decode("utf-8"))
-            profile_name = str(
-                _doc.get("name") or ui_profile.name() or "unnamed"
-            )
+            profile_name = str(_doc.get("name") or ui_profile.name() or "unnamed")
         except Exception as _e:  # a bad file must not take the notebook down
             profile_error = f"{type(_e).__name__}: {_e}"
             _doc = {}
@@ -729,7 +706,11 @@ def _(tomllib, ui_profile):
     # [storage], and this tool [[modes]].
     _tool = _doc.get("tool")
     if not _tool:
-        _tool = "bac_optical_payload" if "sensor" in _doc else ("bac_power_budget" if "storage" in _doc else "bac_link_budget")
+        _tool = (
+            "bac_optical_payload"
+            if "sensor" in _doc
+            else ("bac_power_budget" if "storage" in _doc else "bac_link_budget")
+        )
     profile_tool = str(_tool)
     return (
         P,
@@ -761,9 +742,7 @@ def _(
     }
     if profile_error:
         _status = mo.callout(
-            mo.md(
-                f"That file could not be read as TOML, so the defaults are unchanged. {profile_error}"
-            ),
+            mo.md(f"That file could not be read as TOML, so the defaults are unchanged. {profile_error}"),
             kind="warn",
             title="Profile Not Loaded",
         )
@@ -778,13 +757,7 @@ def _(
         )
 
     def _dedent_toml(text):
-        return (
-            "\n".join(
-                _l[4:] if _l.startswith("    ") else _l
-                for _l in text.strip("\n").splitlines()
-            )
-            + "\n"
-        )
+        return "\n".join(_l[4:] if _l.startswith("    ") else _l for _l in text.strip("\n").splitlines()) + "\n"
 
     def _shipped(label, text, slug):
         return mo.download(
@@ -872,8 +845,17 @@ def _(
 
     # Orbit and targets. The minimum elevation is read from either table the
     # siblings keep it in; a sibling's 30-day span is clamped to the slider.
-    ui_altitude = S(start=300, stop=1200, step=10, value=P("orbit", "altitude_km", 450), show_value=True, label="Orbit altitude (km)")
-    ui_inclination = N(start=0, stop=180, step=0.1, value=P("orbit", "inclination_deg", 97.4), label="Inclination (deg)")
+    ui_altitude = S(
+        start=300,
+        stop=1200,
+        step=10,
+        value=P("orbit", "altitude_km", 500),
+        show_value=True,
+        label="Orbit altitude (km)",
+    )
+    ui_inclination = N(
+        start=0, stop=180, step=0.1, value=P("orbit", "inclination_deg", 97.4), label="Inclination (deg)"
+    )
     ui_min_el = S(
         start=0,
         stop=30,
@@ -882,8 +864,22 @@ def _(
         show_value=True,
         label="Minimum usable elevation (deg)",
     )
-    ui_target_margin = S(start=0, stop=12, step=0.5, value=P("orbit", "target_margin_db", 3), show_value=True, label="Target link margin (dB)")
-    ui_sim_days = S(start=1, stop=14, step=1, value=P("orbit", "sim_days", 7), show_value=True, label="Days to simulate per orbit phase")
+    ui_target_margin = S(
+        start=0,
+        stop=12,
+        step=0.5,
+        value=P("orbit", "target_margin_db", 3),
+        show_value=True,
+        label="Target link margin (dB)",
+    )
+    ui_sim_days = S(
+        start=1,
+        stop=14,
+        step=1,
+        value=P("orbit", "sim_days", 7),
+        show_value=True,
+        label="Days to simulate per orbit phase",
+    )
     ui_role = mo.ui.dropdown(
         options=["low rate", "high rate"],
         value=P("mission", "link_role", "low rate"),
@@ -896,37 +892,110 @@ def _(
     _sname = str(P("ground_station", "station", ""))
     if not _sname and PH("target", "name"):
         _city = str(P("target", "name", "")).split(",")[0].strip()
-        _sname = next((_k for _k in STATIONS if _k.split(",")[0] == _city), "Custom" if PH("target", "latitude_deg") else "Bern, Switzerland")
+        _sname = next(
+            (_k for _k in STATIONS if _k.split(",")[0] == _city),
+            "Custom" if PH("target", "latitude_deg") else "Bern, Switzerland",
+        )
     if _sname not in STATIONS:
         _sname = "Custom" if PH("ground_station", "latitude_deg") else "Bern, Switzerland"
     ui_station = mo.ui.dropdown(options=list(STATIONS), value=_sname, label="Station")
-    ui_lat = N(start=-90, stop=90, step=0.01, value=P("ground_station", "latitude_deg", P("target", "latitude_deg", 46.95)), label="Custom latitude (deg N)")
-    ui_lon = N(start=-180, stop=180, step=0.01, value=P("ground_station", "longitude_deg", P("target", "longitude_deg", 7.45)), label="Custom longitude (deg E)")
+    ui_lat = N(
+        start=-90,
+        stop=90,
+        step=0.01,
+        value=P("ground_station", "latitude_deg", P("target", "latitude_deg", 46.95)),
+        label="Custom latitude (deg N)",
+    )
+    ui_lon = N(
+        start=-180,
+        stop=180,
+        step=0.01,
+        value=P("ground_station", "longitude_deg", P("target", "longitude_deg", 7.45)),
+        label="Custom longitude (deg E)",
+    )
     ui_gs_antenna = mo.ui.dropdown(
         options=list(GS_ANTENNAS),
         value=P("ground_station", "antenna", "WiMo X-Quad 70 cm"),
         label="Antenna",
     )
     ui_rotator = mo.ui.switch(value=P("ground_station", "rotator", True), label="Antenna is on a tracking rotator")
-    ui_track_err = S(start=0, stop=20, step=0.5, value=P("ground_station", "tracking_error_deg", 5), show_value=True, label="Tracking error (deg)")
-    ui_gs_feed_loss = N(start=0, stop=6, step=0.1, value=P("ground_station", "feed_loss_db", 1.0), label="Feed loss ahead of the LNA (dB)")
-    ui_gs_nf = N(start=0.3, stop=10, step=0.1, value=P("ground_station", "lna_nf_db", 1.0), label="LNA noise figure (dB)")
-    ui_gs_tant = N(start=50, stop=1000, step=10, value=P("ground_station", "antenna_temp_k", 300), label="Antenna noise temperature (K)")
-    ui_gs_tx_w = N(start=1, stop=500, step=1, value=P("ground_station", "tx_power_w", 25), label="Transmitter power (W)")
-    ui_gs_ar = N(start=0, stop=40, step=0.5, value=P("ground_station", "axial_ratio_db", 3.0), label="Axial ratio (dB), circular antennas")
+    ui_track_err = S(
+        start=0,
+        stop=20,
+        step=0.5,
+        value=P("ground_station", "tracking_error_deg", 5),
+        show_value=True,
+        label="Tracking error (deg)",
+    )
+    ui_gs_feed_loss = N(
+        start=0,
+        stop=6,
+        step=0.1,
+        value=P("ground_station", "feed_loss_db", 1.0),
+        label="Feed loss ahead of the LNA (dB)",
+    )
+    ui_gs_nf = N(
+        start=0.3, stop=10, step=0.1, value=P("ground_station", "lna_nf_db", 1.0), label="LNA noise figure (dB)"
+    )
+    ui_gs_tant = N(
+        start=50,
+        stop=1000,
+        step=10,
+        value=P("ground_station", "antenna_temp_k", 300),
+        label="Antenna noise temperature (K)",
+    )
+    ui_gs_tx_w = N(
+        start=1, stop=500, step=1, value=P("ground_station", "tx_power_w", 25), label="Transmitter power (W)"
+    )
+    ui_gs_ar = N(
+        start=0,
+        stop=40,
+        step=0.5,
+        value=P("ground_station", "axial_ratio_db", 3.0),
+        label="Axial ratio (dB), circular antennas",
+    )
 
     # Spacecraft. Duplex is a hardware statement: half means one radio and
     # one antenna serve both directions and the pass is shared; full means
     # separate transmit and receive chains and each direction gets the whole
     # pass. A frequency difference alone does not make a link full duplex.
-    ui_sat_gain = N(start=-10, stop=20, step=0.5, value=P("spacecraft", "antenna_gain_dbi", 0), label="Antenna gain (dBi)")
-    ui_sat_loss = N(start=0, stop=6, step=0.1, value=P("spacecraft", "cable_loss_db", 1.0), label="Cable and switch loss (dB)")
-    ui_sat_point_loss = N(start=0, stop=6, step=0.1, value=P("spacecraft", "pointing_allowance_db", 0.5), label="Antenna pointing allowance (dB)")
-    ui_sat_ar = N(start=0, stop=40, step=0.5, value=P("spacecraft", "axial_ratio_db", 3.0), label="Antenna axial ratio (dB)")
-    ui_sat_nf = N(start=0.5, stop=12, step=0.1, value=P("spacecraft", "receiver_nf_db", 1.5), label="Receiver noise figure (dB)")
-    ui_sat_sens = N(start=-140, stop=-80, step=1, value=P("spacecraft", "reference_rx_level_dbm", -117), label="Reference receive level (dBm)")
-    ui_sat_sens_rate = N(start=100, stop=1000000, step=100, value=P("spacecraft", "reference_rx_rate_bps", 50000), label="…reported at (bps)")
-    _duplex_options = {"Half – one radio, the pass is shared": "half", "Full – separate chains, each direction gets the whole pass": "full"}
+    ui_sat_gain = N(
+        start=-10, stop=20, step=0.5, value=P("spacecraft", "antenna_gain_dbi", 0), label="Antenna gain (dBi)"
+    )
+    ui_sat_loss = N(
+        start=0, stop=6, step=0.1, value=P("spacecraft", "cable_loss_db", 1.0), label="Cable and switch loss (dB)"
+    )
+    ui_sat_point_loss = N(
+        start=0,
+        stop=6,
+        step=0.1,
+        value=P("spacecraft", "pointing_allowance_db", 0.5),
+        label="Antenna pointing allowance (dB)",
+    )
+    ui_sat_ar = N(
+        start=0, stop=40, step=0.5, value=P("spacecraft", "axial_ratio_db", 3.0), label="Antenna axial ratio (dB)"
+    )
+    ui_sat_nf = N(
+        start=0.5, stop=12, step=0.1, value=P("spacecraft", "receiver_nf_db", 1.5), label="Receiver noise figure (dB)"
+    )
+    ui_sat_sens = N(
+        start=-140,
+        stop=-80,
+        step=1,
+        value=P("spacecraft", "reference_rx_level_dbm", -117),
+        label="Reference receive level (dBm)",
+    )
+    ui_sat_sens_rate = N(
+        start=100,
+        stop=1000000,
+        step=100,
+        value=P("spacecraft", "reference_rx_rate_bps", 50000),
+        label="…reported at (bps)",
+    )
+    _duplex_options = {
+        "Half – one radio, the pass is shared": "half",
+        "Full – separate chains, each direction gets the whole pass": "full",
+    }
     _duplex = str(P("spacecraft", "duplex", "half")).strip().lower()
     ui_duplex = mo.ui.dropdown(
         options=_duplex_options,
@@ -935,39 +1004,123 @@ def _(
     )
 
     # Frequencies
-    ui_freq_down = N(start=30, stop=30000, step=0.1, value=P("orbit", "downlink_mhz", 436.0), label="Downlink frequency (MHz)")
-    ui_freq_up = N(start=30, stop=30000, step=0.1, value=P("orbit", "uplink_mhz", 436.0), label="Uplink frequency (MHz)")
+    ui_freq_down = N(
+        start=30, stop=30000, step=0.1, value=P("orbit", "downlink_mhz", 436.0), label="Downlink frequency (MHz)"
+    )
+    ui_freq_up = N(
+        start=30, stop=30000, step=0.1, value=P("orbit", "uplink_mhz", 436.0), label="Uplink frequency (MHz)"
+    )
 
     # Link allowances and modulation – rarely touched, so folded away.
-    ui_impl_loss = N(start=0, stop=8, step=0.5, value=P("allowances", "implementation_loss_db", 2.0), label="Implementation loss (dB)")
-    ui_custom_ebn0 = N(start=-25, stop=30, step=0.1, value=P("allowances", "custom_ebn0_db", 13.8), label="Required Eb/N0 for the Custom modulation (dB)")
+    ui_impl_loss = N(
+        start=0,
+        stop=8,
+        step=0.5,
+        value=P("allowances", "implementation_loss_db", 2.0),
+        label="Implementation loss (dB)",
+    )
+    ui_custom_ebn0 = N(
+        start=-25,
+        stop=30,
+        step=0.1,
+        value=P("allowances", "custom_ebn0_db", 13.8),
+        label="Required Eb/N0 for the Custom modulation (dB)",
+    )
     # Coding cost is carried by the library's code rate, so this is framing
     # only, and it does not apply to LoRa rows, whose packet airtime already
     # carries preamble, header and CRC.
-    ui_overhead = S(start=0, stop=50, step=5, value=P("allowances", "framing_overhead_pct", 20), show_value=True, label="Framing overhead, Eb/N0 modes (%)")
-    ui_duty = S(start=10, stop=100, step=5, value=P("allowances", "downlink_share_pct", P("radio", "downlink_share_pct", 80)), show_value=True, label="Downlink share of a half-duplex pass (%)")
+    ui_overhead = S(
+        start=0,
+        stop=50,
+        step=5,
+        value=P("allowances", "framing_overhead_pct", 20),
+        show_value=True,
+        label="Framing overhead, Eb/N0 modes (%)",
+    )
+    ui_duty = S(
+        start=10,
+        stop=100,
+        step=5,
+        value=P("allowances", "downlink_share_pct", P("radio", "downlink_share_pct", 80)),
+        show_value=True,
+        label="Downlink share of a half-duplex pass (%)",
+    )
     ui_pol_case = mo.ui.dropdown(
         options=["worst case", "average"],
         value=P("allowances", "polarization_case", "worst case"),
         label="Polarization ellipse alignment",
     )
-    ui_excess_loss = N(start=0, stop=30, step=0.1, value=P("allowances", "excess_loss_db", 0.0), label="Rain and other excess loss (dB)")
-    ui_frame_bytes = N(start=8, stop=65536, step=1, value=P("allowances", "frame_bytes", 448), label="Frame length on air, Eb/N0 modes (bytes)")
-    ui_fer_pct = N(start=0.01, stop=50, step=0.01, value=P("allowances", "target_fer_pct", 1.0), label="Target frame error rate (%)")
-    ui_lora_payload = N(start=1, stop=255, step=1, value=P("allowances", "lora_payload_bytes", 32), label="LoRa payload per packet (bytes)")
-    ui_lora_preamble = N(start=6, stop=65535, step=1, value=P("allowances", "lora_preamble_symbols", 8), label="LoRa programmed preamble (symbols)")
-    ui_gs_gain = N(start=-5, stop=45, step=0.5, value=P("ground_station", "custom_gain_dbi", 13.5), label="Custom antenna gain (dBi)")
-    ui_gs_hpbw = N(start=1, stop=180, step=0.5, value=P("ground_station", "custom_hpbw_deg", 36.0), label="Custom antenna beamwidth (deg)")
-    ui_gs_circular = mo.ui.switch(value=P("ground_station", "custom_circular", True), label="Custom antenna is circular")
+    ui_excess_loss = N(
+        start=0,
+        stop=30,
+        step=0.1,
+        value=P("allowances", "excess_loss_db", 0.0),
+        label="Rain and other excess loss (dB)",
+    )
+    ui_frame_bytes = N(
+        start=8,
+        stop=65536,
+        step=1,
+        value=P("allowances", "frame_bytes", 448),
+        label="Frame length on air, Eb/N0 modes (bytes)",
+    )
+    ui_fer_pct = N(
+        start=0.01,
+        stop=50,
+        step=0.01,
+        value=P("allowances", "target_fer_pct", 1.0),
+        label="Target frame error rate (%)",
+    )
+    ui_lora_payload = N(
+        start=1,
+        stop=255,
+        step=1,
+        value=P("allowances", "lora_payload_bytes", 32),
+        label="LoRa payload per packet (bytes)",
+    )
+    ui_lora_preamble = N(
+        start=6,
+        stop=65535,
+        step=1,
+        value=P("allowances", "lora_preamble_symbols", 8),
+        label="LoRa programmed preamble (symbols)",
+    )
+    ui_gs_gain = N(
+        start=-5,
+        stop=45,
+        step=0.5,
+        value=P("ground_station", "custom_gain_dbi", 13.5),
+        label="Custom antenna gain (dBi)",
+    )
+    ui_gs_hpbw = N(
+        start=1,
+        stop=180,
+        step=0.5,
+        value=P("ground_station", "custom_hpbw_deg", 36.0),
+        label="Custom antenna beamwidth (deg)",
+    )
+    ui_gs_circular = mo.ui.switch(
+        value=P("ground_station", "custom_circular", True), label="Custom antenna is circular"
+    )
 
     # Map. The optical payload keeps the same three keys under [map]; profiles
     # from before its 0.7.0 kept them under [target].
     ui_tiles = mo.ui.switch(value=P("map", "tiles", P("target", "map_tiles", True)), label="Map tiles from CARTO")
-    ui_map_zoom = S(start=2, stop=9, step=1, value=P("map", "zoom", P("target", "map_zoom", 4)), show_value=True, label="Map zoom (tile level)")
+    ui_map_zoom = S(
+        start=2,
+        stop=9,
+        step=1,
+        value=P("map", "zoom", P("target", "map_zoom", 4)),
+        show_value=True,
+        label="Map zoom (tile level)",
+    )
     # CARTO basemaps need a key since August 2026; a free one comes from
     # carto.com/basemaps/apikey. The shipped key is BAC's; it is visible to
     # anyone running the notebook, which CARTO expects for browser use.
-    ui_tile_key = mo.ui.text(value=P("map", "key", P("target", "map_key", "cb1_3hdr_1_de5c1c882378bcd2934e6ba2")), label="CARTO basemap key (free)")
+    ui_tile_key = mo.ui.text(
+        value=P("map", "key", P("target", "map_key", "cb1_3hdr_1_de5c1c882378bcd2934e6ba2")),
+        label="CARTO basemap key (free)",
+    )
 
     # Layout. Off, everything sits in one panel at the top; on, the knobs move to
     # a sidebar so a chart and the control that changes it are in view together.
@@ -1028,9 +1181,7 @@ def _(
         ] or _default_modes
     else:
         _rows_in = _default_modes
-    ui_modes = mo.ui.data_editor(
-        pd.DataFrame(_rows_in, columns=_cols), label=""
-    )
+    ui_modes = mo.ui.data_editor(pd.DataFrame(_rows_in, columns=_cols), label="")
 
     _threshold_is = {
         "fsk": "Eb/N0",
@@ -1067,13 +1218,7 @@ def _(
                 "finite number, or repeating an earlier row's name are skipped and reported."
             ),
             ui_modes,
-            mo.accordion(
-                {
-                    "Modulation Library": mo.ui.table(
-                        _library, selection=None, show_column_summaries=False
-                    )
-                }
-            ),
+            mo.accordion({"Modulation Library": mo.ui.table(_library, selection=None, show_column_summaries=False)}),
         ]
     )
     return (
@@ -1239,7 +1384,9 @@ def _(
             {
                 "Frame errors and LoRa packets": mo.vstack(
                     [
-                        mo.md("Frame length and target error rate feed the FER view of the ideal FSK curve; the LoRa payload and preamble set the packet airtime that LoRa volumes use."),
+                        mo.md(
+                            "Frame length and target error rate feed the FER view of the ideal FSK curve; the LoRa payload and preamble set the packet airtime that LoRa volumes use."
+                        ),
                         ui_frame_bytes,
                         ui_fer_pct,
                         ui_lora_payload,
@@ -1249,7 +1396,9 @@ def _(
             }
         ),
     ]
-    knobs_wide = mo.hstack([mo.vstack(_left, gap=0.5), mo.vstack(_right, gap=0.5)], justify="start", gap=2, wrap=True, widths="equal")
+    knobs_wide = mo.hstack(
+        [mo.vstack(_left, gap=0.5), mo.vstack(_right, gap=0.5)], justify="start", gap=2, wrap=True, widths="equal"
+    )
     knobs_tall = mo.vstack(_left + _right, gap=0.5)
     return knobs_tall, knobs_wide
 
@@ -1258,9 +1407,7 @@ def _(
 def _(knobs_tall, mo, ui_sidebar):
     # mo.sidebar has to be the last expression of its own cell, so the sidebar
     # and the in-flow panel below cannot come from the same cell.
-    mo.sidebar(
-        [mo.md("### Control Panel"), knobs_tall], width="360px"
-    ) if ui_sidebar.value else None
+    mo.sidebar([mo.md("### Control Panel"), knobs_tall], width="360px") if ui_sidebar.value else None
     return
 
 
@@ -1308,9 +1455,7 @@ def _(
             mo.md("## Control Panel"),
             profile_block,
             ui_sidebar,
-            mo.md(
-                "The knobs are in the sidebar. Turn this off to bring them back here."
-            )
+            mo.md("The knobs are in the sidebar. Turn this off to bring them back here.")
             if ui_sidebar.value
             else knobs_wide,
             *_band,
@@ -1373,16 +1518,8 @@ def _(
 
     # A linear ground antenna is an axial ratio of 40 dB for this purpose.
     gs_ar_db = ui_gs_ar.value if gs_circular else 40.0
-    pol_loss_db = float(
-        polarization_loss_db(
-            gs_ar_db, ui_sat_ar.value, ui_pol_case.value == "worst case"
-        )
-    )
-    gs_point_loss_db = (
-        pointing_loss_db(ui_track_err.value, gs_hpbw_deg)
-        if ui_rotator.value
-        else 0.0
-    )
+    pol_loss_db = float(polarization_loss_db(gs_ar_db, ui_sat_ar.value, ui_pol_case.value == "worst case"))
+    gs_point_loss_db = pointing_loss_db(ui_track_err.value, gs_hpbw_deg) if ui_rotator.value else 0.0
 
     def _num(v):
         # A finite number or NaN; an empty cell, text, or infinity is NaN.
@@ -1434,9 +1571,7 @@ def _(
         # Frame-error view, only where the library figure sits on a known curve.
         _n_bits = 8 * ui_frame_bytes.value
         if _mod in IDEAL_NCFSK:
-            _ideal_req = float(
-                ncfsk_ebn0_for_fer_db(ui_fer_pct.value / 100.0, _n_bits)
-            )
+            _ideal_req = float(ncfsk_ebn0_for_fer_db(ui_fer_pct.value / 100.0, _n_bits))
             _fer_at_req = 100 * float(ncfsk_fer_at_ebn0(_req, _n_bits))
         else:
             _ideal_req = _fer_at_req = float("nan")
@@ -1531,9 +1666,7 @@ def _(
         featured_mode = ""
     _feat_any = modes[modes["featured"]] if len(modes) else modes
     featured_uplink_mode = (
-        str(_feat_any.iloc[0]["mode"])
-        if len(_feat_any) and bool(_feat_any.iloc[0]["uplink"])
-        else ""
+        str(_feat_any.iloc[0]["mode"]) if len(_feat_any) and bool(_feat_any.iloc[0]["uplink"]) else ""
     )
     return (
         dropped_modes,
@@ -1609,9 +1742,7 @@ def _(
         _ye = -_x * np.sin(_theta) + _y * np.cos(_theta)
         _rx, _ry, _rz = _xe - _sta[0], _ye - _sta[1], _z - _sta[2]
         _range = np.sqrt(_rx**2 + _ry**2 + _rz**2)
-        _el = np.degrees(
-            np.arcsin((_rx * _up[0] + _ry * _up[1] + _rz * _up[2]) / _range)
-        )
+        _el = np.degrees(np.arcsin((_rx * _up[0] + _ry * _up[1] + _rz * _up[2]) / _range))
         _visible = _el >= ui_min_el.value
         _edges = np.diff(_visible.astype(int), prepend=0)
         _pass_id = np.cumsum(_edges == 1) * _visible
@@ -1668,8 +1799,12 @@ def _(
     vis_radius_km = R_EARTH_KM * vis_psi_rad
     _az = np.radians(np.arange(0, 361, 3))
     _clat = np.arcsin(np.sin(_lat) * np.cos(vis_psi_rad) + np.cos(_lat) * np.sin(vis_psi_rad) * np.cos(_az))
-    _clon = _lon + np.arctan2(np.sin(_az) * np.sin(vis_psi_rad) * np.cos(_lat), np.cos(vis_psi_rad) - np.sin(_lat) * np.sin(_clat))
-    vis_circle = pd.DataFrame({"lat": np.degrees(_clat), "lon": (np.degrees(_clon) + 180) % 360 - 180, "order": range(len(_az))})
+    _clon = _lon + np.arctan2(
+        np.sin(_az) * np.sin(vis_psi_rad) * np.cos(_lat), np.cos(vis_psi_rad) - np.sin(_lat) * np.sin(_clat)
+    )
+    vis_circle = pd.DataFrame(
+        {"lat": np.degrees(_clat), "lon": (np.degrees(_clon) + 180) % 360 - 180, "order": range(len(_az))}
+    )
     return (
         DT_S,
         N_PHASES,
@@ -1709,15 +1844,11 @@ def _(
     # Link budget primitives. Both directions share the path; the two ends swap
     # roles and each direction carries its own frequency.
 
-    n0_gs_dbm_hz, t_sys_gs_k = noise_density_dbm_hz(
-        ui_gs_tant.value, ui_gs_feed_loss.value, ui_gs_nf.value
-    )
+    n0_gs_dbm_hz, t_sys_gs_k = noise_density_dbm_hz(ui_gs_tant.value, ui_gs_feed_loss.value, ui_gs_nf.value)
     # Spacecraft antenna: Earth fills about a third of its sky at 500 km, the
     # rest is cold; 290 K is the conservative end of that. The cable loss ahead
     # of the receiver plays the feeder's role.
-    n0_sat_dbm_hz, t_sys_sat_k = noise_density_dbm_hz(
-        290.0, ui_sat_loss.value, ui_sat_nf.value
-    )
+    n0_sat_dbm_hz, t_sys_sat_k = noise_density_dbm_hz(290.0, ui_sat_loss.value, ui_sat_nf.value)
     gs_tx_dbm = 10 * np.log10(ui_gs_tx_w.value * 1000.0)
     iono_down_db = ionospheric_loss_db(ui_freq_down.value)
     iono_up_db = ionospheric_loss_db(ui_freq_up.value)
@@ -1827,9 +1958,7 @@ def _(
     margin_vs_el = (
         pd.concat(_frames, ignore_index=True)
         if _frames
-        else pd.DataFrame(
-            columns=["elevation_deg", "margin_db", "mode", "direction"]
-        )
+        else pd.DataFrame(columns=["elevation_deg", "margin_db", "mode", "direction"])
     )
     uplink_prx_vs_el = pd.DataFrame({"elevation_deg": _el, "prx_dbm": _prx_up})
     return margin_vs_el, uplink_prx_vs_el
@@ -1876,14 +2005,13 @@ def _(
     _n_passes = max(len(passes), 1)
     # Every simulated station-day, including the ones without a pass, so the
     # low-percentile day is a day and not a day-with-passes.
-    _day_index = pd.MultiIndex.from_product([range(1, N_PHASES + 1), range(int(ui_sim_days.value))], names=["phase", "day"])
+    _day_index = pd.MultiIndex.from_product(
+        [range(1, N_PHASES + 1), range(int(ui_sim_days.value))], names=["phase", "day"]
+    )
     _day_keys = [samples["phase"].to_numpy(), (samples["t_s"] // 86400).astype(int).to_numpy()]
 
     def _sweep_at(mode, direction, el):
-        _s = margin_vs_el[
-            (margin_vs_el["mode"] == mode)
-            & (margin_vs_el["direction"] == direction)
-        ]
+        _s = margin_vs_el[(margin_vs_el["mode"] == mode) & (margin_vs_el["direction"] == direction)]
         if not len(_s):
             return float("nan")
         return float(np.interp(el, _s["elevation_deg"], _s["margin_db"]))
@@ -1896,12 +2024,8 @@ def _(
         _row = {
             "mode": _m["mode"],
             "modulation": _m["modulation"],
-            "bitrate_bps": round(float(_m["bitrate_bps"]))
-            if _has_rate
-            else np.nan,
-            "info_rate_bps": round(float(_m["info_rate_bps"]))
-            if _has_rate
-            else np.nan,
+            "bitrate_bps": round(float(_m["bitrate_bps"])) if _has_rate else np.nan,
+            "info_rate_bps": round(float(_m["info_rate_bps"])) if _has_rate else np.nan,
             "packet_airtime_ms": float(_m["packet_airtime_s"]) * 1000.0,
             "bandwidth_hz": float(_m["bandwidth_hz"]),
             "required_db": float(_m["required_db"]),
@@ -1919,41 +2043,27 @@ def _(
             "uplink_kB_per_day": np.nan,
         }
         if _m["downlink"]:
-            _row["margin_at_min_el_db"] = round(
-                _sweep_at(_m["mode"], "downlink", ui_min_el.value), 1
-            )
-            _row["margin_at_zenith_db"] = round(
-                _sweep_at(_m["mode"], "downlink", 90.0), 1
-            )
+            _row["margin_at_min_el_db"] = round(_sweep_at(_m["mode"], "downlink", ui_min_el.value), 1)
+            _row["margin_at_zenith_db"] = round(_sweep_at(_m["mode"], "downlink", 90.0), 1)
             if _has_rate:
-                _mg = margin_db(
-                    downlink_prx_dbm(_el, _rng, _m["tx_dbm"]), n0_gs_dbm_hz, _m
-                )
+                _mg = margin_db(downlink_prx_dbm(_el, _rng, _m["tx_dbm"]), n0_gs_dbm_hz, _m)
                 _bps = _m["info_rate_bps"] * DT_S / 8.0 * _eta_dn
                 _at_target = (_mg >= ui_target_margin.value) * _bps
                 _row["kB_per_avg_pass"] = float(_at_target.sum()) / _n_passes / 1000.0
                 _row["kB_per_day"] = float(_at_target.sum()) / sim_days_total / 1000.0
                 _row["kB_per_avg_pass_0db"] = float(((_mg >= 0.0) * _bps).sum()) / _n_passes / 1000.0
-                _row["kB_per_day_if_only_closing"] = (
-                    float(((_mg >= 0.0) * _bps).sum())
-                    / sim_days_total
-                    / 1000.0
-                )
+                _row["kB_per_day_if_only_closing"] = float(((_mg >= 0.0) * _bps).sum()) / sim_days_total / 1000.0
                 # Daily totals over every simulated station-day, at the
                 # target margin, with the days that saw no pass counted as 0.
                 _day = pd.Series(_at_target).groupby(_day_keys).sum().reindex(_day_index, fill_value=0.0)
                 _row["kB_per_day_p10"] = float(_day.quantile(0.10)) / 1000.0
         if _m["uplink"]:
-            _row["uplink_margin_at_min_el_db"] = round(
-                _sweep_at(_m["mode"], "uplink", ui_min_el.value), 1
-            )
+            _row["uplink_margin_at_min_el_db"] = round(_sweep_at(_m["mode"], "uplink", ui_min_el.value), 1)
             if _has_rate:
                 _mg = margin_db(_prx_up, n0_sat_dbm_hz, _m)
                 _bps = _m["info_rate_bps"] * DT_S / 8.0 * _eta_up
                 _row["uplink_kB_per_day"] = (
-                    float(((_mg >= ui_target_margin.value) * _bps).sum())
-                    / sim_days_total
-                    / 1000.0
+                    float(((_mg >= ui_target_margin.value) * _bps).sum()) / sim_days_total / 1000.0
                 )
         _rows.append(_row)
     mode_summary = pd.DataFrame(
@@ -1984,11 +2094,7 @@ def _(
     # One rule for which uplink mode the headline card, the reference-level line and
     # the export report: the Featured row when it has an uplink, otherwise the
     # uplink mode carrying the most data. The caption says which it was.
-    _up = (
-        mode_summary.dropna(subset=["uplink_margin_at_min_el_db"])
-        if len(mode_summary)
-        else mode_summary
-    )
+    _up = mode_summary.dropna(subset=["uplink_margin_at_min_el_db"]) if len(mode_summary) else mode_summary
     _fu = _up[_up["mode"] == featured_uplink_mode] if len(_up) else _up
     if len(_fu):
         uplink_headline = (_fu.iloc[0], "the featured mode")
@@ -1997,19 +2103,13 @@ def _(
         uplink_headline = (
             _up.sort_values("uplink_kB_per_day", ascending=False).iloc[0],
             "the best of the uplink modes"
-            + (
-                "; the featured row has no uplink"
-                if _any_featured
-                else "; no row is featured"
-            ),
+            + ("; the featured row has no uplink" if _any_featured else "; no row is featured"),
         )
     else:
         uplink_headline = (None, "")
 
     passes_per_day = len(passes) / sim_days_total
-    mean_pass_min = (
-        float(passes["duration_min"].mean()) if len(passes) else 0.0
-    )
+    mean_pass_min = float(passes["duration_min"].mean()) if len(passes) else 0.0
     contact_min_per_day = float(passes["duration_min"].sum()) / sim_days_total
     # Longest wait between the end of one pass and the start of the next, within
     # any one orbit phase. A daily mean says nothing about this.
@@ -2050,16 +2150,12 @@ def _(alt, mo, modes):
 
     def _tint(hexs, t):
         _r, _g, _b = (int(hexs[_i : _i + 2], 16) for _i in (1, 3, 5))
-        return "#%02X%02X%02X" % tuple(
-            round(_c + (255 - _c) * t) for _c in (_r, _g, _b)
-        )
+        return "#{:02X}{:02X}{:02X}".format(*(round(_c + (255 - _c) * t) for _c in (_r, _g, _b)))
 
     def series_style(order):
         _cols, _shp = [], []
         for _i in range(len(order)):
-            _cols.append(
-                _tint(_BASE[_i % len(_BASE)], 0.28 * (_i // len(_BASE)))
-            )
+            _cols.append(_tint(_BASE[_i % len(_BASE)], 0.28 * (_i // len(_BASE))))
             _shp.append(_SHAPES[_i % len(_SHAPES)])
         return _cols, _shp
 
@@ -2118,11 +2214,7 @@ def _(alt, mo, modes):
         )
 
     def rule_x(value):
-        return (
-            alt.Chart(alt.Data(values=[{"x": value}]))
-            .mark_rule(strokeDash=[2, 2], color=MUTED)
-            .encode(x="x:Q")
-        )
+        return alt.Chart(alt.Data(values=[{"x": value}])).mark_rule(strokeDash=[2, 2], color=MUTED).encode(x="x:Q")
 
     def rule_label(value, text):
         return (
@@ -2185,9 +2277,7 @@ def _(
     uplink_headline,
 ):
     def _stat(value, label, caption):
-        return mo.stat(
-            value=value, label=label, caption=caption, bordered=True
-        )
+        return mo.stat(value=value, label=label, caption=caption, bordered=True)
 
     _rows = mode_summary[mode_summary["mode"] == featured_mode]
     _feat = _rows.iloc[0] if len(_rows) else None
@@ -2212,24 +2302,22 @@ def _(
             "first downlink row and the uplink mode carrying the most data."
         )
     else:
-        _dn_why = (
-            "the featured mode"
-            if _any_featured
-            else "the first downlink row, since no row is featured"
-        )
+        _dn_why = "the featured mode" if _any_featured else "the first downlink row, since no row is featured"
         _which = f"Downlink is {featured_mode}, {_dn_why}."
-        _which += (
-            f" Uplink is {_up_name}, {_up_caption}."
-            if _up_name
-            else " No mode has an uplink."
-        )
+        _which += f" Uplink is {_up_name}, {_up_caption}." if _up_name else " No mode has an uplink."
 
     # Demand against capacity, when a sibling's profile carried its results:
     # the optical payload's frames against this link's volume, the power
     # budget's affordable pass minutes against the minutes the station offers.
     _loops = []
-    if _feat is not None and PH("results.optical_payload", "compressed_frame_kb") and PH("results.optical_payload", "frames_per_day"):
-        _demand = float(P("results.optical_payload", "compressed_frame_kb", 0.0)) * float(P("results.optical_payload", "frames_per_day", 0.0))
+    if (
+        _feat is not None
+        and PH("results.optical_payload", "compressed_frame_kb")
+        and PH("results.optical_payload", "frames_per_day")
+    ):
+        _demand = float(P("results.optical_payload", "compressed_frame_kb", 0.0)) * float(
+            P("results.optical_payload", "frames_per_day", 0.0)
+        )
         _cap = float(_feat["kB_per_day"])
         _pct = _cap / _demand * 100 if _demand > 0 else float("inf")
         _text = (
@@ -2237,7 +2325,9 @@ def _(
             f"{featured_mode} carries {fmt_int(_cap)} kB/day at the target margin, "
             + ("all of it and more." if _pct == float("inf") else f"{_pct:.0f}% of it.")
         )
-        _loops.append(mo.callout(mo.md(_text), kind="warn" if _pct < 100 else "info", title="Payload Demand Against This Link"))
+        _loops.append(
+            mo.callout(mo.md(_text), kind="warn" if _pct < 100 else "info", title="Payload Demand Against This Link")
+        )
     if PH("results.power_budget", "sustainable_pass_min_per_day"):
         _afford = float(P("results.power_budget", "sustainable_pass_min_per_day", 0.0))
         _text = (
@@ -2245,7 +2335,13 @@ def _(
             f"this station offers {fmt_num(contact_min_per_day, 1)}."
             + (" Not every pass can transmit." if _afford < contact_min_per_day else "")
         )
-        _loops.append(mo.callout(mo.md(_text), kind="warn" if _afford < contact_min_per_day else "info", title="Pass Minutes Against the Power Budget"))
+        _loops.append(
+            mo.callout(
+                mo.md(_text),
+                kind="warn" if _afford < contact_min_per_day else "info",
+                title="Pass Minutes Against the Power Budget",
+            )
+        )
 
     mo.vstack(
         [
@@ -2264,13 +2360,9 @@ def _(
                         f"{contact_min_per_day:.0f} min contact per day",
                     ),
                     _stat(
-                        "–"
-                        if _feat is None
-                        else f"{_feat['margin_at_min_el_db']:.1f} dB",
+                        "–" if _feat is None else f"{_feat['margin_at_min_el_db']:.1f} dB",
                         f"Margin at {_el}",
-                        "–"
-                        if _feat is None
-                        else f"{_feat['margin_at_zenith_db']:.1f} dB at zenith",
+                        "–" if _feat is None else f"{_feat['margin_at_zenith_db']:.1f} dB at zenith",
                     ),
                 ],
                 widths="equal",
@@ -2278,18 +2370,12 @@ def _(
             mo.hstack(
                 [
                     _stat(
-                        "–"
-                        if _feat is None
-                        else f"{fmt_int(_feat['kB_per_day'])} kB",
+                        "–" if _feat is None else f"{fmt_int(_feat['kB_per_day'])} kB",
                         "Downlink per Day",
-                        "–"
-                        if _feat is None
-                        else f"more than {fmt_int(_feat['kB_per_day_p10'])} kB on 90% of days",
+                        "–" if _feat is None else f"more than {fmt_int(_feat['kB_per_day_p10'])} kB on 90% of days",
                     ),
                     _stat(
-                        "–"
-                        if _feat is None
-                        else f"{fmt_int(_feat['kB_per_day_if_only_closing'])} kB",
+                        "–" if _feat is None else f"{fmt_int(_feat['kB_per_day_if_only_closing'])} kB",
                         "At 0 dB Margin",
                         "–"
                         if _feat is None
@@ -2297,9 +2383,7 @@ def _(
                     ),
                     _stat(
                         "–"
-                        if _up_row is None
-                        or _up_row["uplink_kB_per_day"]
-                        != _up_row["uplink_kB_per_day"]
+                        if _up_row is None or _up_row["uplink_kB_per_day"] != _up_row["uplink_kB_per_day"]
                         else f"{fmt_int(_up_row['uplink_kB_per_day'])} kB",
                         "Uplink per Day",
                         "no uplink mode"
@@ -2335,15 +2419,15 @@ def _(
 ):
     _rows = mode_summary[mode_summary["mode"] == featured_mode]
     _feat = _rows.iloc[0] if len(_rows) else None
-    featured_provisional = (
-        _feat is not None and str(_feat["modulation"]) in PROVISIONAL
-    )
+    featured_provisional = _feat is not None and str(_feat["modulation"]) in PROVISIONAL
     # Every enabled direction of every row is checked against the target,
     # not only the downlinks.
     _dn = mode_summary.dropna(subset=["margin_at_min_el_db"])
     _up = mode_summary.dropna(subset=["uplink_margin_at_min_el_db"])
     _short = _dn[_dn["margin_at_min_el_db"] < ui_target_margin.value]["mode"].tolist()
-    _short += [f"{_m} (uplink)" for _m in _up[_up["uplink_margin_at_min_el_db"] < ui_target_margin.value]["mode"].tolist()]
+    _short += [
+        f"{_m} (uplink)" for _m in _up[_up["uplink_margin_at_min_el_db"] < ui_target_margin.value]["mode"].tolist()
+    ]
     _target = f"{ui_target_margin.value:g} dB target at {ui_min_el.value}°"
 
     if _feat is None:
@@ -2396,8 +2480,7 @@ def _(
     _notes = []
     if max(ui_freq_down.value, ui_freq_up.value) > 10000:
         _notes.append(
-            "Above 10 GHz rain sets availability and is not computed; enter it as excess "
-            "loss under Link Allowances."
+            "Above 10 GHz rain sets availability and is not computed; enter it as excess loss under Link Allowances."
         )
     if not ui_rotator.value and gs_gain_dbi > 8:
         _notes.append(
@@ -2418,11 +2501,7 @@ def _(
             + ". Eb/N0 rows need a bit rate in bps and LoRa rows need a bandwidth in Hz."
         )
     if invalid_modes:
-        _notes.append(
-            "Skipped rows whose value is not a finite number: "
-            + ", ".join(invalid_modes)
-            + "."
-        )
+        _notes.append("Skipped rows whose value is not a finite number: " + ", ".join(invalid_modes) + ".")
     if duplicate_modes:
         _notes.append(
             "Skipped rows whose name repeats an earlier row: "
@@ -2499,7 +2578,9 @@ def _(
         for _tx in range(int(np.floor(_x0 / 256)), int(np.floor((_x0 + _w) / 256)) + 1)
         for _ty in range(max(int(np.floor(_y0 / 256)), 0), min(int(np.floor((_y0 + _h) / 256)), 2**_z - 1) + 1)
     ]
-    _proj = alt.Projection(type="mercator", center=[float(lon_deg), float(lat_deg)], scale=_scale, clipExtent=[[0, 0], [_w, _h]])
+    _proj = alt.Projection(
+        type="mercator", center=[float(lon_deg), float(lat_deg)], scale=_scale, clipExtent=[[0, 0], [_w, _h]]
+    )
     _layers = []
     if ui_tiles.value and _tiles:
         _layers.append(
@@ -2508,20 +2589,32 @@ def _(
             .encode(x=alt.X("x:Q").scale(None).axis(None), y=alt.Y("y:Q").scale(None).axis(None), url="url:N")
         )
     _world = alt.topo_feature("https://cdn.jsdelivr.net/npm/vega-datasets@v1.29.0/data/world-110m.json", "countries")
-    _layers.append(alt.Chart(_world).mark_geoshape(fill="transparent", stroke=MUTED, strokeWidth=0.8, opacity=0.5 if ui_tiles.value else 1, clip=True))
+    _layers.append(
+        alt.Chart(_world).mark_geoshape(
+            fill="transparent", stroke=MUTED, strokeWidth=0.8, opacity=0.5 if ui_tiles.value else 1, clip=True
+        )
+    )
     # The visibility circle, split where it crosses the date line.
     _circle = vis_circle.copy()
     _circle["seg"] = (np.abs(np.diff(_circle["lon"], prepend=_circle["lon"].iloc[0])) > 180).cumsum()
     _circle["what"] = "Visibility circle"
     _track = track_day1.copy()
-    _track["orbit"] = (np.abs(np.diff(_track["lon"], prepend=_track["lon"].iloc[0])) > 180).cumsum()  # split at the date line either way
+    _track["orbit"] = (
+        np.abs(np.diff(_track["lon"], prepend=_track["lon"].iloc[0])) > 180
+    ).cumsum()  # split at the date line either way
     _track["i"] = range(len(_track))
     _track["hours"] = _track["t_s"] / 3600
     _track["what"] = "Ground track, one day"
     _seen = _track[_track["visible"]].copy()
     _seen["what"] = "In view of the station"
     _order = ["Visibility circle", "Ground track, one day", "In view of the station"]
-    _color = alt.Color("what:N", title=None, sort=_order, scale=alt.Scale(domain=_order, range=[PALETTE[0], TEXT, PALETTE[2]]), legend=alt.Legend(orient="bottom", direction="horizontal"))
+    _color = alt.Color(
+        "what:N",
+        title=None,
+        sort=_order,
+        scale=alt.Scale(domain=_order, range=[PALETTE[0], TEXT, PALETTE[2]]),
+        legend=alt.Legend(orient="bottom", direction="horizontal"),
+    )
     _layers.append(
         alt.Chart(_circle)
         .mark_line(strokeWidth=2.5, clip=True)
@@ -2539,10 +2632,17 @@ def _(
             longitude="lon:Q",
             latitude="lat:Q",
             color=_color,
-            tooltip=[alt.Tooltip("hours:Q", title="Hours from start", format=".2f"), alt.Tooltip("elevation_deg:Q", title="Elevation (deg)", format=".0f")],
+            tooltip=[
+                alt.Tooltip("hours:Q", title="Hours from start", format=".2f"),
+                alt.Tooltip("elevation_deg:Q", title="Elevation (deg)", format=".0f"),
+            ],
         )
     )
-    _layers.append(alt.Chart(pd.DataFrame({"lon": [lon_deg], "lat": [lat_deg]})).mark_point(color=PALETTE[2], size=110, filled=True, stroke=TEXT, strokeWidth=1, clip=True).encode(longitude="lon:Q", latitude="lat:Q"))
+    _layers.append(
+        alt.Chart(pd.DataFrame({"lon": [lon_deg], "lat": [lat_deg]}))
+        .mark_point(color=PALETTE[2], size=110, filled=True, stroke=TEXT, strokeWidth=1, clip=True)
+        .encode(longitude="lon:Q", latitude="lat:Q")
+    )
     _map = style_chart(
         alt.layer(*_layers).properties(
             width=_w,
@@ -2551,7 +2651,11 @@ def _(
             title=f"Around {station_name} – the circle the station sees above {ui_min_el.value:g}°, one day of ground track from the first orbit phase, and the samples in view",
         )
     )
-    _credit = "Map tiles © OpenStreetMap contributors, © CARTO. Coastline: Natural Earth via vega-datasets." if ui_tiles.value else "Coastline: Natural Earth via vega-datasets."
+    _credit = (
+        "Map tiles © OpenStreetMap contributors, © CARTO. Coastline: Natural Earth via vega-datasets."
+        if ui_tiles.value
+        else "Coastline: Natural Earth via vega-datasets."
+    )
     mo.vstack(
         [
             mo.md("## Map"),
@@ -2587,9 +2691,7 @@ def _(
     _order = [_m for _m in SERIES_ORDER if _m in set(_dn["mode"])]
     if len(_dn):
         _chart = (
-            series_lines(
-                _dn, _order, "margin_db", "Link margin (dB)", "Margin (dB)"
-            )
+            series_lines(_dn, _order, "margin_db", "Link margin (dB)", "Margin (dB)")
             + rule_y(ui_target_margin.value, dashed=True)
             + rule_y(0.0, dashed=False)
             + rule_x(ui_min_el.value)
@@ -2635,9 +2737,7 @@ def _(
     _order = [_m for _m in SERIES_ORDER if _m in set(_up["mode"])]
     if len(_up):
         _margin = (
-            series_lines(
-                _up, _order, "margin_db", "Link margin (dB)", "Margin (dB)"
-            )
+            series_lines(_up, _order, "margin_db", "Link margin (dB)", "Margin (dB)")
             + rule_y(ui_target_margin.value, dashed=True)
             + rule_y(0.0, dashed=False)
             + rule_x(ui_min_el.value)
@@ -2650,14 +2750,8 @@ def _(
 
         _up_row, _ = uplink_headline
         _has_rate = _up_row is not None and _up_row["bitrate_bps"] > 0
-        _rate = (
-            float(_up_row["bitrate_bps"])
-            if _has_rate
-            else ui_sat_sens_rate.value
-        )
-        _sens = ui_sat_sens.value + 10 * np.log10(
-            _rate / ui_sat_sens_rate.value
-        )
+        _rate = float(_up_row["bitrate_bps"]) if _has_rate else ui_sat_sens_rate.value
+        _sens = ui_sat_sens.value + 10 * np.log10(_rate / ui_sat_sens_rate.value)
         _lo = min(_sens, float(uplink_prx_vs_el["prx_dbm"].min())) - 5
         _hi = max(_sens, float(uplink_prx_vs_el["prx_dbm"].max())) + 5
         _prx = (
@@ -2816,15 +2910,9 @@ def _(
         _m = _rows.iloc[0]
         _is_fsk = _m["kind"] == "fsk"
         _coded = _is_fsk and _m["code_rate"] < 1.0
-        _rate_db = 10 * np.log10(
-            _m["info_rate_bps"] if _is_fsk else _m["bandwidth_hz"]
-        )
+        _rate_db = 10 * np.log10(_m["info_rate_bps"] if _is_fsk else _m["bandwidth_hz"])
         _rate_label = (
-            (
-                "Information rate, 10·log10(Rb·R)"
-                if _coded
-                else "Bit rate, 10·log10(Rb)"
-            )
+            ("Information rate, 10·log10(Rb·R)" if _coded else "Bit rate, 10·log10(Rb)")
             if _is_fsk
             else "Bandwidth, 10·log10(BW)"
         )
@@ -2929,8 +3017,7 @@ def _(
                 mo.md(
                     "Free-space and atmospheric loss move with elevation; every other line is "
                     "an input. Signal and noise are both referenced to the LNA input, so a hand "
-                    "check must carry every loss line here, not only path loss."
-                    + _fer_note
+                    "check must carry every loss line here, not only path loss." + _fer_note
                 ),
                 mo.ui.table(
                     budget_table,
@@ -2940,11 +3027,7 @@ def _(
                     format_mapping={_c: "{:.1f}" for _c in _cols},
                 ),
                 mo.accordion(
-                    {
-                        "Ground Transmitter in dBm": mo.md(
-                            f"{gs_tx_dbm:.1f} dBm from the transmitter power you set."
-                        )
-                    }
+                    {"Ground Transmitter in dBm": mo.md(f"{gs_tx_dbm:.1f} dBm from the transmitter power you set.")}
                 ),
             ]
         )
@@ -2976,19 +3059,14 @@ def _(
     _rows = []
     _total_min = float(passes["duration_min"].sum()) or 1.0
     for _name, _lo, _hi in _bands:
-        _sel = passes[
-            (passes["max_elevation_deg"] >= _lo)
-            & (passes["max_elevation_deg"] < _hi)
-        ]
+        _sel = passes[(passes["max_elevation_deg"] >= _lo) & (passes["max_elevation_deg"] < _hi)]
         if len(_sel):
             _rows.append(
                 {
                     "Peak elevation": _name,
                     "Passes per day": len(_sel) / sim_days_total,
                     "Mean duration (min)": float(_sel["duration_min"].mean()),
-                    "Share of contact time (%)": 100
-                    * float(_sel["duration_min"].sum())
-                    / _total_min,
+                    "Share of contact time (%)": 100 * float(_sel["duration_min"].sum()) / _total_min,
                 }
             )
     band_table = pd.DataFrame(_rows)
@@ -3018,13 +3096,7 @@ def _(
                     "Share of contact time (%)": "{:.0f}",
                 },
             ),
-            mo.accordion(
-                {
-                    "Simulated Pass List": mo.ui.table(
-                        _pass_list, selection=None, show_column_summaries=False
-                    )
-                }
-            ),
+            mo.accordion({"Simulated Pass List": mo.ui.table(_pass_list, selection=None, show_column_summaries=False)}),
         ]
     )
     return (band_table,)
@@ -3119,10 +3191,7 @@ def _(
     # go into a technical note, an issue or an email without being retyped.
 
     def _dedent(text):
-        return "\n".join(
-            _l[4:] if _l.startswith("    ") else _l
-            for _l in text.strip("\n").splitlines()
-        )
+        return "\n".join(_l[4:] if _l.startswith("    ") else _l for _l in text.strip("\n").splitlines())
 
     def _val(v, places=1):
         if hasattr(v, "item"):
@@ -3144,16 +3213,11 @@ def _(
             "|" + "|".join("---" for _ in _cols) + "|",
         ]
         for _, _r in df.iterrows():
-            _out.append(
-                "| " + " | ".join(_val(_v, places) for _v in _r) + " |"
-            )
+            _out.append("| " + " | ".join(_val(_v, places) for _v in _r) + " |")
         return "\n".join(_out)
 
     def _pairs(rows):
-        return "\n".join(
-            ["| Setting | Value |", "|---|---|"]
-            + [f"| {_k} | {_v} |" for _k, _v in rows]
-        )
+        return "\n".join(["| Setting | Value |", "|---|---|"] + [f"| {_k} | {_v} |" for _k, _v in rows])
 
     _now = dt.datetime.now(dt.timezone.utc)
     _feat_rows = mode_summary[mode_summary["mode"] == featured_mode]
@@ -3181,9 +3245,7 @@ def _(
         for _c in ("bitrate_bps", "bandwidth_hz"):
             _modes_out[_c] = _modes_out[_c].map(_hz)
         _modes_out["code_rate"] = _modes_out["code_rate"].round(3)
-        _modes_md = _table(
-            _modes_out.rename(columns=_mode_cols)[list(_mode_cols.values())]
-        )
+        _modes_md = _table(_modes_out.rename(columns=_mode_cols)[list(_mode_cols.values())])
     else:
         _modes_md = "_No modes defined._"
     _summary_cols = {
@@ -3208,11 +3270,7 @@ def _(
         _summary_out = mode_summary.copy()
         for _c in ("bitrate_bps", "info_rate_bps", "packet_airtime_ms", "bandwidth_hz"):
             _summary_out[_c] = _summary_out[_c].map(_hz)
-        _summary_md = _table(
-            _summary_out.rename(columns=_summary_cols)[
-                list(_summary_cols.values())
-            ]
-        )
+        _summary_md = _table(_summary_out.rename(columns=_summary_cols)[list(_summary_cols.values())])
     else:
         _summary_md = "_No modes defined._"
 
@@ -3321,9 +3379,7 @@ def _(
                 ("LoRa programmed preamble (symbols)", _val(int(ui_lora_preamble.value))),
                 (
                     "Downlink share of a half-duplex pass (%)",
-                    _val(ui_duty.value, 0)
-                    if half_duplex
-                    else "n/a, full duplex",
+                    _val(ui_duty.value, 0) if half_duplex else "n/a, full duplex",
                 ),
             ]
         ),
@@ -3345,9 +3401,7 @@ def _(
                 ("Featured mode", featured_mode or "none"),
                 (
                     "Margin at minimum elevation (dB)",
-                    "n/a"
-                    if _feat is None
-                    else _val(_feat["margin_at_min_el_db"]),
+                    "n/a" if _feat is None else _val(_feat["margin_at_min_el_db"]),
                 ),
                 (
                     "Downlink per day (kB)",
@@ -3355,33 +3409,23 @@ def _(
                 ),
                 (
                     "Downlink per day at 0 dB margin (kB)",
-                    "n/a"
-                    if _feat is None
-                    else fmt_int(_feat["kB_per_day_if_only_closing"]),
+                    "n/a" if _feat is None else fmt_int(_feat["kB_per_day_if_only_closing"]),
                 ),
                 (
                     "Downlink per day, 10th percentile (kB)",
-                    "n/a"
-                    if _feat is None
-                    else fmt_int(_feat["kB_per_day_p10"]),
+                    "n/a" if _feat is None else fmt_int(_feat["kB_per_day_p10"]),
                 ),
                 (
                     "Uplink mode",
-                    "none"
-                    if _up_row is None
-                    else f"{_up_row['mode']} ({_up_caption})",
+                    "none" if _up_row is None else f"{_up_row['mode']} ({_up_caption})",
                 ),
                 (
                     "Uplink margin at minimum elevation (dB)",
-                    "n/a"
-                    if _up_row is None
-                    else _val(_up_row["uplink_margin_at_min_el_db"]),
+                    "n/a" if _up_row is None else _val(_up_row["uplink_margin_at_min_el_db"]),
                 ),
                 (
                     "Uplink per day (kB)",
-                    "n/a"
-                    if _up_row is None
-                    else fmt_int(_up_row["uplink_kB_per_day"]),
+                    "n/a" if _up_row is None else fmt_int(_up_row["uplink_kB_per_day"]),
                 ),
             ]
         ),
@@ -3389,9 +3433,7 @@ def _(
         _summary_md,
         "### Passes by Peak Elevation",
         _table(band_table, 2),
-        f"### Link Budget Breakdown · {featured_mode}"
-        if featured_mode
-        else "### Link Budget Breakdown",
+        f"### Link Budget Breakdown · {featured_mode}" if featured_mode else "### Link Budget Breakdown",
         _table(budget_table),
         _dedent(ASSUMPTIONS_MD),
         _dedent(ACKNOWLEDGMENT_MD),
@@ -3404,16 +3446,10 @@ def _(
         )
     if unknown_modulations:
         _skipped.append(
-            "! Rows with an unknown modulation were skipped: "
-            + ", ".join(sorted(set(unknown_modulations)))
-            + "."
+            "! Rows with an unknown modulation were skipped: " + ", ".join(sorted(set(unknown_modulations))) + "."
         )
     if dropped_modes:
-        _skipped.append(
-            "! Rows missing a required value were skipped: "
-            + ", ".join(dropped_modes)
-            + "."
-        )
+        _skipped.append("! Rows missing a required value were skipped: " + ", ".join(dropped_modes) + ".")
     for _line in reversed(_skipped):
         _sections.insert(1, _line)
     report_md = "\n\n".join(_sections) + "\n"
@@ -3427,8 +3463,17 @@ def _(
         if hasattr(v, "item"):
             v = v.item()
         if isinstance(v, (int, float)):
-            return "" if v != v or v in (float("inf"), float("-inf")) else repr(round(v, 6) if isinstance(v, float) else v)
-        _s = str(v).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
+            return (
+                "" if v != v or v in (float("inf"), float("-inf")) else repr(round(v, 6) if isinstance(v, float) else v)
+            )
+        _s = (
+            str(v)
+            .replace("\\", "\\\\")
+            .replace('"', '\\"')
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+        )
         return '"' + _s + '"'
 
     def _section(title, rows):
@@ -3510,9 +3555,7 @@ def _(
         _section("map", [("tiles", ui_tiles.value), ("zoom", ui_map_zoom.value), ("key", ui_tile_key.value)]),
     ]
     for _, _r in ui_modes.value.iterrows():
-        _profile_sections.append(
-            _section("[modes]", [(_k, _r[_c]) for _c, _k in MODE_KEYS.items()])
-        )
+        _profile_sections.append(_section("[modes]", [(_k, _r[_c]) for _c, _k in MODE_KEYS.items()]))
     # Headline figures for the sibling tools, under a table named after this
     # tool so a profile can carry several tools' results without collision.
     _profile_sections.append(
@@ -3523,7 +3566,10 @@ def _(
                 ("featured_mode", featured_mode),
                 ("usable_kb_per_day", float("nan") if _feat is None else float(_feat["kB_per_day"])),
                 ("usable_kb_per_day_p10", float("nan") if _feat is None else float(_feat["kB_per_day_p10"])),
-                ("usable_kb_per_day_0db", float("nan") if _feat is None else float(_feat["kB_per_day_if_only_closing"])),
+                (
+                    "usable_kb_per_day_0db",
+                    float("nan") if _feat is None else float(_feat["kB_per_day_if_only_closing"]),
+                ),
                 ("margin_at_min_el_db", float("nan") if _feat is None else float(_feat["margin_at_min_el_db"])),
                 ("uplink_kb_per_day", float("nan") if _up_row is None else float(_up_row["uplink_kB_per_day"])),
                 ("passes_per_day", passes_per_day),
@@ -3564,13 +3610,9 @@ def _(
         )
     profile_toml = "\n\n".join(_profile_sections) + "\n"
 
-    _slug = "".join(
-        _c if _c.isalnum() else "-" for _c in station_name.lower()
-    ).strip("-")
+    _slug = "".join(_c if _c.isalnum() else "-" for _c in station_name.lower()).strip("-")
     summary_csv = (
-        mode_summary.rename(columns=_summary_cols)[
-            list(_summary_cols.values())
-        ].to_csv(index=False)
+        mode_summary.rename(columns=_summary_cols)[list(_summary_cols.values())].to_csv(index=False)
         if len(mode_summary)
         else "Mode\n"
     )
@@ -3761,6 +3803,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): both BAC profiles and the panel default move to 500 km; the sun-synchronous inclination for 500 km is 97.4° (the 450 km profiles carried that value already, computed for 500 km). Every result of the UHF and S-band profiles moves with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.7.0 | 2026-09-14 | Review fixes: duplex is an explicit hardware setting under Spacecraft (half or full) and no longer inferred from a frequency difference, with a callout for full duplex on one frequency; the 10th-percentile day counts every simulated station-day, the ones without a pass as zero, and sits under the card whose margin it uses; a mode name that repeats an earlier row's is skipped and reported, since every curve and card looks a mode up by name; LoRa volumes use the packet payload over its time on air (SX1276 datasheet §4.1.1.7) from new payload and preamble inputs instead of the nominal rate less framing overhead; the target check covers every enabled direction, uplinks named as such; mode-table numbers must be finite or the row is skipped and reported; profile export escapes newlines, tabs and carriage returns. Follow-up round, mirroring the optical payload: dependencies as minimum bounds; profile names its tool and writes `[results.link_budget]` with the usable volume, its role, pass statistics and frequencies; a role dropdown (low rate / high rate); optical payload and power budget profiles load with their orbit and target or station, and their `[results]` tables feed two callouts – payload demand against this link and affordable pass minutes against the station's; two-column control panel with the custom station and custom antenna in accordions, in its own cell so the duplex note can sit under its dropdown and change with it; a station map with the visibility circle, one day of ground track and the samples in view; profile values clamped to control ranges and reported when unreadable; `fmt_num`; one `[[results.link_budget.modes]]` table per mode in the profile, so the power budget can take the LoRa backstop's airtime from the SF12 row. Homogenization: intro at the siblings' length with the tool's URL, its siblings, the project and the repository; the preliminary warning as a callout; export labels and profile file name as in the siblings; the "At 0 dB Margin" card captioned with its own per-pass figure. |
     | 0.6.0 | 2026-09-10 | Target margin policy 3 dB. Noise referenced to the LNA input: the antenna temperature is attenuated by the feeder and the feeder's own noise added, at both ends, with the three terms shown in the breakdown. Atmospheric loss is now the larger of King's elevation table and ITU-R P.676 gaseous absorption at the frequency in use, so S-band no longer borrows a UHF table; rain and other excess loss is an input. Polarization loss from the two axial ratios, worst case or average, replacing the 0.5 / 3 dB switch. Frame length and target frame error rate inputs: for entries on the ideal non-coherent FSK curve the tool shows the FER the library figure implies and the Eb/N0 the target needs, beside the library figure. Two provisional FEC entries for the native waveform: the AT86RF215 convolutional code and MCU Reed–Solomon; the provisional-threshold callout reworded to state the figure is theoretical rather than "unmeasured". A sixth headline card, "At 0 dB Margin", captioned with the 10th-percentile day as "more than … kB on 90% of days"; the headline cards now sit on two rows of three; longest gap between passes. Per-mode summary as CSV. Downlink share moved beside the frequencies. Profile status on its own line. Text tightened, assumptions split from limitations, US spelling, title-case headings, and "Link Budget Breakdown" for the line-item table. |
     | 0.5.2 | 2026-09-10 | Fix: a profile value with a decimal part under a key whose default is a whole number was truncated on load, so 7.4 dBi arrived as 7 dBi. Library entries carry a status: the GFSK and CW entries are marked provisional because their thresholds have never been measured for the receiver they name, and a callout and a line in the export say so when the featured mode uses one. A second CW entry at the BAC detector specification, 10 dB in 100 Hz, beside the aural one; the shipped mode table uses it. A GFSK h = 0.5 discriminator entry for the native S-band waveform, wired to the Custom Eb/N0 input because no defensible figure exists. The coherent GFSK entry is demoted to an optimistic reference bound. The 4k8 row leaves the default table and the BAC profile. Discovery Dish 70 cm ground-antenna preset, 22 dBi and 12.2° beamwidth. A third shipped profile for the BAC S-band downlink at 2'445 MHz, downlink rows only, naming its UHF sibling; a control-panel callout whenever a frequency above 2 GHz is set. |

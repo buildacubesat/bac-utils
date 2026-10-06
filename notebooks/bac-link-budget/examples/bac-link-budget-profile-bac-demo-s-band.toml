@@ -1,4 +1,4 @@
-# Build a CubeSat demo mission, S-band downlink, as of 2026-09-10.
+# Build a CubeSat demo mission, S-band downlink, as of 2026-10-06 (planning orbit 500 km).
 # Sibling: "Build a CubeSat demo mission" (UHF) – same orbit, station and
 # policy; only the band, antennas and modes differ. Change both together.
 #
@@ -20,7 +20,7 @@ name = "Build a CubeSat demo mission, S-band"
 link_role = "high rate"
 
 [orbit]
-altitude_km = 450
+altitude_km = 500
 inclination_deg = 97.4
 min_elevation_deg = 10
 target_margin_db = 3

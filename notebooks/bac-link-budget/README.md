@@ -1,4 +1,4 @@
-# bac-link-budget v0.7.0
+# bac-link-budget v0.7.1
 
 Build a CubeSat – a first-order link budget between a satellite in low Earth orbit and one ground station, as a marimo notebook. For every mode in an editable table it gives the margin against elevation in both directions, the usable data per pass and per day at the target margin, and the line-item budget of the featured mode in the AMSAT/IARU layout; pass statistics come from a two-body propagation over a rotating spherical Earth, averaged over eight orbit phases. General purpose with the BAC demo mission as the shipped default; LoRa rows use the SX1276 packet airtime, duplex is a hardware setting, and a station map shows the visibility circle and one day of ground track.
 
@@ -19,7 +19,7 @@ The panel starts from the BAC demo mission on UHF. `examples/` holds the three p
 
 ## 3. Numbers at the defaults
 
-Bern, 450 km SSO, 10° minimum elevation, 3 dB target, seven days × eight phases, half duplex, 80 % downlink share: 3.43 passes per day, 5.28 min mean pass, 18.1 min contact per day, 93.44 min period, 1'456 km visibility radius; 50k GFSK 3'221 kB/day at the target margin (2'720 kB on the 10th-percentile day, 4'344 kB at 0 dB), margin 1.7 dB at 10° and 13.6 dB at zenith, uplink 13.3 dB; LoRa SF7 3'559 bps information rate over a 71.9 ms packet, SF12 141 bps over 1'810 ms. These are the regression figures `tests/test_link_budget.py` holds, from the 0.7.0 handoff.
+Bern, 500 km SSO, 10° minimum elevation, 3 dB target, seven days × eight phases, half duplex, 80 % downlink share: 3.68 passes per day, 5.67 min mean pass, 20.9 min contact per day, 94.47 min period, 1'563 km visibility radius; 50k GFSK 3'171 kB/day at the target margin (2'720 kB on the 10th-percentile day, 5'005 kB at 0 dB), margin 1.0 dB at 10° and 12.7 dB at zenith, uplink 12.6 dB; LoRa SF7 3'559 bps information rate over a 71.9 ms packet, SF12 141 bps over 1'810 ms; the S-band profile 2'395 kB/day (400 kB on the 10th-percentile day). These are the regression figures `tests/test_link_budget.py` holds, from the 0.7.1 handoff. Against 450 km (0.7.0): 0.25 more passes and 2.8 more contact minutes per day, 0.7 dB less margin at 10° on every link, 50 kB/day less on UHF because fewer minutes of each longer pass clear the target.
 
 ## 4. Tests
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.7.1 | 2026-10-06 | The BAC planning orbit moves to 500 km (was 450 km) in both BAC profiles and the panel default; the regression figures re-recorded. First edit made in the repository. |
 | 0.7.0 | 2026-09-14 | Review fixes (explicit duplex, 10th percentile over every station-day, unique mode names, LoRa packet airtime, every enabled direction checked, validated numbers, escaped export); interoperability contract with `[results.link_budget]` and per-mode tables; role dropdown; sibling profiles load; two-column panel; station map; homogenized intro, warning and export. Into bac-utils on 2026-10-02 as a byte-identical copy. |
 | 0.6.0 | 2026-09-10 | 3 dB target policy; noise referenced to the LNA input; P.676 gaseous absorption beside King's table; polarization loss from two axial ratios; frame length and FER inputs; provisional FEC entries. |
 | 0.5.2 | 2026-09-10 | Decimal profile values no longer truncated on load. |
