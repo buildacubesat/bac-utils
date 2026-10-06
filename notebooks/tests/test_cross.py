@@ -29,7 +29,7 @@ def test_exports_name_their_tool():
     ):
         doc = tomllib.loads(text)
         assert doc["tool"] == tool
-        assert "orbit" in doc and doc["orbit"]["altitude_km"] == 450
+        assert "orbit" in doc and doc["orbit"]["altitude_km"] == 500
 
 
 def test_optical_payload_takes_the_link_budget_volume():
@@ -37,15 +37,17 @@ def test_optical_payload_takes_the_link_budget_volume():
     d = notebook_harness.run(OP, LB_PROFILE)[2]
     assert d["profile_tool"] == "bac_link_budget"
     assert d["target_name"] == "Bern"
-    assert d["low_kb"] == pytest.approx(3221, abs=1)
-    assert d["days_raw_low"] == pytest.approx(5.74, abs=0.01)
+    assert d["low_kb"] == pytest.approx(3171, abs=1)
+    assert d["days_raw_low"] == pytest.approx(5.83, abs=0.01)
 
 
 def test_link_budget_takes_the_target_as_station():
     d = notebook_harness.run(LB, OP_PROFILE)[2]
     assert d["profile_tool"] == "bac_optical_payload"
     assert d["station_name"] == "Bern"
-    assert d["passes_per_day"] == pytest.approx(3.429, abs=0.001)
+    # the optical payload profile's sim_days = 30 clamps to the link budget's 14-day maximum (112 station-days),
+    # hence 3.75 against the 3.679 of the link budget's own default week
+    assert d["passes_per_day"] == pytest.approx(3.75, abs=0.001)
 
 
 def test_power_budget_takes_station_share_and_backstop_airtime():
@@ -70,5 +72,5 @@ def test_power_budget_takes_target_reach_and_frames_from_the_optical_payload():
 def test_orbital_lifetime_takes_the_orbit_only():
     d = notebook_harness.run(OL, PB_PROFILE)[2]
     assert d["profile_tool"] == "bac_power_budget"
-    assert d["altitude_km"] == 450
+    assert d["altitude_km"] == 500
     assert d["form_factor"] == "1.5U"  # this tool's default kept

@@ -1,7 +1,7 @@
 name = "Build a CubeSat demo mission, 1.5U"
 
 [orbit]
-altitude_km = 450
+altitude_km = 500
 inclination_deg = 97.4
 ltdn_hours = 10.5
 epoch = "2027-06-21"

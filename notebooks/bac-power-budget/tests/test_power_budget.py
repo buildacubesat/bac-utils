@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Regression checks for bac_power_budget.py against the 0.5.0 handoff (§4 and §12, numbers at the defaults).
+"""Regression checks for bac_power_budget.py against the 0.5.1 handoff (§4 and §12, numbers at the defaults, 500 km).
 
 From the bac-utils root: uv run pytest notebooks/bac-power-budget -q
 """
@@ -19,20 +19,20 @@ def _run(profile_toml: str) -> dict:
 
 
 def test_version_and_defaults():
-    assert D["TOOL_VERSION"] == "0.5.0"
+    assert D["TOOL_VERSION"] == "0.5.1"
     assert D["profile_tool"] == "bac_power_budget"
     assert D["station_name"] == "Bern" and D["target_name"] == "Bern"
     assert not D["profile_warnings"]
 
 
 def test_bac_profile_energy_balance():
-    """450 km SSO, LTDN 10:30, epoch 2027-06-21, two days, tumbling, 2S2P modules as shipped."""
-    assert D["gen_wh_day"] == pytest.approx(49.9, abs=0.05)
-    assert D["sched_wh_day"] == pytest.approx(89.0, abs=0.1)
+    """500 km SSO, LTDN 10:30, epoch 2027-06-21, two days, tumbling, 2S2P modules as shipped."""
+    assert D["gen_wh_day"] == pytest.approx(50.3, abs=0.05)
+    assert D["sched_wh_day"] == pytest.approx(89.5, abs=0.1)
     assert D["requested_margin_w"] == pytest.approx(-1.63, abs=0.01)
-    assert D["margin_w"] == pytest.approx(-0.32, abs=0.01)
+    assert D["margin_w"] == pytest.approx(-0.30, abs=0.01)
     assert D["min_soc"] == pytest.approx(0.39, abs=0.005)
-    assert D["safe_hours"] == pytest.approx(23.1, abs=0.1)
+    assert D["safe_hours"] == pytest.approx(23.2, abs=0.1)
     assert D["eclipse_fraction"] == pytest.approx(0.37, abs=0.005)
     assert D["cw_wh_day"] == pytest.approx(5.76, abs=0.01)
     assert D["sustainable_pass_min"] == 0.0 and D["sustainable_frames"] == 0.0  # nominal watts alone exceed generation
@@ -47,8 +47,8 @@ def test_pack_and_charger_headroom():
 
 
 def test_pass_statistics_single_phase():
-    assert D["passes_per_day"] == pytest.approx(3.5, abs=0.01)
-    assert D["period_min"] == pytest.approx(93.44, abs=0.01)
+    assert D["passes_per_day"] == pytest.approx(4.0, abs=0.01)
+    assert D["period_min"] == pytest.approx(94.47, abs=0.01)
 
 
 def test_mode_totals_are_ordered():
@@ -59,7 +59,7 @@ def test_mode_totals_are_ordered():
 def test_profile_export_contract():
     p = tomllib.loads(D["profile_toml"])
     assert p["tool"] == "bac_power_budget"
-    assert p["tool_version"] == "0.5.0"
+    assert p["tool_version"] == "0.5.1"
     assert p["loads"], "the loads travel as [[loads]] tables"
     assert "power_budget" in p["results"]
     d2 = _run(D["profile_toml"])

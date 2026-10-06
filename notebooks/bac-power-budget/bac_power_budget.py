@@ -111,7 +111,7 @@ def _():
 
 @app.cell
 def _():
-    TOOL_VERSION = "0.5.0"
+    TOOL_VERSION = "0.5.1"
     R_EARTH_KM = 6371.0
     SOLAR_CONST_W_M2 = 1361.0  # AM0, mean Earth distance
 
@@ -125,19 +125,104 @@ def _():
         # on p. 1: Voc 6.91 V, Isc 58.6 mA, Vmpp 5.58 V, Impp 55.1 mA, 25%.
         # The Pmpp coefficient is not on that page; –0.40 %/K is typical
         # crystalline silicon and provisional.
-        "Anysolar SM141K10TF": (5.58, 0.0551, 6.91, 0.0586, 25.0, 16.1, -0.40, 1000.0, "AM1.5", "provisional", "10 monocrystalline junctions in series, 70 × 23 mm laminate; BAC panel module cell"),
+        "Anysolar SM141K10TF": (
+            5.58,
+            0.0551,
+            6.91,
+            0.0586,
+            25.0,
+            16.1,
+            -0.40,
+            1000.0,
+            "AM1.5",
+            "provisional",
+            "10 monocrystalline junctions in series, 70 × 23 mm laminate; BAC panel module cell",
+        ),
         # AzurSpace 3G30C-Advanced, average BOL values from the datasheet
         # (AM0 WRC, 1367 W/m², 28°C). Provisional.
-        "AzurSpace 3G30C-Advanced": (2.409, 0.5029, 2.700, 0.5196, 29.8, 30.18, -0.24, 1367.0, "AM0", "provisional", "Triple-junction GaAs, 80 × 40 mm; the common CubeSat cell"),
+        "AzurSpace 3G30C-Advanced": (
+            2.409,
+            0.5029,
+            2.700,
+            0.5196,
+            29.8,
+            30.18,
+            -0.24,
+            1367.0,
+            "AM0",
+            "provisional",
+            "Triple-junction GaAs, 80 × 40 mm; the common CubeSat cell",
+        ),
         # 4G32C-Advanced DB 0005979-01-00 p. 1: Voc 3451 mV, Isc 457.6 mA, 30.18 cm²;
         # Vmp and Imp are back-solved from the 32% class efficiency.
-        "AzurSpace 4G32C-Advanced": (3.08, 0.431, 3.451, 0.4576, 32.0, 30.18, -0.22, 1367.0, "AM0", "provisional", "Quadruple-junction GaAs, 80 × 40 mm"),
-        "Spectrolab XTJ Prime": (2.396, 0.456, 2.72, 0.473, 30.7, 26.62, -0.24, 1353.0, "AM0", "provisional", "Triple-junction GaAs, current from the datasheet's mA/cm² over the 26.62 cm² standard cell"),
+        "AzurSpace 4G32C-Advanced": (
+            3.08,
+            0.431,
+            3.451,
+            0.4576,
+            32.0,
+            30.18,
+            -0.22,
+            1367.0,
+            "AM0",
+            "provisional",
+            "Quadruple-junction GaAs, 80 × 40 mm",
+        ),
+        "Spectrolab XTJ Prime": (
+            2.396,
+            0.456,
+            2.72,
+            0.473,
+            30.7,
+            26.62,
+            -0.24,
+            1353.0,
+            "AM0",
+            "provisional",
+            "Triple-junction GaAs, current from the datasheet's mA/cm² over the 26.62 cm² standard cell",
+        ),
         # Terrestrial silicon that low-cost CubeSats cut into strips; rated at AM1.5.
-        "SunPower Maxeon C60 (Gen II)": (0.577, 5.93, 0.682, 6.24, 22.5, 153.0, -0.35, 1000.0, "AM1.5", "provisional", "125 mm back-contact silicon, usually cut into strips"),
-        "Anysolar KXOB25-14X1F": (0.501, 0.0613, 0.63, 0.0654, 25.0, 1.2, -0.40, 1000.0, "AM1.5", "provisional", "Single junction, 23 × 8 mm; the small SolarBIT for sun sensors and demonstrators"),
+        "SunPower Maxeon C60 (Gen II)": (
+            0.577,
+            5.93,
+            0.682,
+            6.24,
+            22.5,
+            153.0,
+            -0.35,
+            1000.0,
+            "AM1.5",
+            "provisional",
+            "125 mm back-contact silicon, usually cut into strips",
+        ),
+        "Anysolar KXOB25-14X1F": (
+            0.501,
+            0.0613,
+            0.63,
+            0.0654,
+            25.0,
+            1.2,
+            -0.40,
+            1000.0,
+            "AM1.5",
+            "provisional",
+            "Single junction, 23 × 8 mm; the small SolarBIT for sun sensors and demonstrators",
+        ),
     }
-    SOLAR_KEYS = ["Cell", "Vmpp (V)", "Impp (A)", "Voc (V)", "Isc (A)", "Efficiency (%)", "Area (cm²)", "Pmpp TC (%/K)", "Rated (W/m²)", "Spectrum", "Status", "Note"]
+    SOLAR_KEYS = [
+        "Cell",
+        "Vmpp (V)",
+        "Impp (A)",
+        "Voc (V)",
+        "Isc (A)",
+        "Efficiency (%)",
+        "Area (cm²)",
+        "Pmpp TC (%/K)",
+        "Rated (W/m²)",
+        "Spectrum",
+        "Status",
+        "Note",
+    ]
 
     # Battery cell library. Columns: nominal V, capacity (Ah), max charge V,
     # discharge cutoff V, mass (g), status, note.
@@ -149,18 +234,47 @@ def _():
         # The rows below are widely flown 18650s with figures from their
         # public specifications as usually quoted; provisional until the
         # datasheet page is on file.
-        "Samsung INR18650-35E": (3.6, 3.5, 4.2, 2.65, 50.0, "provisional", "8 A max discharge; the MJ1's usual alternative"),
+        "Samsung INR18650-35E": (
+            3.6,
+            3.5,
+            4.2,
+            2.65,
+            50.0,
+            "provisional",
+            "8 A max discharge; the MJ1's usual alternative",
+        ),
         "Panasonic NCR18650GA": (3.6, 3.45, 4.2, 2.5, 48.0, "provisional", "10 A max discharge"),
         "Panasonic NCR18650B": (3.6, 3.35, 4.2, 2.5, 48.5, "provisional", "The classic CubeSat cell; 6.8 A max"),
         "Murata VTC6": (3.6, 3.0, 4.2, 2.5, 46.6, "provisional", "15 A continuous; used where pulse current matters"),
         "Samsung INR18650-30Q": (3.6, 3.0, 4.2, 2.5, 48.0, "provisional", "15 A continuous"),
         "Molicel INR18650-P28A": (3.6, 2.8, 4.2, 2.5, 46.0, "provisional", "35 A continuous, wide temperature range"),
-        "Generic 18650, 2.6 Ah": (3.6, 2.6, 4.2, 2.75, 46.0, "placeholder", "A conservative stand-in for any unspecified cell"),
+        "Generic 18650, 2.6 Ah": (
+            3.6,
+            2.6,
+            4.2,
+            2.75,
+            46.0,
+            "placeholder",
+            "A conservative stand-in for any unspecified cell",
+        ),
     }
     # Open-circuit voltage against state of charge for a generic NMC 18650,
     # rested cell, per cell. Provisional; it turns the percentage sliders into
     # volts and nothing else depends on it.
-    OCV_SOC = [(0.0, 3.00), (0.05, 3.35), (0.10, 3.45), (0.20, 3.55), (0.30, 3.62), (0.40, 3.67), (0.50, 3.72), (0.60, 3.80), (0.70, 3.88), (0.80, 3.96), (0.90, 4.06), (1.00, 4.18)]
+    OCV_SOC = [
+        (0.0, 3.00),
+        (0.05, 3.35),
+        (0.10, 3.45),
+        (0.20, 3.55),
+        (0.30, 3.62),
+        (0.40, 3.67),
+        (0.50, 3.72),
+        (0.60, 3.80),
+        (0.70, 3.88),
+        (0.80, 3.96),
+        (0.90, 4.06),
+        (1.00, 4.18),
+    ]
     BATTERY_KEYS = ["Cell", "Nominal (V)", "Capacity (Ah)", "Charge (V)", "Cutoff (V)", "Mass (g)", "Status", "Note"]
 
     STATIONS = {
@@ -200,22 +314,142 @@ def _():
         "Status": "status",
         "Note": "note",
     }
-    LOAD_BLANK = {"Consumer": "", "Node": "", "Rail": "VBAT", "Peak (W)": 0.0, "Safe (W)": 0.0, "Nominal (W)": 0.0, "Pass (W)": 0.0, "Payload (W)": 0.0, "Degraded (W)": 0.0, "Status": "placeholder", "Note": ""}
+    LOAD_BLANK = {
+        "Consumer": "",
+        "Node": "",
+        "Rail": "VBAT",
+        "Peak (W)": 0.0,
+        "Safe (W)": 0.0,
+        "Nominal (W)": 0.0,
+        "Pass (W)": 0.0,
+        "Payload (W)": 0.0,
+        "Degraded (W)": 0.0,
+        "Status": "placeholder",
+        "Note": "",
+    }
     RAILS = ("VBAT", "5V", "3V3")
 
     # Average watts per mode. A consumer that is switched off in a mode has 0
     # there. Pass and payload override nominal per consumer; safe and degraded
     # replace the whole row. Every value marked placeholder is a guess.
     DEFAULT_LOADS = [
-        ("EPS main board (STM32F405, sensors, eFuses)", "small", "VBAT", 0.3, 0.15, 0.15, 0.15, 0.15, 0.15, "placeholder", "No bench figure yet; 150 mW is the working assumption"),
-        ("Radio node (SatNOGS-COMMS respin)", "medium", "VBAT", 6.0, 0.4, 0.4, 4.9, 0.4, 0.0, "placeholder", "RX 0.4 W, TX 6 W at 32 dBm assumed; pass = 80% TX; only the 8 W S-band peak is published"),
-        ("LoRa function board (LR1121, STM32U5)", "medium", "VBAT", 0.5, 0.03, 0.03, 0.03, 0.03, 0.03, "placeholder", "Sniffer and MCU idle; TX priced under Beacon"),
-        ("CM5 on carrier (Yocto, F Prime)", "large", "5V", 7.0, 0.0, 2.5, 3.0, 5.0, 0.0, "placeholder", "Idle 2.5 W, pass 3 W, payload 5 W assumed; off in safe and degraded"),
-        ("CHC5 primary imager (Zynq)", "large", "5V", 4.0, 0.0, 0.0, 0.0, 3.0, 0.0, "placeholder", "Unknown until the January 2027 hardware; 3 W while the pipeline is powered"),
-        ("Boom camera node (STM32U5, OV5640)", "medium", "3V3", 0.6, 0.0, 0.0, 0.0, 0.4, 0.0, "placeholder", "Powered around each activation only"),
-        ("Magnetorquer coils (4 × PCB) and driver", "small", "3V3", 0.8, 0.1, 0.2, 0.2, 0.3, 0.0, "placeholder", "About 20 mm PCB coils, one per side face; average over a detumble-and-hold duty"),
-        ("Attitude sensors (IMU, magnetometer, sun sensors)", "small", "3V3", 0.1, 0.05, 0.05, 0.05, 0.05, 0.0, "placeholder", ""),
-        ("Heaters", "–", "VBAT", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, "placeholder", "Not decided; row kept so the table has somewhere to put it"),
+        (
+            "EPS main board (STM32F405, sensors, eFuses)",
+            "small",
+            "VBAT",
+            0.3,
+            0.15,
+            0.15,
+            0.15,
+            0.15,
+            0.15,
+            "placeholder",
+            "No bench figure yet; 150 mW is the working assumption",
+        ),
+        (
+            "Radio node (SatNOGS-COMMS respin)",
+            "medium",
+            "VBAT",
+            6.0,
+            0.4,
+            0.4,
+            4.9,
+            0.4,
+            0.0,
+            "placeholder",
+            "RX 0.4 W, TX 6 W at 32 dBm assumed; pass = 80% TX; only the 8 W S-band peak is published",
+        ),
+        (
+            "LoRa function board (LR1121, STM32U5)",
+            "medium",
+            "VBAT",
+            0.5,
+            0.03,
+            0.03,
+            0.03,
+            0.03,
+            0.03,
+            "placeholder",
+            "Sniffer and MCU idle; TX priced under Beacon",
+        ),
+        (
+            "CM5 on carrier (Yocto, F Prime)",
+            "large",
+            "5V",
+            7.0,
+            0.0,
+            2.5,
+            3.0,
+            5.0,
+            0.0,
+            "placeholder",
+            "Idle 2.5 W, pass 3 W, payload 5 W assumed; off in safe and degraded",
+        ),
+        (
+            "CHC5 primary imager (Zynq)",
+            "large",
+            "5V",
+            4.0,
+            0.0,
+            0.0,
+            0.0,
+            3.0,
+            0.0,
+            "placeholder",
+            "Unknown until the January 2027 hardware; 3 W while the pipeline is powered",
+        ),
+        (
+            "Boom camera node (STM32U5, OV5640)",
+            "medium",
+            "3V3",
+            0.6,
+            0.0,
+            0.0,
+            0.0,
+            0.4,
+            0.0,
+            "placeholder",
+            "Powered around each activation only",
+        ),
+        (
+            "Magnetorquer coils (4 × PCB) and driver",
+            "small",
+            "3V3",
+            0.8,
+            0.1,
+            0.2,
+            0.2,
+            0.3,
+            0.0,
+            "placeholder",
+            "About 20 mm PCB coils, one per side face; average over a detumble-and-hold duty",
+        ),
+        (
+            "Attitude sensors (IMU, magnetometer, sun sensors)",
+            "small",
+            "3V3",
+            0.1,
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.0,
+            "placeholder",
+            "",
+        ),
+        (
+            "Heaters",
+            "–",
+            "VBAT",
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            "placeholder",
+            "Not decided; row kept so the table has somewhere to put it",
+        ),
     ]
     DEFAULT_LOADS_GENERIC = [
         ("On-board computer", "–", "3V3", 1.0, 0.3, 0.5, 0.5, 0.5, 0.3, "placeholder", ""),
@@ -262,7 +496,7 @@ def _():
     name = "Build a CubeSat demo mission, 1.5U"
 
     [orbit]
-    altitude_km = 450
+    altitude_km = 500
     inclination_deg = 97.4
     ltdn_hours = 10.5
     epoch = "2027-06-21"
@@ -501,7 +735,11 @@ def _(tomllib, ui_profile):
     # payload [sensor], this tool [storage].
     _tool = _doc.get("tool")
     if not _tool:
-        _tool = "bac_link_budget" if "modes" in _doc else ("bac_optical_payload" if "sensor" in _doc else "bac_power_budget")
+        _tool = (
+            "bac_link_budget"
+            if "modes" in _doc
+            else ("bac_optical_payload" if "sensor" in _doc else "bac_power_budget")
+        )
     profile_tool = str(_tool)
     return (
         P,
@@ -622,52 +860,124 @@ def _(
 
     # Orbit
     ui_altitude = S(
-        start=300, stop=1200, step=10, value=P("orbit", "altitude_km", 450), show_value=True, label="Orbit altitude (km)"
+        start=300,
+        stop=1200,
+        step=10,
+        value=P("orbit", "altitude_km", 500),
+        show_value=True,
+        label="Orbit altitude (km)",
     )
-    ui_inclination = N(start=0, stop=180, step=0.1, value=P("orbit", "inclination_deg", 97.4), label="Inclination (deg)")
-    ui_ltdn = N(start=0, stop=24, step=0.25, value=P("orbit", "ltdn_hours", 10.5), label="Local time of descending node (h)")
+    ui_inclination = N(
+        start=0, stop=180, step=0.1, value=P("orbit", "inclination_deg", 97.4), label="Inclination (deg)"
+    )
+    ui_ltdn = N(
+        start=0, stop=24, step=0.25, value=P("orbit", "ltdn_hours", 10.5), label="Local time of descending node (h)"
+    )
     ui_epoch = mo.ui.text(value=P("orbit", "epoch", "2027-06-21"), label="Epoch (YYYY-MM-DD)")
     # A sibling profile may carry a 30-day span; this tool integrates at most 7.
-    ui_sim_days = S(start=1, stop=7, step=1, value=int(min(max(P("orbit", "sim_days", 2), 1), 7)), show_value=True, label="Days to simulate")
+    ui_sim_days = S(
+        start=1,
+        stop=7,
+        step=1,
+        value=int(min(max(P("orbit", "sim_days", 2), 1), 7)),
+        show_value=True,
+        label="Days to simulate",
+    )
 
     # Ground station, also readable from a link budget profile.
     _sname = P("ground_station", "station", "Bern, Switzerland")
     if _sname not in STATIONS:
         _sname = "Custom" if P("ground_station", "latitude_deg", None) is not None else "Bern, Switzerland"
     ui_station = mo.ui.dropdown(options=list(STATIONS), value=_sname, label="Ground station")
-    ui_lat = N(start=-90, stop=90, step=0.01, value=P("ground_station", "latitude_deg", 46.95), label="Custom station latitude (deg N)")
-    ui_lon = N(start=-180, stop=180, step=0.01, value=P("ground_station", "longitude_deg", 7.45), label="Custom station longitude (deg E)")
-    ui_min_el = N(start=0, stop=60, step=1, value=P("ground_station", "min_elevation_deg", P("orbit", "min_elevation_deg", 10)), label="Minimum elevation (deg)")
+    ui_lat = N(
+        start=-90,
+        stop=90,
+        step=0.01,
+        value=P("ground_station", "latitude_deg", 46.95),
+        label="Custom station latitude (deg N)",
+    )
+    ui_lon = N(
+        start=-180,
+        stop=180,
+        step=0.01,
+        value=P("ground_station", "longitude_deg", 7.45),
+        label="Custom station longitude (deg E)",
+    )
+    ui_min_el = N(
+        start=0,
+        stop=60,
+        step=1,
+        value=P("ground_station", "min_elevation_deg", P("orbit", "min_elevation_deg", 10)),
+        label="Minimum elevation (deg)",
+    )
 
     # Payload activation location; an optical payload profile names it under
     # [target], and its old [imaging] keys are read as fallbacks.
     def _PP(key, imaging_key, default):
-        return P("payload", key, P("imaging", imaging_key, P("payload", "activations_per_day", default) if key == "cap_per_day" else default))
+        return P(
+            "payload",
+            key,
+            P(
+                "imaging",
+                imaging_key,
+                P("payload", "activations_per_day", default) if key == "cap_per_day" else default,
+            ),
+        )
 
     _t_is_station = _PP("target_is_station", "target_is_station", P("target", "name", None) is None)
     ui_target_same = mo.ui.switch(value=bool(_t_is_station), label="Activation location is the ground station")
-    ui_target_lat = N(start=-90, stop=90, step=0.01, value=P("target", "latitude_deg", 46.95), label="Target latitude (deg N)")
-    ui_target_lon = N(start=-180, stop=180, step=0.01, value=P("target", "longitude_deg", 7.45), label="Target longitude (deg E)")
+    ui_target_lat = N(
+        start=-90, stop=90, step=0.01, value=P("target", "latitude_deg", 46.95), label="Target latitude (deg N)"
+    )
+    ui_target_lon = N(
+        start=-180, stop=180, step=0.01, value=P("target", "longitude_deg", 7.45), label="Target longitude (deg E)"
+    )
     _mode = P("payload", "mode", "Over a location")
     # A 0.1.0–0.2.0 profile that said zero activations per day meant none;
     # the cap now reads 0 as no cap, so that profile lands on "Never".
-    _legacy_zero = not PH("payload", "mode") and (PH("payload", "activations_per_day") or PH("imaging", "frames_per_day")) and P("payload", "activations_per_day", P("imaging", "frames_per_day", 1)) == 0
+    _legacy_zero = (
+        not PH("payload", "mode")
+        and (PH("payload", "activations_per_day") or PH("imaging", "frames_per_day"))
+        and P("payload", "activations_per_day", P("imaging", "frames_per_day", 1)) == 0
+    )
     if _legacy_zero:
         _mode = "Never"
-    ui_pay_mode = mo.ui.dropdown(options=PAYLOAD_MODES, value=_mode if _mode in PAYLOAD_MODES else "Over a location", label="Activation trigger")
-    ui_reach = N(
-        start=1, stop=2000, step=1, value=_PP("reach_km", "reach_km", P("results.optical_payload", "swath_x_km", 176.0) / 2), label="Reach from the sub-satellite point (km)"
+    ui_pay_mode = mo.ui.dropdown(
+        options=PAYLOAD_MODES, value=_mode if _mode in PAYLOAD_MODES else "Over a location", label="Activation trigger"
     )
-    ui_region_s = N(start=-90, stop=90, step=0.1, value=P("payload", "region_south_deg", 35.0), label="Region south edge (deg N)")
-    ui_region_n = N(start=-90, stop=90, step=0.1, value=P("payload", "region_north_deg", 60.0), label="Region north edge (deg N)")
-    ui_region_w = N(start=-180, stop=180, step=0.1, value=P("payload", "region_west_deg", -10.0), label="Region west edge (deg E)")
-    ui_region_e = N(start=-180, stop=180, step=0.1, value=P("payload", "region_east_deg", 30.0), label="Region east edge (deg E)")
-    ui_orbit_u0 = N(start=0, stop=360, step=1, value=P("payload", "orbit_start_deg", 60.0), label="Orbit window start (deg)")
-    ui_orbit_u1 = N(start=0, stop=360, step=1, value=P("payload", "orbit_end_deg", 120.0), label="Orbit window end (deg)")
+    ui_reach = N(
+        start=1,
+        stop=2000,
+        step=1,
+        value=_PP("reach_km", "reach_km", P("results.optical_payload", "swath_x_km", 176.0) / 2),
+        label="Reach from the sub-satellite point (km)",
+    )
+    ui_region_s = N(
+        start=-90, stop=90, step=0.1, value=P("payload", "region_south_deg", 35.0), label="Region south edge (deg N)"
+    )
+    ui_region_n = N(
+        start=-90, stop=90, step=0.1, value=P("payload", "region_north_deg", 60.0), label="Region north edge (deg N)"
+    )
+    ui_region_w = N(
+        start=-180, stop=180, step=0.1, value=P("payload", "region_west_deg", -10.0), label="Region west edge (deg E)"
+    )
+    ui_region_e = N(
+        start=-180, stop=180, step=0.1, value=P("payload", "region_east_deg", 30.0), label="Region east edge (deg E)"
+    )
+    ui_orbit_u0 = N(
+        start=0, stop=360, step=1, value=P("payload", "orbit_start_deg", 60.0), label="Orbit window start (deg)"
+    )
+    ui_orbit_u1 = N(
+        start=0, stop=360, step=1, value=P("payload", "orbit_end_deg", 120.0), label="Orbit window end (deg)"
+    )
     ui_orbit_nth = N(start=1, stop=100, step=1, value=P("payload", "every_nth_orbit", 1), label="Every Nth orbit")
     ui_cadence = N(start=1, stop=1440, step=1, value=P("payload", "cadence_min", 30), label="Cadence (min)")
-    ui_clock_start = N(start=0, stop=24, step=0.25, value=P("payload", "clock_start_h", 8.0), label="Clock window start (h UTC)")
-    ui_clock_end = N(start=0, stop=24, step=0.25, value=P("payload", "clock_end_h", 9.0), label="Clock window end (h UTC)")
+    ui_clock_start = N(
+        start=0, stop=24, step=0.25, value=P("payload", "clock_start_h", 8.0), label="Clock window start (h UTC)"
+    )
+    ui_clock_end = N(
+        start=0, stop=24, step=0.25, value=P("payload", "clock_end_h", 9.0), label="Clock window end (h UTC)"
+    )
     ui_pass_after = mo.ui.switch(value=bool(P("payload", "after_pass", False)), label="Start after the pass")
     ui_pass_offset = N(start=0, stop=3600, step=10, value=P("payload", "pass_offset_s", 0), label="Offset (s)")
     ui_eclipse_edge = mo.ui.dropdown(
@@ -677,63 +987,178 @@ def _(
     )
     _listed = _doc_activations = P("payload", "listed", "3.5, 120\n15.0, 120")
     ui_listed = mo.ui.text_area(value=str(_listed), label="Hours from epoch, duration (s)", rows=4)
-    ui_hold = mo.ui.switch(value=bool(P("payload", "hold_whole_window", False)), label="Hold for the whole trigger window")
-    ui_window = N(start=1, stop=86400, step=1, value=_PP("active_s", "window_s", 60), label="Active time per activation (s)")
+    ui_hold = mo.ui.switch(
+        value=bool(P("payload", "hold_whole_window", False)), label="Hold for the whole trigger window"
+    )
+    ui_window = N(
+        start=1, stop=86400, step=1, value=_PP("active_s", "window_s", 60), label="Active time per activation (s)"
+    )
     ui_gate_lit = mo.ui.switch(value=bool(P("payload", "gate_lit", True)), label="Only when lit")
-    ui_min_sun = N(start=-10, stop=90, step=1, value=_PP("min_sun_elevation_deg", "min_sun_elevation_deg", 20), label="Minimum Sun elevation at the location (deg)")
+    ui_min_sun = N(
+        start=-10,
+        stop=90,
+        step=1,
+        value=_PP("min_sun_elevation_deg", "min_sun_elevation_deg", 20),
+        label="Minimum Sun elevation at the location (deg)",
+    )
     ui_gate_nopass = mo.ui.switch(value=bool(P("payload", "gate_no_pass", False)), label="Not during passes")
     ui_cap_day = N(
-        start=0, stop=1000, step=1, value=_PP("cap_per_day", "frames_per_day", P("results.optical_payload", "frames_per_day", 4)), label="Cap per day (0 = no cap)"
+        start=0,
+        stop=1000,
+        step=1,
+        value=_PP("cap_per_day", "frames_per_day", P("results.optical_payload", "frames_per_day", 4)),
+        label="Cap per day (0 = no cap)",
     )
-    ui_cap_orbit = N(start=0, stop=100, step=1, value=P("payload", "cap_per_orbit", 0), label="Cap per orbit (0 = no cap)")
+    ui_cap_orbit = N(
+        start=0, stop=100, step=1, value=P("payload", "cap_per_orbit", 0), label="Cap per orbit (0 = no cap)"
+    )
 
     # Generation
-    ui_cell = mo.ui.dropdown(options=list(SOLAR_CELLS) + ["Custom"], value=P("generation", "cell", "Anysolar SM141K10TF"), label="Solar cell")
-    ui_cell_vmpp = N(start=0.1, stop=100, step=0.01, value=P("generation", "custom_vmpp_v", 5.58), label="Custom Vmpp (V)")
-    ui_cell_impp = N(start=0.001, stop=10, step=0.001, value=P("generation", "custom_impp_a", 0.0551), label="Custom Impp (A)")
-    ui_cell_tc = N(start=-2, stop=0, step=0.01, value=P("generation", "custom_tc_pct_k", -0.4), label="Custom Pmpp coefficient (%/K)")
-    ui_cell_rated = N(start=100, stop=2000, step=1, value=P("generation", "custom_rated_w_m2", 1000), label="Custom rated irradiance (W/m²)")
-    ui_cell_spectrum = mo.ui.dropdown(options=["AM1.5", "AM0"], value=P("generation", "custom_spectrum", "AM1.5"), label="Custom rated spectrum")
-    ui_cell_area = N(start=0.1, stop=1000, step=0.1, value=P("generation", "custom_area_cm2", 16.1), label="Custom cell area (cm²)")
+    ui_cell = mo.ui.dropdown(
+        options=list(SOLAR_CELLS) + ["Custom"], value=P("generation", "cell", "Anysolar SM141K10TF"), label="Solar cell"
+    )
+    ui_cell_vmpp = N(
+        start=0.1, stop=100, step=0.01, value=P("generation", "custom_vmpp_v", 5.58), label="Custom Vmpp (V)"
+    )
+    ui_cell_impp = N(
+        start=0.001, stop=10, step=0.001, value=P("generation", "custom_impp_a", 0.0551), label="Custom Impp (A)"
+    )
+    ui_cell_tc = N(
+        start=-2,
+        stop=0,
+        step=0.01,
+        value=P("generation", "custom_tc_pct_k", -0.4),
+        label="Custom Pmpp coefficient (%/K)",
+    )
+    ui_cell_rated = N(
+        start=100,
+        stop=2000,
+        step=1,
+        value=P("generation", "custom_rated_w_m2", 1000),
+        label="Custom rated irradiance (W/m²)",
+    )
+    ui_cell_spectrum = mo.ui.dropdown(
+        options=["AM1.5", "AM0"], value=P("generation", "custom_spectrum", "AM1.5"), label="Custom rated spectrum"
+    )
+    ui_cell_area = N(
+        start=0.1, stop=1000, step=0.1, value=P("generation", "custom_area_cm2", 16.1), label="Custom cell area (cm²)"
+    )
     # A 0.1.0–0.2.0 profile's cells_per_module were all in series.
     _legacy_series = PH("generation", "cells_per_module") and not PH("generation", "module_series")
-    ui_mod_series = N(start=1, stop=40, step=1, value=P("generation", "module_series", P("generation", "cells_per_module", 2)), label="Cells in series per string (S)")
-    ui_mod_parallel = N(start=1, stop=40, step=1, value=P("generation", "module_parallel", 1 if _legacy_series else 2), label="Parallel strings per module (P)")
+    ui_mod_series = N(
+        start=1,
+        stop=40,
+        step=1,
+        value=P("generation", "module_series", P("generation", "cells_per_module", 2)),
+        label="Cells in series per string (S)",
+    )
+    ui_mod_parallel = N(
+        start=1,
+        stop=40,
+        step=1,
+        value=P("generation", "module_parallel", 1 if _legacy_series else 2),
+        label="Parallel strings per module (P)",
+    )
     _mod_u_options = {f"{_x:g}U": _x for _x in (0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0)}
     _mod_u = f"{P('generation', 'module_u', 0.5):g}U"
-    ui_mod_u = mo.ui.dropdown(options=_mod_u_options, value=_mod_u if _mod_u in _mod_u_options else "0.5U", label="Module length along the face")
-    ui_cubesat = mo.ui.dropdown(options=list(CUBESAT_UNITS), value=P("generation", "cubesat", "1.5U"), label="CubeSat size")
+    ui_mod_u = mo.ui.dropdown(
+        options=_mod_u_options,
+        value=_mod_u if _mod_u in _mod_u_options else "0.5U",
+        label="Module length along the face",
+    )
+    ui_cubesat = mo.ui.dropdown(
+        options=list(CUBESAT_UNITS), value=P("generation", "cubesat", "1.5U"), label="CubeSat size"
+    )
     ui_faces_x = mo.ui.switch(value=P("generation", "faces_x", True), label="Modules on +X and –X")
     ui_faces_y = mo.ui.switch(value=P("generation", "faces_y", True), label="Modules on +Y and –Y")
     ui_faces_z = mo.ui.switch(value=P("generation", "faces_z", False), label="Modules on +Z and –Z")
-    ui_modules_z = N(start=0, stop=8, step=1, value=P("generation", "modules_per_z_face", 0), label="Modules per Z face")
-    ui_am0 = N(start=0.5, stop=1.2, step=0.01, value=P("generation", "am0_factor", 0.9), label="AM0 factor (AM1.5-rated cells only)")
-    ui_cell_temp = N(start=-60, stop=120, step=1, value=P("generation", "cell_temp_c", 50), label="Cell temperature in sunlight (°C)")
-    ui_string_loss = N(start=0, stop=30, step=0.5, value=P("generation", "string_loss_pct", 5), label="Diode and mismatch loss (%)")
+    ui_modules_z = N(
+        start=0, stop=8, step=1, value=P("generation", "modules_per_z_face", 0), label="Modules per Z face"
+    )
+    ui_am0 = N(
+        start=0.5,
+        stop=1.2,
+        step=0.01,
+        value=P("generation", "am0_factor", 0.9),
+        label="AM0 factor (AM1.5-rated cells only)",
+    )
+    ui_cell_temp = N(
+        start=-60, stop=120, step=1, value=P("generation", "cell_temp_c", 50), label="Cell temperature in sunlight (°C)"
+    )
+    ui_string_loss = N(
+        start=0, stop=30, step=0.5, value=P("generation", "string_loss_pct", 5), label="Diode and mismatch loss (%)"
+    )
     ui_attitude = mo.ui.dropdown(
-        options=["Tumbling", "Nadir-pointed", "Sun-pointed"], value=P("generation", "attitude", "Tumbling"), label="Attitude"
+        options=["Tumbling", "Nadir-pointed", "Sun-pointed"],
+        value=P("generation", "attitude", "Tumbling"),
+        label="Attitude",
     )
 
     # Storage
-    ui_batt = mo.ui.dropdown(options=list(BATTERY_CELLS) + ["Custom"], value=P("storage", "cell", "LG INR18650 MJ1"), label="Battery cell")
-    ui_batt_v = N(start=1, stop=5, step=0.001, value=P("storage", "custom_nominal_v", 3.6), label="Custom nominal voltage (V)")
-    ui_batt_ah = N(start=0.1, stop=50, step=0.01, value=P("storage", "custom_capacity_ah", 2.6), label="Custom capacity (Ah)")
+    ui_batt = mo.ui.dropdown(
+        options=list(BATTERY_CELLS) + ["Custom"], value=P("storage", "cell", "LG INR18650 MJ1"), label="Battery cell"
+    )
+    ui_batt_v = N(
+        start=1, stop=5, step=0.001, value=P("storage", "custom_nominal_v", 3.6), label="Custom nominal voltage (V)"
+    )
+    ui_batt_ah = N(
+        start=0.1, stop=50, step=0.01, value=P("storage", "custom_capacity_ah", 2.6), label="Custom capacity (Ah)"
+    )
     ui_series = N(start=1, stop=8, step=1, value=P("storage", "series", 2), label="Cells in series (S)")
     ui_parallel = N(start=1, stop=8, step=1, value=P("storage", "parallel", 2), label="Strings in parallel (P)")
-    ui_dod = S(start=5, stop=90, step=5, value=P("storage", "dod_pct", 30), show_value=True, label="Allowed depth of discharge (%)")
-    ui_soc0 = S(start=10, stop=100, step=5, value=P("storage", "initial_soc_pct", 80), show_value=True, label="Initial state of charge (%)")
-    ui_eff_charge = N(start=50, stop=100, step=0.5, value=P("storage", "charger_eff_pct", 86), label="Charger efficiency (%)")
-    ui_eff_5v = N(start=50, stop=100, step=0.5, value=P("storage", "rail_5v_eff_pct", 90), label="5 V rail efficiency (%)")
-    ui_eff_3v3 = N(start=50, stop=100, step=0.5, value=P("storage", "rail_3v3_eff_pct", 87), label="3V3 rail efficiency (%)")
-    ui_uvlo = N(start=2.5, stop=4.0, step=0.05, value=P("storage", "uvlo_v_per_cell", 3.5), label="EPS undervoltage lockout (V per cell)")
-    ui_safe_enter = N(start=0, stop=100, step=1, value=P("storage", "safe_enter_soc_pct", 40), label="Enter safe mode below (% SoC)")
-    ui_safe_exit = N(start=0, stop=100, step=1, value=P("storage", "safe_exit_soc_pct", 60), label="Leave safe mode above (% SoC)")
+    ui_dod = S(
+        start=5,
+        stop=90,
+        step=5,
+        value=P("storage", "dod_pct", 30),
+        show_value=True,
+        label="Allowed depth of discharge (%)",
+    )
+    ui_soc0 = S(
+        start=10,
+        stop=100,
+        step=5,
+        value=P("storage", "initial_soc_pct", 80),
+        show_value=True,
+        label="Initial state of charge (%)",
+    )
+    ui_eff_charge = N(
+        start=50, stop=100, step=0.5, value=P("storage", "charger_eff_pct", 86), label="Charger efficiency (%)"
+    )
+    ui_eff_5v = N(
+        start=50, stop=100, step=0.5, value=P("storage", "rail_5v_eff_pct", 90), label="5 V rail efficiency (%)"
+    )
+    ui_eff_3v3 = N(
+        start=50, stop=100, step=0.5, value=P("storage", "rail_3v3_eff_pct", 87), label="3V3 rail efficiency (%)"
+    )
+    ui_uvlo = N(
+        start=2.5,
+        stop=4.0,
+        step=0.05,
+        value=P("storage", "uvlo_v_per_cell", 3.5),
+        label="EPS undervoltage lockout (V per cell)",
+    )
+    ui_safe_enter = N(
+        start=0, stop=100, step=1, value=P("storage", "safe_enter_soc_pct", 40), label="Enter safe mode below (% SoC)"
+    )
+    ui_safe_exit = N(
+        start=0, stop=100, step=1, value=P("storage", "safe_exit_soc_pct", 60), label="Leave safe mode above (% SoC)"
+    )
 
     # Radio and beacon
     ui_tx_w = N(start=0, stop=50, step=0.1, value=P("radio", "tx_w", 6.0), label="Radio transmit draw (W)")
     ui_rx_w = N(start=0, stop=50, step=0.01, value=P("radio", "rx_w", 0.4), label="Radio receive draw (W)")
     ui_share = S(
-        start=0, stop=100, step=5, value=P("radio", "downlink_share_pct", P("results.link_budget", "downlink_share_pct", P("allowances", "downlink_share_pct", 80))), show_value=True, label="Downlink share of a pass (%)"
+        start=0,
+        stop=100,
+        step=5,
+        value=P(
+            "radio",
+            "downlink_share_pct",
+            P("results.link_budget", "downlink_share_pct", P("allowances", "downlink_share_pct", 80)),
+        ),
+        show_value=True,
+        label="Downlink share of a pass (%)",
     )
     ui_beacon_policy = mo.ui.dropdown(
         options=["Safe mode and commissioning", "Always while the radio is up", "Off"],
@@ -744,14 +1169,24 @@ def _(
     ui_cw_w = N(start=0, stop=50, step=0.1, value=P("beacon", "cw_power_w", 6.0), label="CW transmit draw (W)")
     ui_cw_cad = N(start=0, stop=3600, step=10, value=P("beacon", "cw_cadence_s", 300), label="CW cadence (s, 0 = off)")
     ui_t1_ms = N(start=0, stop=10000, step=0.5, value=P("beacon", "tier1_on_air_ms", 6.5), label="Tier 1 on air (ms)")
-    ui_t1_cad = N(start=0, stop=3600, step=10, value=P("beacon", "tier1_cadence_s", 60), label="Tier 1 cadence (s, 0 = off)")
+    ui_t1_cad = N(
+        start=0, stop=3600, step=10, value=P("beacon", "tier1_cadence_s", 60), label="Tier 1 cadence (s, 0 = off)"
+    )
     ui_t2_ms = N(start=0, stop=10000, step=0.5, value=P("beacon", "tier2_on_air_ms", 26), label="Tier 2 on air (ms)")
-    ui_t2_cad = N(start=0, stop=3600, step=10, value=P("beacon", "tier2_cadence_s", 300), label="Tier 2 cadence (s, 0 = off)")
+    ui_t2_cad = N(
+        start=0, stop=3600, step=10, value=P("beacon", "tier2_cadence_s", 300), label="Tier 2 cadence (s, 0 = off)"
+    )
     # The backstop's time on air comes from a link budget profile's per-mode
     # results when it carries a LoRa SF12 row (any LoRa row failing that);
     # this tool's own key wins when present.
-    _lb_modes = [_m for _m in P("results.link_budget", "modes", []) if isinstance(_m, dict) and str(_m.get("modulation", "")).startswith("LoRa")]
-    _lb_sf12 = next((_m for _m in _lb_modes if "SF12" in str(_m.get("modulation", ""))), _lb_modes[0] if _lb_modes else None)
+    _lb_modes = [
+        _m
+        for _m in P("results.link_budget", "modes", [])
+        if isinstance(_m, dict) and str(_m.get("modulation", "")).startswith("LoRa")
+    ]
+    _lb_sf12 = next(
+        (_m for _m in _lb_modes if "SF12" in str(_m.get("modulation", ""))), _lb_modes[0] if _lb_modes else None
+    )
     _lora_default = 2.5
     if _lb_sf12 is not None:
         try:
@@ -759,21 +1194,43 @@ def _(
         except (TypeError, ValueError):
             _lora_default = float("nan")
         _lora_default = 2.5 if _lora_default != _lora_default else round(_lora_default, 2)
-    ui_lora_s = N(start=0, stop=30, step=0.1, value=P("beacon", "lora_on_air_s", _lora_default), label="LoRa backstop on air (s)")
+    ui_lora_s = N(
+        start=0, stop=30, step=0.1, value=P("beacon", "lora_on_air_s", _lora_default), label="LoRa backstop on air (s)"
+    )
     ui_lora_w = N(start=0, stop=5, step=0.01, value=P("beacon", "lora_power_w", 0.5), label="LoRa transmit draw (W)")
-    ui_lora_cad_nom = N(start=0, stop=3600, step=10, value=P("beacon", "lora_cadence_nominal_s", 0), label="LoRa cadence, nominal (s, 0 = off)")
-    ui_lora_cad_deg = N(start=0, stop=3600, step=10, value=P("beacon", "lora_cadence_degraded_s", 300), label="LoRa cadence, degraded (s, 0 = off)")
+    ui_lora_cad_nom = N(
+        start=0,
+        stop=3600,
+        step=10,
+        value=P("beacon", "lora_cadence_nominal_s", 0),
+        label="LoRa cadence, nominal (s, 0 = off)",
+    )
+    ui_lora_cad_deg = N(
+        start=0,
+        stop=3600,
+        step=10,
+        value=P("beacon", "lora_cadence_degraded_s", 300),
+        label="LoRa cadence, degraded (s, 0 = off)",
+    )
 
     # One-shot
-    ui_hdrm_w = N(start=0, stop=50, step=0.1, value=P("oneshot", "hdrm_power_w", 5.0), label="Release mechanism draw (W)")
+    ui_hdrm_w = N(
+        start=0, stop=50, step=0.1, value=P("oneshot", "hdrm_power_w", 5.0), label="Release mechanism draw (W)"
+    )
     ui_hdrm_s = N(start=0, stop=600, step=1, value=P("oneshot", "hdrm_duration_s", 30), label="Release duration (s)")
 
     # Loads table. Rows from the profile's [[loads]] or the shipped defaults.
     _cols = list(LOAD_KEYS)
     if profile_loads:
-        _rows = [{_c: _r.get(_k, _r.get("imaging_w", LOAD_BLANK[_c]) if _k == "payload_w" else LOAD_BLANK[_c]) for _c, _k in LOAD_KEYS.items()} for _r in profile_loads]
+        _rows = [
+            {
+                _c: _r.get(_k, _r.get("imaging_w", LOAD_BLANK[_c]) if _k == "payload_w" else LOAD_BLANK[_c])
+                for _c, _k in LOAD_KEYS.items()
+            }
+            for _r in profile_loads
+        ]
     else:
-        _rows = [dict(zip(_cols, _r)) for _r in DEFAULT_LOADS]
+        _rows = [dict(zip(_cols, _r, strict=True)) for _r in DEFAULT_LOADS]
     ui_loads = mo.ui.data_editor(pd.DataFrame(_rows, columns=_cols), label="")
 
     ui_sidebar = mo.ui.switch(value=False, label="Controls in a sidebar")
@@ -1028,7 +1485,11 @@ def _(
         "Never": "The payload stays off.",
     }
     _mode_inputs = {
-        "Over a location": [ui_target_same, mo.accordion({"Separate location": mo.vstack([ui_target_lat, ui_target_lon])}), ui_reach],
+        "Over a location": [
+            ui_target_same,
+            mo.accordion({"Separate location": mo.vstack([ui_target_lat, ui_target_lon])}),
+            ui_reach,
+        ],
         "Over a region": [ui_region_s, ui_region_n, ui_region_w, ui_region_e],
         "Orbit position": [ui_orbit_u0, ui_orbit_u1, ui_orbit_nth],
         "Fixed cadence": [ui_cadence],
@@ -1044,7 +1505,9 @@ def _(
         [
             mo.md("**Schedule**"),
             ui_scenario,
-            mo.md("Nominal follows the timeline with a safe-mode fallback; Safe and Degraded hold their load column all day."),
+            mo.md(
+                "Nominal follows the timeline with a safe-mode fallback; Safe and Degraded hold their load column all day."
+            ),
             mo.md("**Orbit**"),
             ui_altitude,
             ui_inclination,
@@ -1053,8 +1516,16 @@ def _(
             ui_sim_days,
             mo.md("**Generation**"),
             ui_cell,
-            mo.accordion({"Custom cell": mo.vstack([ui_cell_vmpp, ui_cell_impp, ui_cell_tc, ui_cell_rated, ui_cell_spectrum, ui_cell_area])}),
-            mo.md("A module is S cells per string and P parallel strings behind one diode. Its length sets how many fit along a side face."),
+            mo.accordion(
+                {
+                    "Custom cell": mo.vstack(
+                        [ui_cell_vmpp, ui_cell_impp, ui_cell_tc, ui_cell_rated, ui_cell_spectrum, ui_cell_area]
+                    )
+                }
+            ),
+            mo.md(
+                "A module is S cells per string and P parallel strings behind one diode. Its length sets how many fit along a side face."
+            ),
             ui_mod_series,
             ui_mod_parallel,
             ui_mod_u,
@@ -1074,7 +1545,13 @@ def _(
             ui_soc0,
             volts_line,
             mo.md("The initial charge starts the run; the allowed depth of discharge sets the floor."),
-            mo.accordion({"Efficiencies and thresholds": mo.vstack([ui_eff_charge, ui_eff_5v, ui_eff_3v3, ui_uvlo, ui_safe_enter, ui_safe_exit])}),
+            mo.accordion(
+                {
+                    "Efficiencies and thresholds": mo.vstack(
+                        [ui_eff_charge, ui_eff_5v, ui_eff_3v3, ui_uvlo, ui_safe_enter, ui_safe_exit]
+                    )
+                }
+            ),
         ],
         gap=0.5,
     )
@@ -1106,7 +1583,22 @@ def _(
             ui_cw_s,
             ui_cw_w,
             ui_cw_cad,
-            mo.accordion({"Tiers 1 and 2, LoRa backstop": mo.vstack([ui_t1_ms, ui_t1_cad, ui_t2_ms, ui_t2_cad, ui_lora_s, ui_lora_w, ui_lora_cad_nom, ui_lora_cad_deg])}),
+            mo.accordion(
+                {
+                    "Tiers 1 and 2, LoRa backstop": mo.vstack(
+                        [
+                            ui_t1_ms,
+                            ui_t1_cad,
+                            ui_t2_ms,
+                            ui_t2_cad,
+                            ui_lora_s,
+                            ui_lora_w,
+                            ui_lora_cad_nom,
+                            ui_lora_cad_deg,
+                        ]
+                    )
+                }
+            ),
             mo.md("**One-shot**"),
             ui_hdrm_w,
             ui_hdrm_s,
@@ -1118,7 +1610,9 @@ def _(
 
     loads_block = mo.vstack(
         [
-            mo.md("**Loads** – average watts per mode. Pass and payload override nominal per consumer; safe and degraded replace the row. Rails: VBAT, 5V, 3V3."),
+            mo.md(
+                "**Loads** – average watts per mode. Pass and payload override nominal per consumer; safe and degraded replace the row. Rails: VBAT, 5V, 3V3."
+            ),
             ui_loads,
         ]
     )
@@ -1150,7 +1644,9 @@ def _(knobs_wide, library_block, loads_block, mo, profile_block, ui_sidebar):
             mo.md("## Control Panel"),
             profile_block,
             ui_sidebar,
-            mo.md("The knobs are in the sidebar. Turn this off to bring them back here.") if ui_sidebar.value else knobs_wide,
+            mo.md("The knobs are in the sidebar. Turn this off to bring them back here.")
+            if ui_sidebar.value
+            else knobs_wide,
             loads_block,
             library_block,
         ]
@@ -1202,17 +1698,42 @@ def _(
     h_km = float(ui_altitude.value)
 
     if ui_cell.value == "Custom":
-        cell = dict(name="Custom", vmpp=float(ui_cell_vmpp.value), impp=float(ui_cell_impp.value), tc=float(ui_cell_tc.value), rated=float(ui_cell_rated.value), spectrum=ui_cell_spectrum.value, area_cm2=float(ui_cell_area.value), status="custom")
+        cell = dict(
+            name="Custom",
+            vmpp=float(ui_cell_vmpp.value),
+            impp=float(ui_cell_impp.value),
+            tc=float(ui_cell_tc.value),
+            rated=float(ui_cell_rated.value),
+            spectrum=ui_cell_spectrum.value,
+            area_cm2=float(ui_cell_area.value),
+            status="custom",
+        )
     else:
         _c = SOLAR_CELLS[ui_cell.value]
-        cell = dict(name=ui_cell.value, vmpp=_c[0], impp=_c[1], tc=_c[6], rated=_c[7], spectrum=_c[8], area_cm2=_c[5], status=_c[9])
+        cell = dict(
+            name=ui_cell.value,
+            vmpp=_c[0],
+            impp=_c[1],
+            tc=_c[6],
+            rated=_c[7],
+            spectrum=_c[8],
+            area_cm2=_c[5],
+            status=_c[9],
+        )
     cell["pmpp_w"] = cell["vmpp"] * cell["impp"]
     # Rated power to a space power at the given temperature, per cell. A cell
     # rated under AM0 is only rescaled from its rated irradiance to the solar
     # constant; an AM1.5-rated cell also takes the spectral factor.
     _temp_factor = 1 + cell["tc"] / 100 * (float(ui_cell_temp.value) - 25)
     _spectral = float(ui_am0.value) if cell["spectrum"] != "AM0" else 1.0
-    cell_space_w = cell["pmpp_w"] * SOLAR_CONST_W_M2 / cell["rated"] * _spectral * max(_temp_factor, 0.0) * (1 - float(ui_string_loss.value) / 100)
+    cell_space_w = (
+        cell["pmpp_w"]
+        * SOLAR_CONST_W_M2
+        / cell["rated"]
+        * _spectral
+        * max(_temp_factor, 0.0)
+        * (1 - float(ui_string_loss.value) / 100)
+    )
     mod_series, mod_parallel = int(ui_mod_series.value), int(ui_mod_parallel.value)
     cells_per_module = mod_series * mod_parallel
     module_w = cell_space_w * cells_per_module
@@ -1259,7 +1780,11 @@ def _(
     if ui_target_same.value:
         target_lat, target_lon, target_name = station_lat, station_lon, station_name
     else:
-        target_lat, target_lon, target_name = float(ui_target_lat.value), float(ui_target_lon.value), str(P("target", "name", "Custom") or "Custom")
+        target_lat, target_lon, target_name = (
+            float(ui_target_lat.value),
+            float(ui_target_lon.value),
+            str(P("target", "name", "Custom") or "Custom"),
+        )
     return (
         batt,
         cell,
@@ -1328,7 +1853,7 @@ def _(
         epoch_error = ""
     except ValueError:
         epoch = dt.datetime(2027, 6, 21, tzinfo=dt.timezone.utc)
-        epoch_error = f"Epoch \"{ui_epoch.value}\" is not YYYY-MM-DD; using 2027-06-21."
+        epoch_error = f'Epoch "{ui_epoch.value}" is not YYYY-MM-DD; using 2027-06-21.'
 
     def _jd(when):
         return 2440587.5 + when.timestamp() / 86400
@@ -1390,7 +1915,10 @@ def _(
         return np.array([np.cos(_la) * np.cos(_lo), np.cos(_la) * np.sin(_lo), np.sin(_la)])
 
     _cg, _sg = np.cos(_gmst), np.sin(_gmst)
-    r_ecef = np.stack([_cg * r_hat[:, 0] + _sg * r_hat[:, 1], -_sg * r_hat[:, 0] + _cg * r_hat[:, 1], r_hat[:, 2]], axis=-1) * _a
+    r_ecef = (
+        np.stack([_cg * r_hat[:, 0] + _sg * r_hat[:, 1], -_sg * r_hat[:, 0] + _cg * r_hat[:, 1], r_hat[:, 2]], axis=-1)
+        * _a
+    )
     _sv = _ecef_unit(station_lat, station_lon)
     _range = r_ecef - _sv * R_EARTH_KM
     elevation_deg = np.degrees(np.arcsin(np.einsum("ij,j->i", _range, _sv) / np.linalg.norm(_range, axis=1)))
@@ -1405,11 +1933,20 @@ def _(
 
     def runs(mask):
         _e = np.diff(np.concatenate([[0], mask.astype(int), [0]]))
-        return list(zip(np.where(_e == 1)[0], np.where(_e == -1)[0]))
+        return list(zip(np.where(_e == 1)[0], np.where(_e == -1)[0], strict=True))
 
     _runs = runs
 
-    passes = [dict(start=epoch + dt.timedelta(seconds=float(t_s[s0])), t0=float(t_s[s0]), t1=float(t_s[min(e0, len(t_s) - 1)]), duration_min=(e0 - s0) * step_s / 60, max_el=float(elevation_deg[s0:e0].max())) for s0, e0 in _runs(in_pass)]
+    passes = [
+        dict(
+            start=epoch + dt.timedelta(seconds=float(t_s[s0])),
+            t0=float(t_s[s0]),
+            t1=float(t_s[min(e0, len(t_s) - 1)]),
+            duration_min=(e0 - s0) * step_s / 60,
+            max_el=float(elevation_deg[s0:e0].max()),
+        )
+        for s0, e0 in _runs(in_pass)
+    ]
     # Sub-satellite point and orbit phase for the region and orbit triggers.
     sub_lat = np.degrees(np.arcsin(r_ecef[:, 2] / _a))
     sub_lon = np.degrees(np.arctan2(r_ecef[:, 1], r_ecef[:, 0]))
@@ -1474,7 +2011,13 @@ def _(
     # efficiencies, plus the beacon lines and the one-shot release.
     rail_eff = {"VBAT": 1.0, "5V": float(ui_eff_5v.value) / 100, "3V3": float(ui_eff_3v3.value) / 100}
     MODES = ["Safe", "Nominal", "Pass", "Payload", "Degraded"]
-    _mode_cols = {"Safe": "Safe (W)", "Nominal": "Nominal (W)", "Pass": "Pass (W)", "Payload": "Payload (W)", "Degraded": "Degraded (W)"}
+    _mode_cols = {
+        "Safe": "Safe (W)",
+        "Nominal": "Nominal (W)",
+        "Pass": "Pass (W)",
+        "Payload": "Payload (W)",
+        "Degraded": "Degraded (W)",
+    }
 
     loads = []
     unknown_rails = []
@@ -1528,16 +2071,48 @@ def _(
         return power_w * on_s / cadence_s if cadence_s > 0 else 0.0
 
     cw_avg_w = _avg(float(ui_cw_s.value), float(ui_cw_cad.value), float(ui_cw_w.value))
-    tier_avg_w = _avg(float(ui_t1_ms.value) / 1000, float(ui_t1_cad.value), float(ui_tx_w.value)) + _avg(float(ui_t2_ms.value) / 1000, float(ui_t2_cad.value), float(ui_tx_w.value))
+    tier_avg_w = _avg(float(ui_t1_ms.value) / 1000, float(ui_t1_cad.value), float(ui_tx_w.value)) + _avg(
+        float(ui_t2_ms.value) / 1000, float(ui_t2_cad.value), float(ui_tx_w.value)
+    )
     lora_nom_w = _avg(float(ui_lora_s.value), float(ui_lora_cad_nom.value), float(ui_lora_w.value))
     lora_deg_w = _avg(float(ui_lora_s.value), float(ui_lora_cad_deg.value), float(ui_lora_w.value))
     _policy = ui_beacon_policy.value
     _in_safe = 0.0 if _policy == "Off" else 1.0
     _in_nominal = 1.0 if _policy == "Always while the radio is up" else 0.0
     beacon_rows = [
-        dict(name="Beacon, CW tier 0 (radio node)", rail="VBAT", w={"Safe": cw_avg_w * _in_safe, "Nominal": cw_avg_w * _in_nominal, "Pass": cw_avg_w * _in_nominal, "Payload": cw_avg_w * _in_nominal, "Degraded": 0.0}),
-        dict(name="Beacon, tiers 1 and 2 (radio node)", rail="VBAT", w={"Safe": tier_avg_w * _in_safe, "Nominal": tier_avg_w * _in_nominal, "Pass": 0.0, "Payload": tier_avg_w * _in_nominal, "Degraded": 0.0}),
-        dict(name="Beacon, LoRa backstop (function board)", rail="VBAT", w={"Safe": lora_nom_w, "Nominal": lora_nom_w, "Pass": lora_nom_w, "Payload": lora_nom_w, "Degraded": lora_deg_w}),
+        dict(
+            name="Beacon, CW tier 0 (radio node)",
+            rail="VBAT",
+            w={
+                "Safe": cw_avg_w * _in_safe,
+                "Nominal": cw_avg_w * _in_nominal,
+                "Pass": cw_avg_w * _in_nominal,
+                "Payload": cw_avg_w * _in_nominal,
+                "Degraded": 0.0,
+            },
+        ),
+        dict(
+            name="Beacon, tiers 1 and 2 (radio node)",
+            rail="VBAT",
+            w={
+                "Safe": tier_avg_w * _in_safe,
+                "Nominal": tier_avg_w * _in_nominal,
+                "Pass": 0.0,
+                "Payload": tier_avg_w * _in_nominal,
+                "Degraded": 0.0,
+            },
+        ),
+        dict(
+            name="Beacon, LoRa backstop (function board)",
+            rail="VBAT",
+            w={
+                "Safe": lora_nom_w,
+                "Nominal": lora_nom_w,
+                "Pass": lora_nom_w,
+                "Payload": lora_nom_w,
+                "Degraded": lora_deg_w,
+            },
+        ),
     ]
     for _b in beacon_rows:
         _b["batt_w"] = dict(_b["w"])
@@ -1649,7 +2224,11 @@ def _(
         candidates = _window_from_runs(_lat_ok & _lon_ok)
     elif _mode == "Orbit position":
         _u0, _u1 = float(ui_orbit_u0.value), float(ui_orbit_u1.value)
-        _in = ((arg_lat_deg >= _u0) & (arg_lat_deg <= _u1)) if _u0 <= _u1 else ((arg_lat_deg >= _u0) | (arg_lat_deg <= _u1))
+        _in = (
+            ((arg_lat_deg >= _u0) & (arg_lat_deg <= _u1))
+            if _u0 <= _u1
+            else ((arg_lat_deg >= _u0) | (arg_lat_deg <= _u1))
+        )
         _in &= orbit_index % int(ui_orbit_nth.value) == 0
         candidates = _window_from_runs(_in)
     elif _mode == "Fixed cadence":
@@ -1676,7 +2255,11 @@ def _(
             candidates = _window_from_runs(sunlit)
         else:
             _ecl = runs(~sunlit)
-            _starts = [float(t_s[s0]) for s0, _ in _ecl] if _edge == "At eclipse entry" else [float(t_s[min(e0, _n - 1)]) for _, e0 in _ecl]
+            _starts = (
+                [float(t_s[s0]) for s0, _ in _ecl]
+                if _edge == "At eclipse entry"
+                else [float(t_s[min(e0, _n - 1)]) for _, e0 in _ecl]
+            )
             candidates = [(_t, _t + _active) for _t in _starts]
     elif _mode == "Listed":
         candidates = []
@@ -1690,7 +2273,9 @@ def _(
                     raise ValueError
                 candidates.append((_hh * 3600, _hh * 3600 + _dd))
             except ValueError:
-                listed_error = (listed_error + " " if listed_error else "") + f"Could not read \"{_line}\" as non-negative hours and a positive duration in seconds."
+                listed_error = (
+                    listed_error + " " if listed_error else ""
+                ) + f'Could not read "{_line}" as non-negative hours and a positive duration in seconds.'
     elif _mode == "Always":
         candidates = [(0.0, sim_days * 86400)]
     else:  # Never
@@ -1735,7 +2320,19 @@ def _(
             _per_day[_day] = _per_day.get(_day, 0) + 1
             _per_orbit[_orb] = _per_orbit.get(_orb, 0) + 1
             act_frac[_i0:_i1] += _cover
-        activations.append(dict(start=epoch + dt.timedelta(seconds=_t0), t0=_t0, t1=_t1, i0=_i0, i1=_i1, duration_s=_t1 - _t0, lit=_lit, taken=_taken, reason=_reason))
+        activations.append(
+            dict(
+                start=epoch + dt.timedelta(seconds=_t0),
+                t0=_t0,
+                t1=_t1,
+                i0=_i0,
+                i1=_i1,
+                duration_s=_t1 - _t0,
+                lit=_lit,
+                taken=_taken,
+                reason=_reason,
+            )
+        )
     act_frac = np.clip(act_frac, 0, 1)
     in_activation = act_frac > 0
     activations_scheduled = sum(1 for _a in activations if _a["taken"])
@@ -1844,7 +2441,7 @@ def _(
     # Activations completed: scheduled ones whose every sample ran in the
     # nominal scenario outside safe mode.
     for _a in activations:
-        _a["completed"] = bool(_a["taken"] and scenario == "Nominal" and not in_safe[_a["i0"]:_a["i1"]].any())
+        _a["completed"] = bool(_a["taken"] and scenario == "Nominal" and not in_safe[_a["i0"] : _a["i1"]].any())
     activations_completed = sum(1 for _a in activations if _a["completed"])
     frames_per_day_taken = activations_scheduled / sim_days
     completed_per_day = activations_completed / sim_days
@@ -1928,7 +2525,11 @@ def _(alt, mo):
         )
 
     def rule_y(value, dashed=True):
-        return alt.Chart(alt.Data(values=[{"y": value}])).mark_rule(strokeDash=[6, 4] if dashed else [2, 2], color=MUTED).encode(y="y:Q")
+        return (
+            alt.Chart(alt.Data(values=[{"y": value}]))
+            .mark_rule(strokeDash=[6, 4] if dashed else [2, 2], color=MUTED)
+            .encode(y="y:Q")
+        )
 
     return PALETTE, rule_y, style_chart
 
@@ -1993,12 +2594,42 @@ def _(
         return "unlimited" if x == float("inf") else fmt_num(x, digits)
 
     _cards = [
-        mo.stat(label="Requested margin", value=_pm(requested_margin_w), caption=f"{fmt_num(gen_wh_day, 1)} in / {fmt_num(sched_wh_day, 1)} Wh/day asked; after safe-mode shedding {_pm(margin_w)}", bordered=True),
-        mo.stat(label="Worst state of charge", value=f"{min_soc * 100:.0f}%", caption=f"Floor {soc_floor * 100:.0f}%; pack {fmt_num(pack_wh, 1)} Wh, {fmt_num(usable_wh, 1)} Wh usable", bordered=True),
-        mo.stat(label="Sustainable pass minutes", value=f"{_fin(sustainable_pass_min, 0)} /day", caption=f"{fmt_num(contact_min_per_day, 1)} min/day offered by {passes_per_day:.2f} passes", bordered=True),
-        mo.stat(label="Sustainable activations", value=f"{_fin(sustainable_frames, 1)} /day", caption=f"{frames_per_day_taken:.2f} scheduled, {completed_per_day:.2f} completed per day; {fmt_num(activation_duration_s, 0)} s each", bordered=True),
-        mo.stat(label="CW beacon, all day", value=f"{fmt_num(cw_wh_day, 2)} Wh/day", caption=f"{cw_wh_day / gen_wh_day * 100:.0f}% of generation" if gen_wh_day > 0 else "no generation", bordered=True),
-        mo.stat(label="Degraded mode", value=_pm(degraded_margin_w), caption="closes" if degraded_margin_w >= 0 else "does not close", bordered=True),
+        mo.stat(
+            label="Requested margin",
+            value=_pm(requested_margin_w),
+            caption=f"{fmt_num(gen_wh_day, 1)} in / {fmt_num(sched_wh_day, 1)} Wh/day asked; after safe-mode shedding {_pm(margin_w)}",
+            bordered=True,
+        ),
+        mo.stat(
+            label="Worst state of charge",
+            value=f"{min_soc * 100:.0f}%",
+            caption=f"Floor {soc_floor * 100:.0f}%; pack {fmt_num(pack_wh, 1)} Wh, {fmt_num(usable_wh, 1)} Wh usable",
+            bordered=True,
+        ),
+        mo.stat(
+            label="Sustainable pass minutes",
+            value=f"{_fin(sustainable_pass_min, 0)} /day",
+            caption=f"{fmt_num(contact_min_per_day, 1)} min/day offered by {passes_per_day:.2f} passes",
+            bordered=True,
+        ),
+        mo.stat(
+            label="Sustainable activations",
+            value=f"{_fin(sustainable_frames, 1)} /day",
+            caption=f"{frames_per_day_taken:.2f} scheduled, {completed_per_day:.2f} completed per day; {fmt_num(activation_duration_s, 0)} s each",
+            bordered=True,
+        ),
+        mo.stat(
+            label="CW beacon, all day",
+            value=f"{fmt_num(cw_wh_day, 2)} Wh/day",
+            caption=f"{cw_wh_day / gen_wh_day * 100:.0f}% of generation" if gen_wh_day > 0 else "no generation",
+            bordered=True,
+        ),
+        mo.stat(
+            label="Degraded mode",
+            value=_pm(degraded_margin_w),
+            caption="closes" if degraded_margin_w >= 0 else "does not close",
+            bordered=True,
+        ),
     ]
     _items = [
         mo.md("## Headline Numbers"),
@@ -2021,8 +2652,17 @@ def _(
             f"this run's single phase gives {passes_per_day:.2f} and {fmt_num(contact_min_per_day, 1)}. "
         )
         if _lb_m > 0 and sustainable_pass_min != float("inf"):
-            _text += f"The battery affords {_fin(sustainable_pass_min, 0)} of the link budget's {fmt_num(_lb_m, 0)} minutes" + (", so its usable volume cannot all be transmitted." if sustainable_pass_min < _lb_m else ".")
-        _callouts.append(mo.callout(mo.md(_text), kind="warn" if _lb_m > 0 and sustainable_pass_min < _lb_m else "info", title="Passes Against the Link Budget"))
+            _text += (
+                f"The battery affords {_fin(sustainable_pass_min, 0)} of the link budget's {fmt_num(_lb_m, 0)} minutes"
+                + (", so its usable volume cannot all be transmitted." if sustainable_pass_min < _lb_m else ".")
+            )
+        _callouts.append(
+            mo.callout(
+                mo.md(_text),
+                kind="warn" if _lb_m > 0 and sustainable_pass_min < _lb_m else "info",
+                title="Passes Against the Link Budget",
+            )
+        )
     if PH("results.optical_payload", "accesses_per_day"):
         _op_a = float(P("results.optical_payload", "accesses_per_day", 0.0))
         _op_l = float(P("results.optical_payload", "lit_accesses_per_day", _op_a))
@@ -2039,39 +2679,163 @@ def _(
     if epoch_error:
         _callouts.append(mo.callout(mo.md(epoch_error), kind="warn", title="Epoch"))
     if unknown_rails:
-        _callouts.append(mo.callout(mo.md("Rails must be VBAT, 5V or 3V3; these rows were taken as VBAT: " + ", ".join(unknown_rails)), kind="warn", title="Unknown Rail"))
+        _callouts.append(
+            mo.callout(
+                mo.md("Rails must be VBAT, 5V or 3V3; these rows were taken as VBAT: " + ", ".join(unknown_rails)),
+                kind="warn",
+                title="Unknown Rail",
+            )
+        )
     if invalid_loads:
-        _callouts.append(mo.callout(mo.md("Watts must be finite and not negative; these cells were taken as 0: " + ", ".join(invalid_loads[:8]) + (" and more" if len(invalid_loads) > 8 else "")), kind="warn", title="Invalid Load Values"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    "Watts must be finite and not negative; these cells were taken as 0: "
+                    + ", ".join(invalid_loads[:8])
+                    + (" and more" if len(invalid_loads) > 8 else "")
+                ),
+                kind="warn",
+                title="Invalid Load Values",
+            )
+        )
     if threshold_error:
-        _callouts.append(mo.callout(mo.md("Exit must exceed entry. This run uses entry + 10 points, capped at 100%."), kind="warn", title="Safe-Mode Thresholds"))
+        _callouts.append(
+            mo.callout(
+                mo.md("Exit must exceed entry. This run uses entry + 10 points, capped at 100%."),
+                kind="warn",
+                title="Safe-Mode Thresholds",
+            )
+        )
     if listed_error:
         _callouts.append(mo.callout(mo.md(listed_error), kind="warn", title="Listed Activations"))
     if profile_warnings:
-        _callouts.append(mo.callout(mo.md("These profile values were not numbers and fell back to the defaults: " + ", ".join(profile_warnings[:8]) + (" and more" if len(profile_warnings) > 8 else "")), kind="warn", title="Profile Values Ignored"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    "These profile values were not numbers and fell back to the defaults: "
+                    + ", ".join(profile_warnings[:8])
+                    + (" and more" if len(profile_warnings) > 8 else "")
+                ),
+                kind="warn",
+                title="Profile Values Ignored",
+            )
+        )
     if module_too_long:
-        _callouts.append(mo.callout(mo.md(f"A {module_u:g}U module is longer than the {ui_cubesat.value} side face, so the side faces carry no modules."), kind="warn", title="Module Longer Than the Face"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    f"A {module_u:g}U module is longer than the {ui_cubesat.value} side face, so the side faces carry no modules."
+                ),
+                kind="warn",
+                title="Module Longer Than the Face",
+            )
+        )
     if z_face_overfull:
-        _callouts.append(mo.callout(mo.md(f"{int(ui_modules_z.value)} modules of {fmt_num(module_area_cm2, 0)} cm² do not fit a 100 cm² Z face."), kind="warn", title="Z Face Overfull"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    f"{int(ui_modules_z.value)} modules of {fmt_num(module_area_cm2, 0)} cm² do not fit a 100 cm² Z face."
+                ),
+                kind="warn",
+                title="Z Face Overfull",
+            )
+        )
     if not radio_name:
-        _callouts.append(mo.callout(mo.md("No radio row is selected; pass loads come from the table. TX draw still sets the data-tier beacon cost."), kind="info", title="No Radio Row"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    "No radio row is selected; pass loads come from the table. TX draw still sets the data-tier beacon cost."
+                ),
+                kind="info",
+                title="No Radio Row",
+            )
+        )
     if cells_area_cm2 > module_area_cm2:
-        _callouts.append(mo.callout(mo.md(f"{cells_per_module} cells of {fmt_num(cell['area_cm2'], 1)} cm² need {fmt_num(cells_area_cm2, 0)} cm², but a {module_u:g}U module on a 10 cm face has {fmt_num(module_area_cm2, 0)} cm². The generation figure assumes they fit."), kind="warn", title="Cells Do Not Fit the Module"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    f"{cells_per_module} cells of {fmt_num(cell['area_cm2'], 1)} cm² need {fmt_num(cells_area_cm2, 0)} cm², but a {module_u:g}U module on a 10 cm face has {fmt_num(module_area_cm2, 0)} cm². The generation figure assumes they fit."
+                ),
+                kind="warn",
+                title="Cells Do Not Fit the Module",
+            )
+        )
     if margin_w < 0:
-        _callouts.append(mo.callout(mo.md(f"The {scenario.lower()} scenario draws {fmt_num(-margin_w, 2)} W more than the panels deliver on average; the loads table is where to look first."), kind="warn", title="Negative Energy Balance"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    f"The {scenario.lower()} scenario draws {fmt_num(-margin_w, 2)} W more than the panels deliver on average; the loads table is where to look first."
+                ),
+                kind="warn",
+                title="Negative Energy Balance",
+            )
+        )
     if below_floor:
-        _callouts.append(mo.callout(mo.md(f"State of charge falls to {min_soc * 100:.0f}%, below the {soc_floor * 100:.0f}% floor."), kind="warn", title="Below the Discharge Floor"))
+        _callouts.append(
+            mo.callout(
+                mo.md(f"State of charge falls to {min_soc * 100:.0f}%, below the {soc_floor * 100:.0f}% floor."),
+                kind="warn",
+                title="Below the Discharge Floor",
+            )
+        )
     if safe_hours > 0:
-        _callouts.append(mo.callout(mo.md(f"Safe mode was entered for {fmt_num(safe_hours, 1)} h of the simulation on the state-of-charge threshold."), kind="warn" if safe_margin_w < 0 else "info", title="Safe Mode Entered"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    f"Safe mode was entered for {fmt_num(safe_hours, 1)} h of the simulation on the state-of-charge threshold."
+                ),
+                kind="warn" if safe_margin_w < 0 else "info",
+                title="Safe Mode Entered",
+            )
+        )
     if base_exceeds:
-        _callouts.append(mo.callout(mo.md("Nominal loads exceed generation. No energy remains for extra passes or activations."), kind="warn", title="Nominal Load Exceeds Generation"))
+        _callouts.append(
+            mo.callout(
+                mo.md("Nominal loads exceed generation. No energy remains for extra passes or activations."),
+                kind="warn",
+                title="Nominal Load Exceeds Generation",
+            )
+        )
     if frames_per_day_taken == 0 and ui_pay_mode.value != "Always":
-        _callouts.append(mo.callout(mo.md("No activations passed the triggers and gates. The activation allowance still uses the payload load and the active-time setting."), kind="info", title="No Activation in the Span"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    "No activations passed the triggers and gates. The activation allowance still uses the payload load and the active-time setting."
+                ),
+                kind="info",
+                title="No Activation in the Span",
+            )
+        )
     if activations_completed < activations_scheduled and scenario == "Nominal":
-        _callouts.append(mo.callout(mo.md(f"{activations_scheduled - activations_completed} of {activations_scheduled} scheduled activations fell inside safe mode and did not complete."), kind="warn", title="Activations Lost to Safe Mode"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    f"{activations_scheduled - activations_completed} of {activations_scheduled} scheduled activations fell inside safe mode and did not complete."
+                ),
+                kind="warn",
+                title="Activations Lost to Safe Mode",
+            )
+        )
     if sustainable_pass_min < contact_min_per_day:
-        _callouts.append(mo.callout(mo.md(f"The battery affords {_fin(sustainable_pass_min, 0)} pass minutes a day; the station offers {fmt_num(contact_min_per_day, 1)}. Not every pass can transmit."), kind="warn", title="Passes Exceed the Budget"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    f"The battery affords {_fin(sustainable_pass_min, 0)} pass minutes a day; the station offers {fmt_num(contact_min_per_day, 1)}. Not every pass can transmit."
+                ),
+                kind="warn",
+                title="Passes Exceed the Budget",
+            )
+        )
     if degraded_margin_w < 0:
-        _callouts.append(mo.callout(mo.md("With the radio node dead and the LoRa board beaconing, loads still exceed generation; the backstop fails when it is needed."), kind="warn", title="Degraded Mode Does Not Close"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    "With the radio node dead and the LoRa board beaconing, loads still exceed generation; the backstop fails when it is needed."
+                ),
+                kind="warn",
+                title="Degraded Mode Does Not Close",
+            )
+        )
     _headroom = float_v + 3.3
     if module_vmpp_hot < _headroom:
         _callouts.append(
@@ -2084,12 +2848,32 @@ def _(
             )
         )
     if eclipse_fraction == 0:
-        _callouts.append(mo.callout(mo.md("No eclipse in this run. Check other epochs for the worst season."), kind="info", title="No Eclipse"))
+        _callouts.append(
+            mo.callout(
+                mo.md("No eclipse in this run. Check other epochs for the worst season."),
+                kind="info",
+                title="No Eclipse",
+            )
+        )
     if hdrm_soc_pct > 5:
-        _callouts.append(mo.callout(mo.md(f"The release mechanism costs {hdrm_soc_pct:.1f}% of the pack in one pulse."), kind="info", title="Release Pulse"))
+        _callouts.append(
+            mo.callout(
+                mo.md(f"The release mechanism costs {hdrm_soc_pct:.1f}% of the pack in one pulse."),
+                kind="info",
+                title="Release Pulse",
+            )
+        )
     if placeholder_loads or cell["status"] != "reference":
         _what = ", ".join(placeholder_loads[:4]) + (" and more" if len(placeholder_loads) > 4 else "")
-        _callouts.append(mo.callout(mo.md(f"Placeholder figures in use: {_what if placeholder_loads else 'none in the loads'}; solar cell status {cell['status']}. Treat the margin as a shape, not a number."), kind="info", title="Placeholders"))
+        _callouts.append(
+            mo.callout(
+                mo.md(
+                    f"Placeholder figures in use: {_what if placeholder_loads else 'none in the loads'}; solar cell status {cell['status']}. Treat the margin as a shape, not a number."
+                ),
+                kind="info",
+                title="Placeholders",
+            )
+        )
     mo.vstack(_items + _callouts)
     return
 
@@ -2126,16 +2910,26 @@ def _(
         {
             "Hours": np.concatenate([_h[_first_day], _h[_first_day]]),
             "W": np.concatenate([gen_w[_idx][_first_day], load_actual_w[_idx][_first_day]]),
-            "Series": ["Generation at the panels"] * int(_first_day.sum()) + ["Load at the battery"] * int(_first_day.sum()),
+            "Series": ["Generation at the panels"] * int(_first_day.sum())
+            + ["Load at the battery"] * int(_first_day.sum()),
         }
     )
     _ecl = pd.DataFrame([{"x": s / 3600, "x2": min(e, 86400) / 3600} for s, e in eclipse_runs if s < 86400])
-    _shade = alt.Chart(_ecl).mark_rect(opacity=0.12, color="#888884").encode(x="x:Q", x2="x2:Q") if len(_ecl) else alt.Chart(pd.DataFrame({"x": []})).mark_rect()
+    _shade = (
+        alt.Chart(_ecl).mark_rect(opacity=0.12, color="#888884").encode(x="x:Q", x2="x2:Q")
+        if len(_ecl)
+        else alt.Chart(pd.DataFrame({"x": []})).mark_rect()
+    )
+
     # Passes and activations as translucent bands over the first day, from
     # the runs of each mask, so short events stay visible.
     def _bands(mask, color):
         _r = [{"x": t_s[s0] / 3600, "x2": (t_s[e0 - 1] + step_s) / 3600} for s0, e0 in runs(mask) if t_s[s0] < 86400]
-        return alt.Chart(pd.DataFrame(_r if _r else [{"x": 0, "x2": 0}])).mark_rect(opacity=0.25, color=color).encode(x="x:Q", x2="x2:Q")
+        return (
+            alt.Chart(pd.DataFrame(_r if _r else [{"x": 0, "x2": 0}]))
+            .mark_rect(opacity=0.25, color=color)
+            .encode(x="x:Q", x2="x2:Q")
+        )
 
     _band_pass = _bands(in_pass, PALETTE[2])
     _band_img = _bands(in_imaging, PALETTE[4])
@@ -2145,12 +2939,20 @@ def _(
         .encode(
             x=alt.X("Hours:Q", title="Hours from the epoch (first day)", scale=alt.Scale(domain=[0, 24])),
             y=alt.Y("W:Q", title="W"),
-            color=alt.Color("Series:N", scale=alt.Scale(range=[PALETTE[0], PALETTE[1]]), legend=alt.Legend(orient="bottom", title=None)),
+            color=alt.Color(
+                "Series:N",
+                scale=alt.Scale(range=[PALETTE[0], PALETTE[1]]),
+                legend=alt.Legend(orient="bottom", title=None),
+            ),
             tooltip=[alt.Tooltip("Hours:Q", format=".2f"), alt.Tooltip("W:Q", format=".2f"), "Series:N"],
         )
     )
     power_chart = style_chart(
-        alt.layer(_shade, _band_pass, _band_img, _lines).properties(width="container", height=260, title="Power over the first day – gray: eclipse; orange: passes; green: payload activations")
+        alt.layer(_shade, _band_pass, _band_img, _lines).properties(
+            width="container",
+            height=260,
+            title="Power over the first day – gray: eclipse; orange: passes; green: payload activations",
+        )
     )
 
     # The state-of-charge chart spans the whole run; thin it to stay under
@@ -2161,12 +2963,24 @@ def _(
     _soc_line = (
         alt.Chart(_socdf)
         .mark_line(color=PALETTE[0], clip=True)
-        .encode(x=alt.X("Hours:Q", title="Hours from the epoch"), y=alt.Y("SoC:Q", title="State of charge (%)", scale=alt.Scale(domain=[0, 100])), tooltip=[alt.Tooltip("Hours:Q", format=".2f"), alt.Tooltip("SoC:Q", format=".1f")])
+        .encode(
+            x=alt.X("Hours:Q", title="Hours from the epoch"),
+            y=alt.Y("SoC:Q", title="State of charge (%)", scale=alt.Scale(domain=[0, 100])),
+            tooltip=[alt.Tooltip("Hours:Q", format=".2f"), alt.Tooltip("SoC:Q", format=".1f")],
+        )
     )
-    _safe_pts = alt.Chart(_socdf[_socdf["Safe"]]).mark_tick(color=PALETTE[2], thickness=2, size=8).encode(x="Hours:Q", y=alt.value(4))
+    _safe_pts = (
+        alt.Chart(_socdf[_socdf["Safe"]])
+        .mark_tick(color=PALETTE[2], thickness=2, size=8)
+        .encode(x="Hours:Q", y=alt.value(4))
+    )
     soc_chart = style_chart(
-        alt.layer(_soc_line, rule_y(soc_floor * 100), rule_y(float(ui_safe_enter.value), dashed=False), _safe_pts).properties(
-            width="container", height=240, title="State of charge – dashed: discharge floor; dotted: safe-mode entry; ticks: in safe mode"
+        alt.layer(
+            _soc_line, rule_y(soc_floor * 100), rule_y(float(ui_safe_enter.value), dashed=False), _safe_pts
+        ).properties(
+            width="container",
+            height=240,
+            title="State of charge – dashed: discharge floor; dotted: safe-mode entry; ticks: in safe mode",
         )
     )
     mo.vstack([mo.md("## Day in the Life"), power_chart, soc_chart])
@@ -2209,14 +3023,34 @@ def _(
     # Power budget breakdown, per mode and per day in the nominal schedule.
     _rows = []
     for _l in loads + beacon_rows:
-        _rows.append({"Consumer": _l["name"], "Rail": _l["rail"], **{f"{_m} (W)": round(_l["w"][_m], 3) for _m in MODES}})
-    _rows.append({"Consumer": "Conversion loss (rails)", "Rail": "–", **{f"{_m} (W)": round(mode_total_w[_m] - sum(_l["w"][_m] for _l in loads + beacon_rows), 3) for _m in MODES}})
-    _rows.append({"Consumer": "Total at the battery", "Rail": "–", **{f"{_m} (W)": round(mode_total_w[_m], 3) for _m in MODES}})
+        _rows.append(
+            {"Consumer": _l["name"], "Rail": _l["rail"], **{f"{_m} (W)": round(_l["w"][_m], 3) for _m in MODES}}
+        )
+    _rows.append(
+        {
+            "Consumer": "Conversion loss (rails)",
+            "Rail": "–",
+            **{
+                f"{_m} (W)": round(mode_total_w[_m] - sum(_l["w"][_m] for _l in loads + beacon_rows), 3) for _m in MODES
+            },
+        }
+    )
+    _rows.append(
+        {"Consumer": "Total at the battery", "Rail": "–", **{f"{_m} (W)": round(mode_total_w[_m], 3) for _m in MODES}}
+    )
     _ledger = pd.DataFrame(_rows)
 
     _faces = pd.DataFrame(
         [
-            {"Face": _f, "Modules": face_modules[_f], "Normal incidence (W)": round(face_normal_w[_f], 3), "Mean illumination in sunlight": round(float(np.mean(face_cos[_f][sunlit])) if sunlit.any() else 0.0, 3), "Orbit-average (W)": round(float(np.mean(face_normal_w[_f] * face_cos[_f] * sunlit)), 3)}
+            {
+                "Face": _f,
+                "Modules": face_modules[_f],
+                "Normal incidence (W)": round(face_normal_w[_f], 3),
+                "Mean illumination in sunlight": round(
+                    float(np.mean(face_cos[_f][sunlit])) if sunlit.any() else 0.0, 3
+                ),
+                "Orbit-average (W)": round(float(np.mean(face_normal_w[_f] * face_cos[_f] * sunlit)), 3),
+            }
             for _f in face_normal_w
         ]
     )
@@ -2232,7 +3066,9 @@ def _(
             mo.md(_gen_text),
             mo.ui.table(_faces, selection=None, show_column_summaries=False, pagination=False),
             mo.md(_store_text),
-            mo.md(f"Scheduled nominal-scenario load averages {fmt_num(float(load_sched_w.mean()), 2)} W at the battery. Per mode, with everyone in that mode at once:"),
+            mo.md(
+                f"Scheduled nominal-scenario load averages {fmt_num(float(load_sched_w.mean()), 2)} W at the battery. Per mode, with everyone in that mode at once:"
+            ),
             mo.ui.table(_ledger, selection=None, show_column_summaries=False, pagination=False),
         ]
     )
@@ -2251,15 +3087,42 @@ def _(
     station_name,
     ui_pay_mode,
 ):
-    _p = pd.DataFrame([{"Start (UTC)": p["start"].strftime("%Y-%m-%d %H:%M"), "Duration (min)": round(p["duration_min"], 1), "Max elevation (deg)": round(p["max_el"], 1)} for p in passes])
-    _a = pd.DataFrame([{"Candidate (UTC)": a["start"].strftime("%Y-%m-%d %H:%M"), "Duration (s)": round(a["duration_s"]), "Lit": a["lit"], "Taken": a["taken"], "Completed": a.get("completed", False), "Dropped because": a["reason"]} for a in activations])
+    _p = pd.DataFrame(
+        [
+            {
+                "Start (UTC)": p["start"].strftime("%Y-%m-%d %H:%M"),
+                "Duration (min)": round(p["duration_min"], 1),
+                "Max elevation (deg)": round(p["max_el"], 1),
+            }
+            for p in passes
+        ]
+    )
+    _a = pd.DataFrame(
+        [
+            {
+                "Candidate (UTC)": a["start"].strftime("%Y-%m-%d %H:%M"),
+                "Duration (s)": round(a["duration_s"]),
+                "Lit": a["lit"],
+                "Taken": a["taken"],
+                "Completed": a.get("completed", False),
+                "Dropped because": a["reason"],
+            }
+            for a in activations
+        ]
+    )
     mo.accordion(
         {
             f"Passes over {station_name} and payload activations ({ui_pay_mode.value.lower()})": mo.vstack(
                 [
-                    mo.md(f"{len(passes)} passes, {fmt_num(sum(p['duration_min'] for p in passes), 1)} minutes in total; {len(activations)} candidate activations, {activations_scheduled} scheduled, {activations_completed} completed."),
-                    mo.ui.table(_p, selection=None, show_column_summaries=False, pagination=False) if len(_p) else mo.md("No passes in the span."),
-                    mo.ui.table(_a, selection=None, show_column_summaries=False, pagination=len(_a) > 40) if len(_a) else mo.md("No candidate activations in the span."),
+                    mo.md(
+                        f"{len(passes)} passes, {fmt_num(sum(p['duration_min'] for p in passes), 1)} minutes in total; {len(activations)} candidate activations, {activations_scheduled} scheduled, {activations_completed} completed."
+                    ),
+                    mo.ui.table(_p, selection=None, show_column_summaries=False, pagination=False)
+                    if len(_p)
+                    else mo.md("No passes in the span."),
+                    mo.ui.table(_a, selection=None, show_column_summaries=False, pagination=len(_a) > 40)
+                    if len(_a)
+                    else mo.md("No candidate activations in the span."),
                 ]
             )
         }
@@ -2402,7 +3265,9 @@ def _(
     _head = [
         f"# BAC Power Budget – {scenario} scenario",
         "",
-        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Power Budget {TOOL_VERSION}, bac.page/power-budget-tool." + (f" Profile: {profile_name}." if profile_name else "") + " Every value below is a planning input or a result derived from one; nothing here is measured.",
+        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Power Budget {TOOL_VERSION}, bac.page/power-budget-tool."
+        + (f" Profile: {profile_name}." if profile_name else "")
+        + " Every value below is a planning input or a result derived from one; nothing here is measured.",
         "",
         f"Orbit {fmt_num(float(ui_altitude.value), 0)} km, inclination {ui_inclination.value:g}°, LTDN {ui_ltdn.value:g} h, epoch {ui_epoch.value}, {ui_sim_days.value} day(s). "
         f"Station {station_name}, {ui_min_el.value:g}° minimum elevation. {cell['name']} cells, {ui_cubesat.value}, {ui_attitude.value.lower()}. "
@@ -2441,8 +3306,17 @@ def _(
         if hasattr(v, "item"):
             v = v.item()
         if isinstance(v, (int, float)):
-            return "" if v != v or v in (float("inf"), float("-inf")) else repr(round(v, 6) if isinstance(v, float) else v)
-        _t_s = str(v).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
+            return (
+                "" if v != v or v in (float("inf"), float("-inf")) else repr(round(v, 6) if isinstance(v, float) else v)
+            )
+        _t_s = (
+            str(v)
+            .replace("\\", "\\\\")
+            .replace('"', '\\"')
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+        )
         return '"' + _t_s + '"'
 
     def _section(header, pairs):
@@ -2455,25 +3329,122 @@ def _(
 
     _sections = [
         f'# Saved from BAC Power Budget {TOOL_VERSION} on {_today}. Load it with the button at the\n# top of the notebook. Any key you leave out keeps the tool\'s default. [results.power_budget]\n# is what this tool hands to its siblings and is ignored when loaded back.\nname = "Saved settings, {_today}"\ntool = "bac_power_budget"\ntool_version = {_t(TOOL_VERSION)}',
-        _section("[orbit]", [("altitude_km", ui_altitude.value), ("inclination_deg", ui_inclination.value), ("ltdn_hours", ui_ltdn.value), ("epoch", ui_epoch.value), ("sim_days", ui_sim_days.value)]),
-        _section("[ground_station]", [("station", ui_station.value), ("latitude_deg", ui_lat.value), ("longitude_deg", ui_lon.value), ("min_elevation_deg", ui_min_el.value)]),
+        _section(
+            "[orbit]",
+            [
+                ("altitude_km", ui_altitude.value),
+                ("inclination_deg", ui_inclination.value),
+                ("ltdn_hours", ui_ltdn.value),
+                ("epoch", ui_epoch.value),
+                ("sim_days", ui_sim_days.value),
+            ],
+        ),
+        _section(
+            "[ground_station]",
+            [
+                ("station", ui_station.value),
+                ("latitude_deg", ui_lat.value),
+                ("longitude_deg", ui_lon.value),
+                ("min_elevation_deg", ui_min_el.value),
+            ],
+        ),
         _section("[target]", [("latitude_deg", ui_target_lat.value), ("longitude_deg", ui_target_lon.value)]),
         _section(
             "[payload]",
-            [("mode", ui_pay_mode.value), ("target_is_station", ui_target_same.value), ("reach_km", ui_reach.value), ("region_south_deg", ui_region_s.value), ("region_north_deg", ui_region_n.value), ("region_west_deg", ui_region_w.value), ("region_east_deg", ui_region_e.value), ("orbit_start_deg", ui_orbit_u0.value), ("orbit_end_deg", ui_orbit_u1.value), ("every_nth_orbit", ui_orbit_nth.value), ("cadence_min", ui_cadence.value), ("clock_start_h", ui_clock_start.value), ("clock_end_h", ui_clock_end.value), ("after_pass", ui_pass_after.value), ("pass_offset_s", ui_pass_offset.value), ("eclipse_edge", ui_eclipse_edge.value), ("listed", ui_listed.value), ("hold_whole_window", ui_hold.value), ("active_s", ui_window.value), ("gate_lit", ui_gate_lit.value), ("min_sun_elevation_deg", ui_min_sun.value), ("gate_no_pass", ui_gate_nopass.value), ("cap_per_day", ui_cap_day.value), ("cap_per_orbit", ui_cap_orbit.value)],
+            [
+                ("mode", ui_pay_mode.value),
+                ("target_is_station", ui_target_same.value),
+                ("reach_km", ui_reach.value),
+                ("region_south_deg", ui_region_s.value),
+                ("region_north_deg", ui_region_n.value),
+                ("region_west_deg", ui_region_w.value),
+                ("region_east_deg", ui_region_e.value),
+                ("orbit_start_deg", ui_orbit_u0.value),
+                ("orbit_end_deg", ui_orbit_u1.value),
+                ("every_nth_orbit", ui_orbit_nth.value),
+                ("cadence_min", ui_cadence.value),
+                ("clock_start_h", ui_clock_start.value),
+                ("clock_end_h", ui_clock_end.value),
+                ("after_pass", ui_pass_after.value),
+                ("pass_offset_s", ui_pass_offset.value),
+                ("eclipse_edge", ui_eclipse_edge.value),
+                ("listed", ui_listed.value),
+                ("hold_whole_window", ui_hold.value),
+                ("active_s", ui_window.value),
+                ("gate_lit", ui_gate_lit.value),
+                ("min_sun_elevation_deg", ui_min_sun.value),
+                ("gate_no_pass", ui_gate_nopass.value),
+                ("cap_per_day", ui_cap_day.value),
+                ("cap_per_orbit", ui_cap_orbit.value),
+            ],
         ),
         _section(
             "[generation]",
-            [("cell", ui_cell.value), ("custom_vmpp_v", ui_cell_vmpp.value), ("custom_impp_a", ui_cell_impp.value), ("custom_tc_pct_k", ui_cell_tc.value), ("custom_rated_w_m2", ui_cell_rated.value), ("custom_spectrum", ui_cell_spectrum.value), ("custom_area_cm2", ui_cell_area.value), ("module_series", ui_mod_series.value), ("module_parallel", ui_mod_parallel.value), ("module_u", ui_mod_u.value), ("cubesat", ui_cubesat.value), ("faces_x", ui_faces_x.value), ("faces_y", ui_faces_y.value), ("faces_z", ui_faces_z.value), ("modules_per_z_face", ui_modules_z.value), ("am0_factor", ui_am0.value), ("cell_temp_c", ui_cell_temp.value), ("string_loss_pct", ui_string_loss.value), ("attitude", ui_attitude.value)],
+            [
+                ("cell", ui_cell.value),
+                ("custom_vmpp_v", ui_cell_vmpp.value),
+                ("custom_impp_a", ui_cell_impp.value),
+                ("custom_tc_pct_k", ui_cell_tc.value),
+                ("custom_rated_w_m2", ui_cell_rated.value),
+                ("custom_spectrum", ui_cell_spectrum.value),
+                ("custom_area_cm2", ui_cell_area.value),
+                ("module_series", ui_mod_series.value),
+                ("module_parallel", ui_mod_parallel.value),
+                ("module_u", ui_mod_u.value),
+                ("cubesat", ui_cubesat.value),
+                ("faces_x", ui_faces_x.value),
+                ("faces_y", ui_faces_y.value),
+                ("faces_z", ui_faces_z.value),
+                ("modules_per_z_face", ui_modules_z.value),
+                ("am0_factor", ui_am0.value),
+                ("cell_temp_c", ui_cell_temp.value),
+                ("string_loss_pct", ui_string_loss.value),
+                ("attitude", ui_attitude.value),
+            ],
         ),
         _section(
             "[storage]",
-            [("cell", ui_batt.value), ("custom_nominal_v", ui_batt_v.value), ("custom_capacity_ah", ui_batt_ah.value), ("series", ui_series.value), ("parallel", ui_parallel.value), ("dod_pct", ui_dod.value), ("initial_soc_pct", ui_soc0.value), ("charger_eff_pct", ui_eff_charge.value), ("rail_5v_eff_pct", ui_eff_5v.value), ("rail_3v3_eff_pct", ui_eff_3v3.value), ("uvlo_v_per_cell", ui_uvlo.value), ("safe_enter_soc_pct", ui_safe_enter.value), ("safe_exit_soc_pct", ui_safe_exit.value)],
+            [
+                ("cell", ui_batt.value),
+                ("custom_nominal_v", ui_batt_v.value),
+                ("custom_capacity_ah", ui_batt_ah.value),
+                ("series", ui_series.value),
+                ("parallel", ui_parallel.value),
+                ("dod_pct", ui_dod.value),
+                ("initial_soc_pct", ui_soc0.value),
+                ("charger_eff_pct", ui_eff_charge.value),
+                ("rail_5v_eff_pct", ui_eff_5v.value),
+                ("rail_3v3_eff_pct", ui_eff_3v3.value),
+                ("uvlo_v_per_cell", ui_uvlo.value),
+                ("safe_enter_soc_pct", ui_safe_enter.value),
+                ("safe_exit_soc_pct", ui_safe_exit.value),
+            ],
         ),
-        _section("[radio]", [("consumer", radio_name), ("tx_w", ui_tx_w.value), ("rx_w", ui_rx_w.value), ("downlink_share_pct", ui_share.value)]),
+        _section(
+            "[radio]",
+            [
+                ("consumer", radio_name),
+                ("tx_w", ui_tx_w.value),
+                ("rx_w", ui_rx_w.value),
+                ("downlink_share_pct", ui_share.value),
+            ],
+        ),
         _section(
             "[beacon]",
-            [("policy", ui_beacon_policy.value), ("cw_message_s", ui_cw_s.value), ("cw_power_w", ui_cw_w.value), ("cw_cadence_s", ui_cw_cad.value), ("tier1_on_air_ms", ui_t1_ms.value), ("tier1_cadence_s", ui_t1_cad.value), ("tier2_on_air_ms", ui_t2_ms.value), ("tier2_cadence_s", ui_t2_cad.value), ("lora_on_air_s", ui_lora_s.value), ("lora_power_w", ui_lora_w.value), ("lora_cadence_nominal_s", ui_lora_cad_nom.value), ("lora_cadence_degraded_s", ui_lora_cad_deg.value)],
+            [
+                ("policy", ui_beacon_policy.value),
+                ("cw_message_s", ui_cw_s.value),
+                ("cw_power_w", ui_cw_w.value),
+                ("cw_cadence_s", ui_cw_cad.value),
+                ("tier1_on_air_ms", ui_t1_ms.value),
+                ("tier1_cadence_s", ui_t1_cad.value),
+                ("tier2_on_air_ms", ui_t2_ms.value),
+                ("tier2_cadence_s", ui_t2_cad.value),
+                ("lora_on_air_s", ui_lora_s.value),
+                ("lora_power_w", ui_lora_w.value),
+                ("lora_cadence_nominal_s", ui_lora_cad_nom.value),
+                ("lora_cadence_degraded_s", ui_lora_cad_deg.value),
+            ],
         ),
         _section("[oneshot]", [("hdrm_power_w", ui_hdrm_w.value), ("hdrm_duration_s", ui_hdrm_s.value)]),
         _section("[schedule]", [("scenario", ui_scenario.value)]),
@@ -2484,12 +3455,34 @@ def _(
     _sections.append(
         _section(
             "[results.power_budget]",
-            [("scenario", scenario), ("payload_mode", ui_pay_mode.value), ("generation_wh_day", gen_wh_day), ("consumption_wh_day", load_wh_day), ("requested_wh_day", sched_wh_day), ("requested_margin_w", requested_margin_w), ("margin_w", margin_w), ("min_soc", min_soc), ("eclipse_fraction", eclipse_fraction), ("passes_per_day", passes_per_day), ("contact_min_per_day", contact_min_per_day), ("sustainable_pass_min_per_day", sustainable_pass_min), ("sustainable_activations_per_day", sustainable_frames), ("activations_scheduled_per_day", frames_per_day_taken), ("activations_completed_per_day", completed_per_day), ("active_min_per_day", active_min_per_day), ("cw_beacon_wh_day_all_day", cw_wh_day), ("degraded_margin_w", degraded_margin_w)],
+            [
+                ("scenario", scenario),
+                ("payload_mode", ui_pay_mode.value),
+                ("generation_wh_day", gen_wh_day),
+                ("consumption_wh_day", load_wh_day),
+                ("requested_wh_day", sched_wh_day),
+                ("requested_margin_w", requested_margin_w),
+                ("margin_w", margin_w),
+                ("min_soc", min_soc),
+                ("eclipse_fraction", eclipse_fraction),
+                ("passes_per_day", passes_per_day),
+                ("contact_min_per_day", contact_min_per_day),
+                ("sustainable_pass_min_per_day", sustainable_pass_min),
+                ("sustainable_activations_per_day", sustainable_frames),
+                ("activations_scheduled_per_day", frames_per_day_taken),
+                ("activations_completed_per_day", completed_per_day),
+                ("active_min_per_day", active_min_per_day),
+                ("cw_beacon_wh_day_all_day", cw_wh_day),
+                ("degraded_margin_w", degraded_margin_w),
+            ],
         )
     )
     profile_toml = "\n\n".join(_sections) + "\n"
 
-    _csv_rows = [{"Consumer": _l["name"], "Rail": _l["rail"], **{f"{_m} (W)": _l["w"][_m] for _m in MODES}} for _l in loads + beacon_rows]
+    _csv_rows = [
+        {"Consumer": _l["name"], "Rail": _l["rail"], **{f"{_m} (W)": _l["w"][_m] for _m in MODES}}
+        for _l in loads + beacon_rows
+    ]
     ledger_csv = pd.DataFrame(_csv_rows).to_csv(index=False)
     _slug = scenario.lower()
     mo.vstack(
@@ -2502,9 +3495,24 @@ def _(
             ),
             mo.hstack(
                 [
-                    mo.download(data=report_md.encode("utf-8"), filename=f"bac-power-budget-{_slug}-{_today}.md", mimetype="text/markdown", label="Download report (.md)"),
-                    mo.download(data=profile_toml.encode("utf-8"), filename=f"bac-power-budget-profile-{_today}.toml", mimetype="application/toml", label="Download profile (.toml)"),
-                    mo.download(data=ledger_csv.encode("utf-8"), filename=f"bac-power-budget-ledger-{_today}.csv", mimetype="text/csv", label="Download ledger (.csv)"),
+                    mo.download(
+                        data=report_md.encode("utf-8"),
+                        filename=f"bac-power-budget-{_slug}-{_today}.md",
+                        mimetype="text/markdown",
+                        label="Download report (.md)",
+                    ),
+                    mo.download(
+                        data=profile_toml.encode("utf-8"),
+                        filename=f"bac-power-budget-profile-{_today}.toml",
+                        mimetype="application/toml",
+                        label="Download profile (.toml)",
+                    ),
+                    mo.download(
+                        data=ledger_csv.encode("utf-8"),
+                        filename=f"bac-power-budget-ledger-{_today}.csv",
+                        mimetype="text/csv",
+                        label="Download ledger (.csv)",
+                    ),
                 ],
                 justify="start",
                 gap=1,
@@ -2664,6 +3672,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.5.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the BAC profile and the panel default move to 500 km (the generic profile was there already). The orbital period, eclipse fraction and pass count move with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.5.0 | 2026-09-14 | Homogenization with the siblings at their 0.7.0: intro names the tool's URL, its siblings, the project and the repository; the preliminary warning as a callout; "Headline Numbers" and title-case headings and callout titles throughout; assumptions as structured paragraphs with glossary links; report header and export text as in the siblings. Two cross-checks from the sibling profiles' results tables: the link budget's eight-phase pass statistics against this run's single phase, with the affordable pass minutes against its contact minutes, and the optical payload's accesses per day against the scheduled and affordable activations. Profile author detection by signature table as in the siblings. The LoRa backstop's time on air defaults to the SF12 row's packet airtime from a link budget 0.7.0 profile's per-mode results; the BAC profile documents the beacon ladder in its `[beacon]` comments. |
     | 0.4.1 | 2026-09-14 | Intro and callouts in the tighter wording; Schedule at the top of the left column; charts fill the width; passes and activations drawn as translucent bands instead of ticks. |
     | 0.4.0 | 2026-09-14 | Panel wording tightened, module controls named S and P, module length up to 4U, headline as three rows of two, radio row with short labels. Fixes from the GUI review: trigger windows no longer overrun by a step; the lit gate holds across the whole activation; an activation costs the fraction of each sample it covers; the activation allowance is priced at the scheduled mean duration; a "Never" trigger, which zero-activation profiles from before 0.3.0 land on; profiles from before 0.3.0 keep their cells all in series; malformed profile numbers fall back and are reported; an explicit "None" radio row survives a reload; face packing checked for the Z faces and for modules longer than the face. |
