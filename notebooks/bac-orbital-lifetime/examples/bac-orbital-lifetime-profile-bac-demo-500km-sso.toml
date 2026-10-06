@@ -1,0 +1,42 @@
+# BAC Orbital Lifetime profile – Build a CubeSat demo mission
+# Mass is two thirds of the CDS rev 14 maximum for a 1.5U (3 kg), Mänu's
+# planning assumption of 2026-09-18 until the build is weighed. Deployables
+# and launch date are placeholders; the orbit is the standard planning orbit.
+name = "BAC demo mission, 500 km SSO"
+tool = "bac_orbital_lifetime"
+tool_version = "0.2.1"
+
+[orbit]
+altitude_km = 500
+inclination_deg = 97.4
+ltdn_hours = 10.5
+epoch = "2027-06-01T00:00:00Z"
+
+[mission]
+duration_years = 2.0
+
+[spacecraft]
+form_factor = "1.5U"
+size_x_cm = 10.0
+size_y_cm = 10.0
+size_z_cm = 17.02
+mass_kg = 2.0
+drag_coefficient = 2.2
+attitude_mission = "tumbling"
+attitude_after_mission = "tumbling"
+
+[[deployables]]
+name = "UHF tape antennas"
+shape = "cylinder"
+count = 4
+width_cm = 0.3
+length_cm = 17.0
+flow_angle_deg = 0
+deployed = true
+
+[solar]
+next_cycle_start = "2030-07"
+constant_f107 = 150
+constant_ap = 15
+ap_override = 0
+fetch_live = false

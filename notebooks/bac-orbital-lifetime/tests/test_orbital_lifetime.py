@@ -21,22 +21,25 @@ def _run(profile_toml: str) -> dict:
 
 
 def test_defaults_regression():
-    """BAC demo mission at 450 km SSO, 2.0 kg, four tape antennas, launch 2027-06 – the 0.2.0 figures."""
-    assert D["TOOL_VERSION"] == "0.2.0"
-    assert D["lifetime_nominal"] == pytest.approx(2.385, abs=0.005)
-    assert D["lifetime_shortest"] == pytest.approx(1.469, abs=0.005)
-    assert D["lifetime_longest"] == pytest.approx(4.205, abs=0.005)
-    assert D["h_mission_end_nominal"] == pytest.approx(350.6, abs=0.1)
+    """BAC demo mission at 500 km SSO, 2.0 kg, four tape antennas, launch 2027-06 – the 0.2.1 figures.
+
+    At 450 km (0.2.0) these were 2.385 / 1.469 / 4.205 yr, 350.6 km at end of mission and 2.45 min/yr."""
+    assert D["TOOL_VERSION"] == "0.2.1"
+    assert D["lifetime_nominal"] == pytest.approx(5.902, abs=0.005)
+    assert D["lifetime_shortest"] == pytest.approx(4.899, abs=0.005)
+    assert D["lifetime_longest"] == pytest.approx(7.140, abs=0.005)
+    assert D["h_mission_end_nominal"] == pytest.approx(478.2, abs=0.1)
     assert D["bc_mission"] == pytest.approx(38.48, abs=0.01)
-    assert D["ltdn_drift_start"] == pytest.approx(2.45, abs=0.01)
+    assert D["ltdn_drift_start"] == pytest.approx(4.89, abs=0.01)
     assert D["complies_5yr_nominal"] and D["complies_25yr_longest"]
+    assert not D["complies_5yr_longest"]  # 7.1 yr in the longest case: the five-year rule holds only for nominal
 
 
 def test_defaults_plausible():
-    assert 1.0 < D["lifetime_nominal"] < 6.0
+    assert 1.0 < D["lifetime_nominal"] < 10.0
     assert D["lifetime_shortest"] < D["lifetime_nominal"] < D["lifetime_longest"]
     assert D["lifetime_shortest"] > 0.5
-    assert 300 < D["h_mission_end_nominal"] < 450
+    assert 300 < D["h_mission_end_nominal"] < 500
     assert not D["input_warnings"]
 
 
@@ -125,7 +128,7 @@ def test_profile_round_trip():
     toml = D["profile_toml"]
     p = tomllib.loads(toml)
     assert p["tool"] == "bac_orbital_lifetime"
-    assert p["orbit"]["altitude_km"] == 450
+    assert p["orbit"]["altitude_km"] == 500
     assert p["spacecraft"]["mass_kg"] == pytest.approx(2.0)
     assert len(p["deployables"]) == 1
     assert p["results"]["orbital_lifetime"]["lifetime_years_nominal"] == pytest.approx(D["lifetime_nominal"], rel=1e-5)
@@ -186,7 +189,7 @@ count = "many"
 """
     d = _run(toml)
     assert d["altitude_km"] == 1000  # clamped
-    assert d["inclination_deg"] == pytest.approx(97.2)  # default kept, reported
+    assert d["inclination_deg"] == pytest.approx(97.4)  # default kept, reported
     assert d["mass_kg"] == pytest.approx(0.1)
     assert d["form_factor"] == "Custom"
     assert any("skipped" in w for w in d["input_warnings"])
@@ -239,7 +242,7 @@ deploy_at_end_of_mission = true
 
 def test_example_profiles_are_the_shipped_ones():
     examples = NOTEBOOK.parent / "examples"
-    shipped = {"bac-demo-450km-sso": D["PROFILE_BAC"], "generic-3u-500km-sso": D["PROFILE_GENERIC"]}
+    shipped = {"bac-demo-500km-sso": D["PROFILE_BAC"], "generic-3u-500km-sso": D["PROFILE_GENERIC"]}
     for slug, text in shipped.items():
         on_disk = (examples / f"bac-orbital-lifetime-profile-{slug}.toml").read_text(encoding="utf-8")
         assert on_disk.strip() == text.strip()

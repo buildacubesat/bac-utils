@@ -46,20 +46,14 @@ def _(mo):
     @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
-    /* Fallback tokens for browsers without light-dark(). */
     :root {
-      --text:         #3F3F3F;
-      --bg:           #efefed;
-      --text-muted:   #888884;
-      /* marimo styles markdown headings through --heading-font; a bare
-         h1..h4 rule loses to its .markdown h1 selector and the headings
-         fall back to Lora. */
-      --heading-font: 'Nunito Sans', system-ui, sans-serif;
+      --text:       #3F3F3F;
+      --bg:         #efefed;
+      --text-muted: #888884;
     }
 
-    /* light-dark() resolves against the color-scheme marimo sets, so the
-       tokens follow marimo's own light/dark/system setting, not the OS.
-       A prefers-color-scheme media query gets this wrong. */
+    /* Track marimo's own light/dark setting rather than the operating system.
+       marimo sets color-scheme from that setting and light-dark() follows it. */
     :root {
       --text: light-dark(#3F3F3F, #efefed);
       --bg:   light-dark(#efefed, #201e1c);
@@ -75,11 +69,15 @@ def _(mo):
       color: var(--text);
     }
 
-    /* Altair bakes literal colors into its SVG; pin chart text to the
-       token or labels vanish when the theme setting is "system". */
+    .marimo-callout { border-radius: 6px; }
+
+    /* Chart text follows the same variable, so axis labels and legends stay
+       legible even when the notebook theme and the chart palette disagree. */
     .vega-embed text { fill: var(--text); }
 
-    .marimo-callout { border-radius: 6px; }
+    /* marimo styles markdown headings through --heading-font with a selector
+       more specific than the rule above, which would leave them in its serif. */
+    :root { --heading-font: 'Nunito Sans', system-ui, sans-serif; }
     </style>
     """)
     return
@@ -119,7 +117,7 @@ def _(
     math,
     np,
 ):
-    TOOL_VERSION = "0.2.0"
+    TOOL_VERSION = "0.2.1"
     TOOL_SLUG = "orbital-lifetime-tool"
 
     MU = 3.986004418e14  # m^3/s^2
@@ -156,8 +154,13 @@ def _(
 
     # Solar cycle minima (month of the 13-month smoothed SSN minimum, SILSO).
     CYCLE_STARTS = {
-        19: "1954-04", 20: "1964-10", 21: "1976-03", 22: "1986-09",
-        23: "1996-08", 24: "2008-12", 25: "2019-12",
+        19: "1954-04",
+        20: "1964-10",
+        21: "1976-03",
+        22: "1986-09",
+        23: "1996-08",
+        24: "2008-12",
+        25: "2019-12",
     }
     ANALOG_CYCLES = [19, 20, 21, 22, 23, 24]
     CLIMATOLOGY_CYCLES = [20, 21, 22, 23, 24]  # complete within the F10.7 record
@@ -267,7 +270,7 @@ def _(
 
     def _cycle_peak(k):
         s, L = CYCLE_START_MI[k], CYCLE_LENGTH_MO[k]
-        seg = HIST_F107[max(0, int(s)): int(s + L)]
+        seg = HIST_F107[max(0, int(s)) : int(s + L)]
         if len(seg) < 12:
             return float("nan")
         return float(np.convolve(seg, np.ones(12) / 12, mode="valid").max())
@@ -388,13 +391,13 @@ def _(textwrap):
         # Mass is two thirds of the CDS rev 14 maximum for a 1.5U (3 kg), Mänu's
         # planning assumption of 2026-09-18 until the build is weighed. Deployables
         # and launch date are placeholders; the orbit is the standard planning orbit.
-        name = "BAC demo mission, 450 km SSO"
+        name = "BAC demo mission, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.0"
+        tool_version = "0.2.1"
 
         [orbit]
-        altitude_km = 450
-        inclination_deg = 97.2
+        altitude_km = 500
+        inclination_deg = 97.4
         ltdn_hours = 10.5
         epoch = "2027-06-01T00:00:00Z"
 
@@ -433,7 +436,7 @@ def _(textwrap):
         # BAC Orbital Lifetime profile – generic 3U with two deployed panels
         name = "Generic 3U, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.0"
+        tool_version = "0.2.1"
 
         [orbit]
         altitude_km = 500
@@ -576,8 +579,14 @@ def _(
         if profile_tool == "bac_orbital_lifetime":
             _lines.append("written by this tool; every table was read.")
         elif profile_tool in ("bac_link_budget", "bac_optical_payload", "bac_power_budget"):
-            _who = {"bac_link_budget": "link budget", "bac_optical_payload": "optical payload", "bac_power_budget": "power budget"}[profile_tool]
-            _lines.append(f"written by the {_who} tool: the `[orbit]` table was taken (altitude, inclination, LTDN, epoch); everything else it carries was ignored and the spacecraft keeps this tool's defaults.")
+            _who = {
+                "bac_link_budget": "link budget",
+                "bac_optical_payload": "optical payload",
+                "bac_power_budget": "power budget",
+            }[profile_tool]
+            _lines.append(
+                f"written by the {_who} tool: the `[orbit]` table was taken (altitude, inclination, LTDN, epoch); everything else it carries was ignored and the spacecraft keeps this tool's defaults."
+            )
         else:
             _lines.append("of unknown origin: only keys this tool understands were read.")
         if profile_warnings:
@@ -624,13 +633,19 @@ def _(
     _att_a = ATTITUDE_LABELS.get(P("spacecraft.attitude_after_mission", "tumbling"), "Tumbling")
 
     # Orbit
-    ui_altitude = S(start=200, stop=1000, step=5, value=P("orbit.altitude_km", 450), label="Altitude (km)", include_input=True)
-    ui_inclination = S(start=0, stop=180, step=0.1, value=P("orbit.inclination_deg", 97.2), label="Inclination (°)", include_input=True)
+    ui_altitude = S(
+        start=200, stop=1000, step=5, value=P("orbit.altitude_km", 500), label="Altitude (km)", include_input=True
+    )
+    ui_inclination = S(
+        start=0, stop=180, step=0.1, value=P("orbit.inclination_deg", 97.4), label="Inclination (°)", include_input=True
+    )
     ui_ltdn = S(start=0, stop=24, step=0.25, value=P("orbit.ltdn_hours", 10.5), label="LTDN (h, SSO only)")
     ui_epoch = mo.ui.date(value=P_date("orbit.epoch", dt.date(2027, 6, 1)), label="Launch / epoch")
 
     # Mission
-    ui_mission_years = S(start=0.25, stop=10, step=0.25, value=P("mission.duration_years", 2.0), label="Mission duration (yr)")
+    ui_mission_years = S(
+        start=0.25, stop=10, step=0.25, value=P("mission.duration_years", 2.0), label="Mission duration (yr)"
+    )
     ui_att_mission = mo.ui.dropdown(options=list(ATTITUDES), value=_att_m, label="Attitude during the mission")
     ui_att_after = mo.ui.dropdown(options=list(ATTITUDES), value=_att_a, label="Attitude after end of mission")
 
@@ -644,9 +659,13 @@ def _(
 
     # Solar
     ui_next_cycle = mo.ui.text(value=str(P("solar.next_cycle_start", "2030-07")), label="Next cycle minimum (YYYY-MM)")
-    ui_const_f107 = S(start=65, stop=300, step=5, value=P("solar.constant_f107", 150), label="Constant scenario F10.7 (sfu)")
+    ui_const_f107 = S(
+        start=65, stop=300, step=5, value=P("solar.constant_f107", 150), label="Constant scenario F10.7 (sfu)"
+    )
     ui_const_ap = S(start=0, stop=100, step=1, value=P("solar.constant_ap", 15), label="Constant scenario Ap")
-    ui_ap_override = S(start=0, stop=100, step=1, value=P("solar.ap_override", 0), label="Ap override (0 = record and climatology)")
+    ui_ap_override = S(
+        start=0, stop=100, step=1, value=P("solar.ap_override", 0), label="Ap override (0 = record and climatology)"
+    )
     ui_fetch_live = mo.ui.switch(value=P("solar.fetch_live", False), label="Fetch the NOAA prediction live")
 
     # Deployables
@@ -654,18 +673,31 @@ def _(
     if profile_deployables:
         for _d in profile_deployables:
             if isinstance(_d, dict):
-                _rows.append({
-                    "Name": str(_d.get("name", "")),
-                    "Shape": str(_d.get("shape", "panel")),
-                    "Count": _d.get("count", 1),
-                    "Width (cm)": _d.get("width_cm", 10.0),
-                    "Length (cm)": _d.get("length_cm", 30.0),
-                    "Flow angle (°)": _d.get("flow_angle_deg", 0),
-                    "Deployed": _d.get("deployed", True),
-                    "Deploy at end of mission": _d.get("deploy_at_end_of_mission", False),
-                })
+                _rows.append(
+                    {
+                        "Name": str(_d.get("name", "")),
+                        "Shape": str(_d.get("shape", "panel")),
+                        "Count": _d.get("count", 1),
+                        "Width (cm)": _d.get("width_cm", 10.0),
+                        "Length (cm)": _d.get("length_cm", 30.0),
+                        "Flow angle (°)": _d.get("flow_angle_deg", 0),
+                        "Deployed": _d.get("deployed", True),
+                        "Deploy at end of mission": _d.get("deploy_at_end_of_mission", False),
+                    }
+                )
     if not _rows:
-        _rows = [{"Name": "UHF tape antennas", "Shape": "cylinder", "Count": 4, "Width (cm)": 0.3, "Length (cm)": 17.0, "Flow angle (°)": 0, "Deployed": True, "Deploy at end of mission": False}]
+        _rows = [
+            {
+                "Name": "UHF tape antennas",
+                "Shape": "cylinder",
+                "Count": 4,
+                "Width (cm)": 0.3,
+                "Length (cm)": 17.0,
+                "Flow angle (°)": 0,
+                "Deployed": True,
+                "Deploy at end of mission": False,
+            }
+        ]
     ui_deployables = mo.ui.data_editor(pd.DataFrame(_rows), label="Deployables")
 
     ui_sidebar = mo.ui.switch(value=False, label="Controls in a sidebar")
@@ -716,30 +748,57 @@ def _(
     ui_size_y,
     ui_size_z,
 ):
-    _left = mo.vstack([
-        mo.md("### Orbit"),
-        mo.md("Circular orbit; altitude above the 6371 km mean radius, as in the siblings. The epoch sets where in the solar cycle the mission starts."),
-        ui_altitude, ui_inclination, ui_ltdn, ui_epoch,
-        mo.md("### Mission"),
-        mo.md("The attitude switches at end of mission; a spacecraft that stops controlling itself usually tumbles."),
-        ui_mission_years, ui_att_mission, ui_att_after,
-    ])
-    _right = mo.vstack([
-        mo.md("### Spacecraft"),
-        mo.md("A preset sets the body size; the X, Y, Z fields count only with Custom. Z is the long axis."),
-        ui_form, ui_mass, ui_cd,
-        mo.accordion({"Custom body size": mo.vstack([ui_size_x, ui_size_y, ui_size_z])}),
-        mo.md("### Solar Activity"),
-        mo.md("The NOAA prediction and the analog cycles drive the scenarios; these settings shape the constant case and the continuation past the forecast."),
-        mo.accordion({"Solar settings": mo.vstack([ui_next_cycle, ui_const_f107, ui_const_ap, ui_ap_override, ui_fetch_live])}),
-    ])
+    _left = mo.vstack(
+        [
+            mo.md("### Orbit"),
+            mo.md(
+                "Circular orbit; altitude above the 6371 km mean radius, as in the siblings. The epoch sets where in the solar cycle the mission starts."
+            ),
+            ui_altitude,
+            ui_inclination,
+            ui_ltdn,
+            ui_epoch,
+            mo.md("### Mission"),
+            mo.md(
+                "The attitude switches at end of mission; a spacecraft that stops controlling itself usually tumbles."
+            ),
+            ui_mission_years,
+            ui_att_mission,
+            ui_att_after,
+        ]
+    )
+    _right = mo.vstack(
+        [
+            mo.md("### Spacecraft"),
+            mo.md("A preset sets the body size; the X, Y, Z fields count only with Custom. Z is the long axis."),
+            ui_form,
+            ui_mass,
+            ui_cd,
+            mo.accordion({"Custom body size": mo.vstack([ui_size_x, ui_size_y, ui_size_z])}),
+            mo.md("### Solar Activity"),
+            mo.md(
+                "The NOAA prediction and the analog cycles drive the scenarios; these settings shape the constant case and the continuation past the forecast."
+            ),
+            mo.accordion(
+                {
+                    "Solar settings": mo.vstack(
+                        [ui_next_cycle, ui_const_f107, ui_const_ap, ui_ap_override, ui_fetch_live]
+                    )
+                }
+            ),
+        ]
+    )
     knobs_wide = mo.hstack([_left, _right], justify="start", gap=2, wrap=True, widths="equal")
     knobs_tall = mo.vstack([_left, _right])
-    deployables_block = mo.vstack([
-        mo.md("### Deployables"),
-        mo.md("Panels and booms that add drag area. Flow angle applies to the fixed attitudes: 0 is face-on (a cylinder broadside), 90 edge-on. Tumbling averages a panel to half its area and a cylinder to π/4 of its broadside area. A row that deploys at end of mission (a drag sail, a boom) counts in the after-mission area only."),
-        ui_deployables,
-    ])
+    deployables_block = mo.vstack(
+        [
+            mo.md("### Deployables"),
+            mo.md(
+                "Panels and booms that add drag area. Flow angle applies to the fixed attitudes: 0 is face-on (a cylinder broadside), 90 edge-on. Tumbling averages a panel to half its area and a cylinder to π/4 of its broadside area. A row that deploys at end of mission (a drag sail, a boom) counts in the after-mission area only."
+            ),
+            ui_deployables,
+        ]
+    )
     return deployables_block, knobs_tall, knobs_wide
 
 
@@ -846,13 +905,18 @@ def _(
         if _count is None or _w is None or _l is None or _count < 0 or _w < 0 or _l < 0:
             input_warnings.append(f"deployable '{_name}' skipped: count, width and length must be numbers ≥ 0")
             continue
-        deployables.append({
-            "name": _name, "shape": _shape, "count": int(round(_count)),
-            "width_cm": _w, "length_cm": _l,
-            "flow_angle_deg": 0.0 if _ang is None else _ang,
-            "deployed": _flag(_r.get("Deployed", True)),
-            "deploy_at_eom": _flag(_r.get("Deploy at end of mission", False)),
-        })
+        deployables.append(
+            {
+                "name": _name,
+                "shape": _shape,
+                "count": int(round(_count)),
+                "width_cm": _w,
+                "length_cm": _l,
+                "flow_angle_deg": 0.0 if _ang is None else _ang,
+                "deployed": _flag(_r.get("Deployed", True)),
+                "deploy_at_eom": _flag(_r.get("Deploy at end of mission", False)),
+            }
+        )
 
     def drag_area_m2(mode, after_mission=False):
         x, y, z = (s / 100.0 for s in size_cm)
@@ -935,9 +999,11 @@ def _(
         try:
             if sys.platform == "emscripten":
                 from pyodide.http import open_url
+
                 _text = open_url(_url).read()
             else:
                 import urllib.request
+
                 with urllib.request.urlopen(_url, timeout=10) as _f:
                     _text = _f.read().decode("utf-8")
             _data = json.loads(_text)
@@ -1042,25 +1108,42 @@ def _(
 
     scenarios = []
     for _w, _label in (("nominal", "NOAA nominal"), ("low", "NOAA low (75% band)"), ("high", "NOAA high (75% band)")):
-        scenarios.append({
-            "name": _label, "group": "noaa", "which": _w,
-            "f107": (lambda mi, w=_w: noaa_f107(w, mi)),
-            "ap": _ap_or_override(clim_ap),
-            "source": "NOAA SWPC prediction, then climatology" + ("" if _w == "nominal" else f" scaled to the {'strongest' if _w == 'high' else 'weakest'} recorded cycle"),
-        })
+        scenarios.append(
+            {
+                "name": _label,
+                "group": "noaa",
+                "which": _w,
+                "f107": (lambda mi, w=_w: noaa_f107(w, mi)),
+                "ap": _ap_or_override(clim_ap),
+                "source": "NOAA SWPC prediction, then climatology"
+                + (
+                    ""
+                    if _w == "nominal"
+                    else f" scaled to the {'strongest' if _w == 'high' else 'weakest'} recorded cycle"
+                ),
+            }
+        )
     for _k in ANALOG_CYCLES:
-        scenarios.append({
-            "name": f"Analog cycle {_k}", "group": "analog", "which": _k,
-            "f107": (lambda mi, k=_k: analog_f107(k, mi)),
-            "ap": _ap_or_override(lambda mi, k=_k: analog_ap(k, mi)),
-            "source": f"the observed record of cycle {_k} replayed at the same phase",
-        })
-    scenarios.append({
-        "name": f"Constant F10.7 = {const_f107:.0f}", "group": "constant", "which": "constant",
-        "f107": (lambda mi: const_f107),
-        "ap": (lambda mi: const_ap),
-        "source": "constant flux and Ap from the panel",
-    })
+        scenarios.append(
+            {
+                "name": f"Analog cycle {_k}",
+                "group": "analog",
+                "which": _k,
+                "f107": (lambda mi, k=_k: analog_f107(k, mi)),
+                "ap": _ap_or_override(lambda mi, k=_k: analog_ap(k, mi)),
+                "source": f"the observed record of cycle {_k} replayed at the same phase",
+            }
+        )
+    scenarios.append(
+        {
+            "name": f"Constant F10.7 = {const_f107:.0f}",
+            "group": "constant",
+            "which": "constant",
+            "f107": (lambda mi: const_f107),
+            "ap": (lambda mi: const_ap),
+            "source": "constant flux and Ap from the panel",
+        }
+    )
     return (scenarios,)
 
 
@@ -1273,7 +1356,9 @@ def _(
     sweep_bc_factors = [0.5, 0.7, 1.0, 1.4, 2.0]
     sweep_bc_y = []
     for _f in sweep_bc_factors:
-        _r = propagate(altitude_km, mi0, _s["f107"], _s["ap"], bc_mission * _f, bc_after * _f, mission_days, record=False)
+        _r = propagate(
+            altitude_km, mi0, _s["f107"], _s["ap"], bc_mission * _f, bc_after * _f, mission_days, record=False
+        )
         sweep_bc_y.append(None if _r["lifetime_days"] is None else _r["lifetime_days"] / 365.25)
     return sweep_alt_x, sweep_alt_y, sweep_bc_factors, sweep_bc_y
 
@@ -1297,45 +1382,67 @@ def _(
     for _s in scenarios[:3]:
         for _mi in _quarters:
             _r = propagate(altitude_km, _mi, _s["f107"], _s["ap"], bc_mission, bc_after, mission_days, record=False)
-            sweep_date_rows.append({
-                "Launch": (epoch + dt.timedelta(days=(_mi - mi0) * DAYS_PER_MONTH)).isoformat(),
-                "Lifetime (yr)": None if _r["lifetime_days"] is None else _r["lifetime_days"] / 365.25,
-                "Scenario": _s["name"], "which": _s["which"],
-            })
+            sweep_date_rows.append(
+                {
+                    "Launch": (epoch + dt.timedelta(days=(_mi - mi0) * DAYS_PER_MONTH)).isoformat(),
+                    "Lifetime (yr)": None if _r["lifetime_days"] is None else _r["lifetime_days"] / 365.25,
+                    "Scenario": _s["name"],
+                    "which": _s["which"],
+                }
+            )
     return (sweep_date_rows,)
 
 
 @app.cell
 def _(alt, mo):
+    # Chart conventions shared with the siblings (Interface Design Guide §8): series
+    # in the nebula order, dashed for targets, dotted for reference lines; on a dark
+    # surface the two dark series use lighter tints to keep 3:1 graphical contrast.
+    # The scenario map below is this tool's own: NOAA nominal, its low and high
+    # band and the constant case take the first four series colors in that order;
+    # the analog cycles are thin muted lines, the constant case is dashed.
     IS_DARK = mo.app_meta().theme == "dark"
+    MUTED = "#888884"
     TEXT = "#efefed" if IS_DARK else "#3F3F3F"
-    MUTED = "#a8a8a3" if IS_DARK else "#888884"
-    PALETTE = {
-        "yellow": "#F7D400",
-        "green": "#84C45A",
-        "red": "#CE6C63",
-        "blue": "#7FB3D5" if IS_DARK else "#4A7FB0",
-        "gray": MUTED,
-        "text": TEXT,
-    }
-    _font = "IBM Plex Mono, ui-monospace, monospace"
+    FONT = "IBM Plex Mono, ui-monospace, monospace"
+    PALETTE = (
+        ["#087C9B", "#625DC6", "#C88732", "#6F6497", "#84C45A"]
+        if IS_DARK
+        else ["#087C9B", "#3B35B8", "#C88732", "#21105F", "#84C45A"]
+    )
 
-    def style_chart(chart, height=320):
+    def style_chart(chart):
         return (
-            chart.properties(width="container", height=height)
-            .configure_axis(grid=False, labelFont=_font, titleFont=_font, labelColor=TEXT, titleColor=TEXT, domainColor=MUTED, tickColor=MUTED)
-            .configure_title(font=_font, color=TEXT, anchor="start", fontSize=13)
-            .configure_legend(labelFont=_font, titleFont=_font, labelColor=TEXT, titleColor=TEXT, orient="bottom", direction="horizontal")
+            chart.configure(font=FONT, background="transparent")
+            .configure_axis(grid=False, labelColor=TEXT, titleColor=TEXT, domainColor=MUTED, tickColor=MUTED)
+            .configure_legend(labelColor=TEXT, titleColor=TEXT)
+            .configure_title(color=TEXT, anchor="start", fontWeight="normal")
             .configure_view(strokeWidth=0)
         )
 
-    def rule_x(x, dash=(6, 4), color=None):
-        return alt.Chart(alt.Data(values=[{"x": x}])).mark_rule(strokeDash=list(dash), color=color or MUTED).encode(x="x:Q")
+    def rule_y(value, dashed=True):
+        return (
+            alt.Chart(alt.Data(values=[{"y": value}]))
+            .mark_rule(strokeDash=[6, 4] if dashed else [2, 2], color=MUTED)
+            .encode(y="y:Q")
+        )
 
-    def rule_y(y, dash=(6, 4), color=None):
-        return alt.Chart(alt.Data(values=[{"y": y}])).mark_rule(strokeDash=list(dash), color=color or MUTED).encode(y="y:Q")
+    def rule_x(value, dashed=True):
+        return (
+            alt.Chart(alt.Data(values=[{"x": value}]))
+            .mark_rule(strokeDash=[6, 4] if dashed else [2, 2], color=MUTED)
+            .encode(x="x:Q")
+        )
 
-    return PALETTE, rule_x, style_chart
+    SCENARIO_COLOR = {"nominal": PALETTE[0], "low": PALETTE[1], "high": PALETTE[2], "constant": PALETTE[3]}
+
+    def scenario_color(which, group):
+        """Series color of a run: by its NOAA band, then the constant case, else muted (the analog cycles)."""
+        if which in SCENARIO_COLOR:
+            return SCENARIO_COLOR[which]
+        return SCENARIO_COLOR["constant"] if group == "constant" else MUTED
+
+    return MUTED, PALETTE, SCENARIO_COLOR, rule_x, rule_y, scenario_color, style_chart
 
 
 @app.cell
@@ -1356,18 +1463,47 @@ def _(
     shortest,
 ):
     _cards = [
-        mo.stat(label="Lifetime, NOAA nominal", value=fmt_years(lifetime_nominal), caption="from the epoch to 120 km", bordered=True),
-        mo.stat(label="Shortest scenario", value=fmt_years(lifetime_shortest), caption=shortest[1]["name"], bordered=True),
-        mo.stat(label="Longest scenario", value=fmt_years(lifetime_longest), caption=longest[1]["name"] if longest[1] else "–", bordered=True),
-        mo.stat(label="Altitude at end of mission", value=("–" if h_mission_end_nominal is None else f"{fmt_num(h_mission_end_nominal, 0)} km"), caption="NOAA nominal", bordered=True),
-        mo.stat(label="Ballistic coefficient", value=f"{fmt_num(bc_mission, 1)} kg/m²", caption="m / (Cd · A), mission attitude", bordered=True),
-        mo.stat(label="Drag area", value=f"{fmt_num(area_mission_m2 * 1e4, 0)} → {fmt_num(area_after_m2 * 1e4, 0)} cm²", caption=f"{att_mission} → {att_after}", bordered=True),
+        mo.stat(
+            label="Lifetime, NOAA nominal",
+            value=fmt_years(lifetime_nominal),
+            caption="from the epoch to 120 km",
+            bordered=True,
+        ),
+        mo.stat(
+            label="Shortest scenario", value=fmt_years(lifetime_shortest), caption=shortest[1]["name"], bordered=True
+        ),
+        mo.stat(
+            label="Longest scenario",
+            value=fmt_years(lifetime_longest),
+            caption=longest[1]["name"] if longest[1] else "–",
+            bordered=True,
+        ),
+        mo.stat(
+            label="Altitude at end of mission",
+            value=("–" if h_mission_end_nominal is None else f"{fmt_num(h_mission_end_nominal, 0)} km"),
+            caption="NOAA nominal",
+            bordered=True,
+        ),
+        mo.stat(
+            label="Ballistic coefficient",
+            value=f"{fmt_num(bc_mission, 1)} kg/m²",
+            caption="m / (Cd · A), mission attitude",
+            bordered=True,
+        ),
+        mo.stat(
+            label="Drag area",
+            value=f"{fmt_num(area_mission_m2 * 1e4, 0)} → {fmt_num(area_after_m2 * 1e4, 0)} cm²",
+            caption=f"{att_mission} → {att_after}",
+            bordered=True,
+        ),
     ]
-    mo.vstack([
-        mo.md("## Headline Numbers"),
-        mo.hstack(_cards[0:3], justify="start", gap=1, wrap=True, widths="equal"),
-        mo.hstack(_cards[3:6], justify="start", gap=1, wrap=True, widths="equal"),
-    ])
+    mo.vstack(
+        [
+            mo.md("## Headline Numbers"),
+            mo.hstack(_cards[0:3], justify="start", gap=1, wrap=True, widths="equal"),
+            mo.hstack(_cards[3:6], justify="start", gap=1, wrap=True, widths="equal"),
+        ]
+    )
     return
 
 
@@ -1403,26 +1539,111 @@ def _(
 ):
     _out = []
     if mission_outlives_orbit:
-        _out.append(mo.callout(mo.md(f"The {shortest[1]['name']} scenario ends the orbit after {fmt_years(shortest[0])}, before the {fmt_num(mission_years, 2)}-year mission is over. Raise the orbit, shed drag area or plan for a shorter mission."), kind="danger", title="Orbit Decays Before End of Mission"))
+        _out.append(
+            mo.callout(
+                mo.md(
+                    f"The {shortest[1]['name']} scenario ends the orbit after {fmt_years(shortest[0])}, before the {fmt_num(mission_years, 2)}-year mission is over. Raise the orbit, shed drag area or plan for a shorter mission."
+                ),
+                kind="danger",
+                title="Orbit Decays Before End of Mission",
+            )
+        )
     if beyond_horizon:
-        _out.append(mo.callout(mo.md(f"At least one scenario is still in orbit after {fmt_num(horizon_years, 0)} years, the tool's horizon. The band is open at the top and the 25-year disposal rule is not met in that scenario."), kind="warn", title="Longest Scenario Beyond the Horizon"))
+        _out.append(
+            mo.callout(
+                mo.md(
+                    f"At least one scenario is still in orbit after {fmt_num(horizon_years, 0)} years, the tool's horizon. The band is open at the top and the 25-year disposal rule is not met in that scenario."
+                ),
+                kind="warn",
+                title="Longest Scenario Beyond the Horizon",
+            )
+        )
     elif not complies_25yr_longest:
-        _out.append(mo.callout(mo.md(f"In the longest scenario the spacecraft stays up {fmt_years(disposal_longest)} after end of mission on {mission_end.isoformat()}, over the 25 years of IADC and ISO 24113."), kind="warn", title="Fails the 25-Year Rule in the Longest Scenario"))
+        _out.append(
+            mo.callout(
+                mo.md(
+                    f"In the longest scenario the spacecraft stays up {fmt_years(disposal_longest)} after end of mission on {mission_end.isoformat()}, over the 25 years of IADC and ISO 24113."
+                ),
+                kind="warn",
+                title="Fails the 25-Year Rule in the Longest Scenario",
+            )
+        )
     if not mission_outlives_orbit and not complies_5yr_nominal and disposal_nominal is not None:
-        _out.append(mo.callout(mo.md(f"NOAA nominal leaves {fmt_years(disposal_nominal)} between end of mission and re-entry; the FCC (2024) and ESA (2023) expect disposal within 5 years. The 25-year rule {'is' if complies_25yr_longest else 'is not'} met in the longest scenario."), kind="warn", title="Exceeds the 5-Year Disposal Rule"))
-    elif not mission_outlives_orbit and complies_5yr_nominal and not complies_5yr_longest and disposal_longest is not None:
-        _out.append(mo.callout(mo.md(f"NOAA nominal disposes within 5 years, the longest scenario takes {fmt_years(disposal_longest)}. Whether that is acceptable depends on which case the licensing authority asks for."), kind="info", title="5-Year Rule Met Nominally, Not in the Longest Scenario"))
+        _out.append(
+            mo.callout(
+                mo.md(
+                    f"NOAA nominal leaves {fmt_years(disposal_nominal)} between end of mission and re-entry; the FCC (2024) and ESA (2023) expect disposal within 5 years. The 25-year rule {'is' if complies_25yr_longest else 'is not'} met in the longest scenario."
+                ),
+                kind="warn",
+                title="Exceeds the 5-Year Disposal Rule",
+            )
+        )
+    elif (
+        not mission_outlives_orbit
+        and complies_5yr_nominal
+        and not complies_5yr_longest
+        and disposal_longest is not None
+    ):
+        _out.append(
+            mo.callout(
+                mo.md(
+                    f"NOAA nominal disposes within 5 years, the longest scenario takes {fmt_years(disposal_longest)}. Whether that is acceptable depends on which case the licensing authority asks for."
+                ),
+                kind="info",
+                title="5-Year Rule Met Nominally, Not in the Longest Scenario",
+            )
+        )
     if not mission_outlives_orbit and complies_5yr_longest and not beyond_horizon:
-        _out.append(mo.callout(mo.md(f"Every scenario ends the orbit within 5 years of end of mission on {mission_end.isoformat()}; NOAA nominal re-enters around {reentry_nominal.isoformat() if reentry_nominal else '–'}."), kind="success", title="Disposal Rules Met in Every Scenario"))
+        _out.append(
+            mo.callout(
+                mo.md(
+                    f"Every scenario ends the orbit within 5 years of end of mission on {mission_end.isoformat()}; NOAA nominal re-enters around {reentry_nominal.isoformat() if reentry_nominal else '–'}."
+                ),
+                kind="success",
+                title="Disposal Rules Met in Every Scenario",
+            )
+        )
     if altitude_km > float(DENS_ALT[-1]):
-        _out.append(mo.callout(mo.md(f"The density table ends at {fmt_num(DENS_ALT[-1], 0)} km; above it the tool uses the top value, which overstates drag. Treat results above that altitude as a lower bound on lifetime."), kind="warn", title="Above the Density Table"))
+        _out.append(
+            mo.callout(
+                mo.md(
+                    f"The density table ends at {fmt_num(DENS_ALT[-1], 0)} km; above it the tool uses the top value, which overstates drag. Treat results above that altitude as a lower bound on lifetime."
+                ),
+                kind="warn",
+                title="Above the Density Table",
+            )
+        )
     if sso_like:
-        _out.append(mo.callout(mo.md(f"The node drifts {fmt_num(ltdn_drift_start, 0)} min/yr against the Sun at {fmt_num(altitude_km, 0)} km; the local time of the descending node walks as the orbit decays. The Local Time Drift section has the curve; the power budget's eclipse fraction and the optical payload's illumination follow it."), kind="info", title="Local Time Drift of the Sun-Synchronous Orbit"))
+        _out.append(
+            mo.callout(
+                mo.md(
+                    f"The node drifts {fmt_num(ltdn_drift_start, 0)} min/yr against the Sun at {fmt_num(altitude_km, 0)} km; the local time of the descending node walks as the orbit decays. The Local Time Drift section has the curve; the power budget's eclipse fraction and the optical payload's illumination follow it."
+                ),
+                kind="info",
+                title="Local Time Drift of the Sun-Synchronous Orbit",
+            )
+        )
     if area_mission_m2 > 0 and any(d["deployed"] and d["count"] > 0 for d in deployables):
         _extra = area_mission_m2 - body_surface_m2 / 4
-        _out.append(mo.callout(mo.md(f"Deployables add {fmt_num(max(0.0, _extra) * 1e4, 0)} cm² to the tumbling body's {fmt_num(body_surface_m2 / 4 * 1e4, 0)} cm² average. Shadowing between body and panels is not modeled, so the sum overstates the area a little."), kind="info", title="Deployables in the Drag Area"))
+        _out.append(
+            mo.callout(
+                mo.md(
+                    f"Deployables add {fmt_num(max(0.0, _extra) * 1e4, 0)} cm² to the tumbling body's {fmt_num(body_surface_m2 / 4 * 1e4, 0)} cm² average. Shadowing between body and panels is not modeled, so the sum overstates the area a little."
+                ),
+                kind="info",
+                title="Deployables in the Drag Area",
+            )
+        )
     _solar_note = noaa["note"] or f"snapshot of {SOLAR_SNAPSHOT_DATE}"
-    _out.append(mo.callout(mo.md(f"Observed F10.7 and Ap through {HIST_END_DATE:%Y-%m} (CelesTrak), the NOAA SWPC Cycle 25 prediction as {_solar_note}, and a climatology of cycles 20 to 24 past the forecast. Epoch {epoch.isoformat()}. Refresh the snapshot with `scripts/build_solar_snapshot.py`."), kind="info", title="Solar Data in Use"))
+    _out.append(
+        mo.callout(
+            mo.md(
+                f"Observed F10.7 and Ap through {HIST_END_DATE:%Y-%m} (CelesTrak), the NOAA SWPC Cycle 25 prediction as {_solar_note}, and a climatology of cycles 20 to 24 past the forecast. Epoch {epoch.isoformat()}. Refresh the snapshot with `scripts/build_solar_snapshot.py`."
+            ),
+            kind="info",
+            title="Solar Data in Use",
+        )
+    )
     if input_warnings:
         _out.append(mo.callout(mo.md("; ".join(input_warnings) + "."), kind="warn", title="Inputs Not Usable"))
     mo.vstack(_out)
@@ -1430,7 +1651,7 @@ def _(
 
 
 @app.cell
-def _(PALETTE, alt, epoch, mission_days, mo, pd, rule_x, runs, style_chart):
+def _(alt, epoch, mission_days, mo, pd, rule_x, runs, scenario_color, style_chart):
     _rows = []
     for _r in runs:
         _t, _h = _r["t"], _r["h"]
@@ -1439,66 +1660,82 @@ def _(PALETTE, alt, epoch, mission_days, mo, pd, rule_x, runs, style_chart):
         if _idx[-1] != len(_t) - 1:
             _idx.append(len(_t) - 1)
         for _i in _idx:
-            _rows.append({"Years": _t[_i] / 365.25, "Altitude (km)": _h[_i], "Scenario": _r["name"], "group": _r["group"]})
+            _rows.append(
+                {"Years": _t[_i] / 365.25, "Altitude (km)": _h[_i], "Scenario": _r["name"], "group": _r["group"]}
+            )
     _df = pd.DataFrame(_rows)
     _order = [r["name"] for r in runs]
-    _colors = {}
-    for _r in runs:
-        if _r["which"] == "nominal":
-            _colors[_r["name"]] = PALETTE["yellow"]
-        elif _r["which"] == "low":
-            _colors[_r["name"]] = PALETTE["red"]
-        elif _r["which"] == "high":
-            _colors[_r["name"]] = PALETTE["green"]
-        elif _r["group"] == "constant":
-            _colors[_r["name"]] = PALETTE["blue"]
-        else:
-            _colors[_r["name"]] = PALETTE["gray"]
-    _base = alt.Chart(_df).encode(
-        x=alt.X("Years:Q", title=f"Years after {epoch.isoformat()}"),
-        y=alt.Y("Altitude (km):Q", title="Altitude (km)", scale=alt.Scale(zero=False)),
-        color=alt.Color("Scenario:N", scale=alt.Scale(domain=_order, range=[_colors[n] for n in _order]), legend=alt.Legend(title=None, columns=3)),
-        strokeDash=alt.condition(alt.datum.group == "constant", alt.value([6, 4]), alt.value([1, 0])),
-        strokeWidth=alt.condition(alt.datum.group == "analog", alt.value(1.0), alt.value(2.2)),
-        tooltip=["Scenario:N", alt.Tooltip("Years:Q", format=".2f"), alt.Tooltip("Altitude (km):Q", format=".0f")],
-    ).mark_line()
+    _colors = {_r["name"]: scenario_color(_r["which"], _r["group"]) for _r in runs}
+    _base = (
+        alt.Chart(_df)
+        .encode(
+            x=alt.X("Years:Q", title=f"Years after {epoch.isoformat()}"),
+            y=alt.Y("Altitude (km):Q", title="Altitude (km)", scale=alt.Scale(zero=False)),
+            color=alt.Color(
+                "Scenario:N",
+                scale=alt.Scale(domain=_order, range=[_colors[n] for n in _order]),
+                legend=alt.Legend(title=None, columns=3, orient="bottom"),
+            ),
+            strokeDash=alt.condition(alt.datum.group == "constant", alt.value([6, 4]), alt.value([1, 0])),
+            strokeWidth=alt.condition(alt.datum.group == "analog", alt.value(1.0), alt.value(2.2)),
+            tooltip=["Scenario:N", alt.Tooltip("Years:Q", format=".2f"), alt.Tooltip("Altitude (km):Q", format=".0f")],
+        )
+        .mark_line()
+    )
     _chart = style_chart(
         (_base + rule_x(mission_days / 365.25)).properties(
-            title="Altitude over Time – yellow is NOAA nominal, red and green its low and high band, thin gray the analog cycles, dashed the constant case; the dashed rule is end of mission"
-        ),
-        height=360,
+            title="Altitude over Time – teal is NOAA nominal, indigo and ochre its low and high band, thin gray the analog cycles, dashed violet the constant case; the dashed rule is end of mission",
+            width="container",
+            height=360,
+        )
     )
     mo.vstack([mo.md("## Decay"), mo.ui.altair_chart(_chart)])
     return
 
 
 @app.cell
-def _(PALETTE, alt, epoch, mission_days, mo, pd, rule_x, runs, style_chart):
+def _(alt, epoch, mission_days, mo, pd, rule_x, runs, scenario_color, style_chart):
     _rows = []
     for _r in runs:
         _t, _f = _r["t"], _r["f107"]
         _stride = max(1, len(_t) // 300)
         for _i in range(0, len(_t), _stride):
-            _rows.append({"Years": _t[_i] / 365.25, "F10.7 (sfu)": _f[_i], "Scenario": _r["name"], "group": _r["group"]})
+            _rows.append(
+                {"Years": _t[_i] / 365.25, "F10.7 (sfu)": _f[_i], "Scenario": _r["name"], "group": _r["group"]}
+            )
     _df = pd.DataFrame(_rows)
     _order = [r["name"] for r in runs]
-    _colors = {r["name"]: (PALETTE["yellow"] if r["which"] == "nominal" else PALETTE["red"] if r["which"] == "low" else PALETTE["green"] if r["which"] == "high" else PALETTE["blue"] if r["group"] == "constant" else PALETTE["gray"]) for r in runs}
-    _base = alt.Chart(_df).encode(
-        x=alt.X("Years:Q", title=f"Years after {epoch.isoformat()}"),
-        y=alt.Y("F10.7 (sfu):Q", title="F10.7 (sfu)", scale=alt.Scale(zero=False)),
-        color=alt.Color("Scenario:N", scale=alt.Scale(domain=_order, range=[_colors[n] for n in _order]), legend=None),
-        strokeDash=alt.condition(alt.datum.group == "constant", alt.value([6, 4]), alt.value([1, 0])),
-        strokeWidth=alt.condition(alt.datum.group == "analog", alt.value(1.0), alt.value(2.2)),
-        tooltip=["Scenario:N", alt.Tooltip("Years:Q", format=".2f"), alt.Tooltip("F10.7 (sfu):Q", format=".0f")],
-    ).mark_line()
-    _chart = style_chart((_base + rule_x(mission_days / 365.25)).properties(title="Solar Flux Each Scenario Flew Through – same colors as the decay chart, until each re-entry"), height=260)
+    _colors = {r["name"]: scenario_color(r["which"], r["group"]) for r in runs}
+    _base = (
+        alt.Chart(_df)
+        .encode(
+            x=alt.X("Years:Q", title=f"Years after {epoch.isoformat()}"),
+            y=alt.Y("F10.7 (sfu):Q", title="F10.7 (sfu)", scale=alt.Scale(zero=False)),
+            color=alt.Color(
+                "Scenario:N", scale=alt.Scale(domain=_order, range=[_colors[n] for n in _order]), legend=None
+            ),
+            strokeDash=alt.condition(alt.datum.group == "constant", alt.value([6, 4]), alt.value([1, 0])),
+            strokeWidth=alt.condition(alt.datum.group == "analog", alt.value(1.0), alt.value(2.2)),
+            tooltip=["Scenario:N", alt.Tooltip("Years:Q", format=".2f"), alt.Tooltip("F10.7 (sfu):Q", format=".0f")],
+        )
+        .mark_line()
+    )
+    _chart = style_chart(
+        (_base + rule_x(mission_days / 365.25)).properties(
+            title="Solar Flux Each Scenario Flew Through – same colors as the decay chart, until each re-entry",
+            width="container",
+            height=260,
+        )
+    )
     mo.vstack([mo.md("## Solar Activity Assumed"), mo.ui.altair_chart(_chart)])
     return
 
 
 @app.cell
 def _(
+    MUTED,
     PALETTE,
+    SCENARIO_COLOR,
     alt,
     altitude_km,
     bc_mission,
@@ -1515,31 +1752,96 @@ def _(
     sweep_bc_y,
     sweep_date_rows,
 ):
-    _a = pd.DataFrame({"Altitude (km)": sweep_alt_x, "Lifetime (yr)": [horizon_years if y is None else y for y in sweep_alt_y], "open": [y is None for y in sweep_alt_y]})
-    _ca = alt.Chart(_a).mark_line(point=True, color=PALETTE["yellow"]).encode(
-        x=alt.X("Altitude (km):Q", title="Initial altitude (km)"),
-        y=alt.Y("Lifetime (yr):Q", title="Lifetime (yr), log", scale=alt.Scale(type="log")),
-        tooltip=[alt.Tooltip("Altitude (km):Q"), alt.Tooltip("Lifetime (yr):Q", format=".2f"), "open:N"],
+    _a = pd.DataFrame(
+        {
+            "Altitude (km)": sweep_alt_x,
+            "Lifetime (yr)": [horizon_years if y is None else y for y in sweep_alt_y],
+            "open": [y is None for y in sweep_alt_y],
+        }
     )
-    _chart_a = style_chart((_ca + rule_x(altitude_km)).properties(title=f"Lifetime Against Initial Altitude, NOAA nominal – points at the horizon of {fmt_num(horizon_years, 0)} yr are open; the rule is the panel altitude"), height=260)
-    _b = pd.DataFrame({"Ballistic coefficient (kg/m²)": [bc_mission * f for f in sweep_bc_factors], "Lifetime (yr)": [horizon_years if y is None else y for y in sweep_bc_y]})
-    _cb = alt.Chart(_b).mark_line(point=True, color=PALETTE["yellow"]).encode(
-        x=alt.X("Ballistic coefficient (kg/m²):Q", title="Ballistic coefficient m / (Cd · A) (kg/m²)"),
-        y=alt.Y("Lifetime (yr):Q", title="Lifetime (yr)"),
-        tooltip=[alt.Tooltip("Ballistic coefficient (kg/m²):Q", format=".1f"), alt.Tooltip("Lifetime (yr):Q", format=".2f")],
+    _ca = (
+        alt.Chart(_a)
+        .mark_line(point=True, color=PALETTE[0])
+        .encode(
+            x=alt.X("Altitude (km):Q", title="Initial altitude (km)"),
+            y=alt.Y("Lifetime (yr):Q", title="Lifetime (yr), log", scale=alt.Scale(type="log")),
+            tooltip=[alt.Tooltip("Altitude (km):Q"), alt.Tooltip("Lifetime (yr):Q", format=".2f"), "open:N"],
+        )
     )
-    _chart_b = style_chart((_cb + rule_x(bc_mission)).properties(title="Lifetime Against Ballistic Coefficient, NOAA nominal – half to twice the panel value; the rule is the panel value"), height=260)
-    _d = pd.DataFrame([{**r, "Lifetime (yr)": horizon_years if r["Lifetime (yr)"] is None else r["Lifetime (yr)"]} for r in sweep_date_rows])
-    _dcol = {"nominal": PALETTE["yellow"], "low": PALETTE["red"], "high": PALETTE["green"]}
+    _chart_a = style_chart(
+        (_ca + rule_x(altitude_km)).properties(
+            title=f"Lifetime Against Initial Altitude, NOAA nominal – points at the horizon of {fmt_num(horizon_years, 0)} yr are open; the rule is the panel altitude",
+            width="container",
+            height=260,
+        )
+    )
+    _b = pd.DataFrame(
+        {
+            "Ballistic coefficient (kg/m²)": [bc_mission * f for f in sweep_bc_factors],
+            "Lifetime (yr)": [horizon_years if y is None else y for y in sweep_bc_y],
+        }
+    )
+    _cb = (
+        alt.Chart(_b)
+        .mark_line(point=True, color=PALETTE[0])
+        .encode(
+            x=alt.X("Ballistic coefficient (kg/m²):Q", title="Ballistic coefficient m / (Cd · A) (kg/m²)"),
+            y=alt.Y("Lifetime (yr):Q", title="Lifetime (yr)"),
+            tooltip=[
+                alt.Tooltip("Ballistic coefficient (kg/m²):Q", format=".1f"),
+                alt.Tooltip("Lifetime (yr):Q", format=".2f"),
+            ],
+        )
+    )
+    _chart_b = style_chart(
+        (_cb + rule_x(bc_mission)).properties(
+            title="Lifetime Against Ballistic Coefficient, NOAA nominal – half to twice the panel value; the rule is the panel value",
+            width="container",
+            height=260,
+        )
+    )
+    _d = pd.DataFrame(
+        [
+            {**r, "Lifetime (yr)": horizon_years if r["Lifetime (yr)"] is None else r["Lifetime (yr)"]}
+            for r in sweep_date_rows
+        ]
+    )
+    _dcol = SCENARIO_COLOR
     _order = list(dict.fromkeys(_d["Scenario"]))
-    _cc = alt.Chart(_d).mark_line(point=True).encode(
-        x=alt.X("Launch:T", title="Launch date"),
-        y=alt.Y("Lifetime (yr):Q", title="Lifetime (yr)"),
-        color=alt.Color("Scenario:N", scale=alt.Scale(domain=_order, range=[_dcol[w] for w in dict.fromkeys(_d["which"])]), legend=alt.Legend(title=None)),
-        tooltip=["Scenario:N", "Launch:T", alt.Tooltip("Lifetime (yr):Q", format=".2f")],
+    _cc = (
+        alt.Chart(_d)
+        .mark_line(point=True)
+        .encode(
+            x=alt.X("Launch:T", title="Launch date"),
+            y=alt.Y("Lifetime (yr):Q", title="Lifetime (yr)"),
+            color=alt.Color(
+                "Scenario:N",
+                scale=alt.Scale(domain=_order, range=[_dcol[w] for w in dict.fromkeys(_d["which"])]),
+                legend=alt.Legend(title=None, orient="bottom"),
+            ),
+            tooltip=["Scenario:N", "Launch:T", alt.Tooltip("Lifetime (yr):Q", format=".2f")],
+        )
     )
-    _chart_c = style_chart((_cc + alt.Chart(alt.Data(values=[{"x": epoch.isoformat()}])).mark_rule(strokeDash=[6, 4], color=PALETTE["gray"]).encode(x="x:T")).properties(title="Lifetime Against Launch Date, same spacecraft and altitude – where in the solar cycle the mission starts; the rule is the panel epoch"), height=280)
-    mo.vstack([mo.md("## Sensitivity"), mo.ui.altair_chart(_chart_c), mo.ui.altair_chart(_chart_a), mo.ui.altair_chart(_chart_b)])
+    _chart_c = style_chart(
+        (
+            _cc
+            + alt.Chart(alt.Data(values=[{"x": epoch.isoformat()}]))
+            .mark_rule(strokeDash=[6, 4], color=MUTED)
+            .encode(x="x:T")
+        ).properties(
+            title="Lifetime Against Launch Date, same spacecraft and altitude – where in the solar cycle the mission starts; the rule is the panel epoch",
+            width="container",
+            height=280,
+        )
+    )
+    mo.vstack(
+        [
+            mo.md("## Sensitivity"),
+            mo.ui.altair_chart(_chart_c),
+            mo.ui.altair_chart(_chart_a),
+            mo.ui.altair_chart(_chart_b),
+        ]
+    )
     return
 
 
@@ -1564,31 +1866,65 @@ def _(
 ):
     _tab3 = density_slice(inclination_deg)
     _rows = []
-    for _f, _label in ((70, "F10.7 = 70 (minimum)"), (150, "F10.7 = 150 (moderate)"), (250, "F10.7 = 250 (strong maximum)")):
+    for _f, _label in (
+        (70, "F10.7 = 70 (minimum)"),
+        (150, "F10.7 = 150 (moderate)"),
+        (250, "F10.7 = 250 (strong maximum)"),
+    ):
         for _h in DENS_ALT:
-            _rows.append({"Altitude (km)": float(_h), "Density (kg/m³)": rho_kg_m3(float(_h), _f, 15.0, _tab3), "Case": _label})
+            _rows.append(
+                {"Altitude (km)": float(_h), "Density (kg/m³)": rho_kg_m3(float(_h), _f, 15.0, _tab3), "Case": _label}
+            )
     _dd = pd.DataFrame(_rows)
-    _cd = alt.Chart(_dd).mark_line().encode(
-        x=alt.X("Altitude (km):Q", title="Altitude (km)"),
-        y=alt.Y("Density (kg/m³):Q", title="Mass density (kg/m³), log", scale=alt.Scale(type="log")),
-        color=alt.Color("Case:N", scale=alt.Scale(range=[PALETTE["blue"], PALETTE["yellow"], PALETTE["red"]]), legend=alt.Legend(title=None)),
-        tooltip=["Case:N", alt.Tooltip("Altitude (km):Q"), alt.Tooltip("Density (kg/m³):Q", format=".2e")],
+    _cd = (
+        alt.Chart(_dd)
+        .mark_line()
+        .encode(
+            x=alt.X("Altitude (km):Q", title="Altitude (km)"),
+            y=alt.Y("Density (kg/m³):Q", title="Mass density (kg/m³), log", scale=alt.Scale(type="log")),
+            color=alt.Color(
+                "Case:N", scale=alt.Scale(range=PALETTE[:3]), legend=alt.Legend(title=None, orient="bottom")
+            ),
+            tooltip=["Case:N", alt.Tooltip("Altitude (km):Q"), alt.Tooltip("Density (kg/m³):Q", format=".2e")],
+        )
     )
-    _chart_d = style_chart(_cd.properties(title=f"NRLMSIS 2.1 Density Along a {fmt_num(inclination_deg, 1)}° Orbit at Ap 15 – three levels of solar flux"), height=260)
+    _chart_d = style_chart(
+        _cd.properties(
+            title=f"NRLMSIS 2.1 Density Along a {fmt_num(inclination_deg, 1)}° Orbit at Ap 15 – three levels of solar flux",
+            width="container",
+            height=260,
+        )
+    )
     _stride = max(1, len(ltdn_walk_t) // 400)
-    _ld = pd.DataFrame({"Years": [t / 365.25 for t in ltdn_walk_t[::_stride]], "LTDN shift (min)": ltdn_walk_min[::_stride]})
-    _cl = alt.Chart(_ld).mark_line(color=PALETTE["yellow"]).encode(
-        x=alt.X("Years:Q", title="Years after the epoch"),
-        y=alt.Y("LTDN shift (min):Q", title="Local time of the node, shift from start (min)"),
-        tooltip=[alt.Tooltip("Years:Q", format=".2f"), alt.Tooltip("LTDN shift (min):Q", format=".0f")],
+    _ld = pd.DataFrame(
+        {"Years": [t / 365.25 for t in ltdn_walk_t[::_stride]], "LTDN shift (min)": ltdn_walk_min[::_stride]}
     )
-    _end_txt = "" if ltdn_walk_mission_end_min is None else f"; {fmt_num(ltdn_walk_mission_end_min, 0)} min at end of mission"
-    _chart_l = style_chart((_cl + rule_x(mission_days / 365.25)).properties(title=f"Local Time Drift Along the NOAA Nominal Decay – J2 node rate against the mean Sun{_end_txt}; the rule is end of mission"), height=240)
+    _cl = (
+        alt.Chart(_ld)
+        .mark_line(color=PALETTE[0])
+        .encode(
+            x=alt.X("Years:Q", title="Years after the epoch"),
+            y=alt.Y("LTDN shift (min):Q", title="Local time of the node, shift from start (min)"),
+            tooltip=[alt.Tooltip("Years:Q", format=".2f"), alt.Tooltip("LTDN shift (min):Q", format=".0f")],
+        )
+    )
+    _end_txt = (
+        "" if ltdn_walk_mission_end_min is None else f"; {fmt_num(ltdn_walk_mission_end_min, 0)} min at end of mission"
+    )
+    _chart_l = style_chart(
+        (_cl + rule_x(mission_days / 365.25)).properties(
+            title=f"Local Time Drift Along the NOAA Nominal Decay – J2 node rate against the mean Sun{_end_txt}; the rule is end of mission",
+            width="container",
+            height=240,
+        )
+    )
     _items = {"Density model": mo.ui.altair_chart(_chart_d)}
     if sso_like:
         _items["Local Time Drift"] = mo.ui.altair_chart(_chart_l)
     else:
-        _items["Local Time Drift"] = mo.md("The orbit is far from Sun-synchronous, so the node walks around the clock in months; the drift figure in the results table says how fast.")
+        _items["Local Time Drift"] = mo.md(
+            "The orbit is far from Sun-synchronous, so the node walks around the clock in months; the drift figure in the results table says how fast."
+        )
     mo.accordion(_items)
     return
 
@@ -1598,22 +1934,36 @@ def _(dt, epoch, fmt_num, mission_years, mo, pd, runs):
     _rows = []
     for _r in runs:
         _y = None if _r["lifetime_days"] is None else _r["lifetime_days"] / 365.25
-        _rows.append({
-            "Scenario": _r["name"],
-            "Lifetime (yr)": None if _y is None else round(_y, 2),
-            "Re-entry": "beyond horizon" if _y is None else (epoch + dt.timedelta(days=_r["lifetime_days"])).isoformat(),
-            "Altitude at end of mission (km)": None if _r["h_mission_end"] is None else round(_r["h_mission_end"], 1),
-            "After mission (yr)": None if _y is None else round(max(0.0, _y - mission_years), 2),
-            "Source": _r["source"],
-        })
+        _rows.append(
+            {
+                "Scenario": _r["name"],
+                "Lifetime (yr)": None if _y is None else round(_y, 2),
+                "Re-entry": "beyond horizon"
+                if _y is None
+                else (epoch + dt.timedelta(days=_r["lifetime_days"])).isoformat(),
+                "Altitude at end of mission (km)": None
+                if _r["h_mission_end"] is None
+                else round(_r["h_mission_end"], 1),
+                "After mission (yr)": None if _y is None else round(max(0.0, _y - mission_years), 2),
+                "Source": _r["source"],
+            }
+        )
     scenario_table = pd.DataFrame(_rows)
-    _tl = pd.DataFrame({"Day": [round(t, 1) for t in runs[0]["t"]], "Altitude (km)": [round(h, 2) for h in runs[0]["h"]], "F10.7 (sfu)": [round(f, 1) for f in runs[0]["f107"]]})
+    _tl = pd.DataFrame(
+        {
+            "Day": [round(t, 1) for t in runs[0]["t"]],
+            "Altitude (km)": [round(h, 2) for h in runs[0]["h"]],
+            "F10.7 (sfu)": [round(f, 1) for f in runs[0]["f107"]],
+        }
+    )
     timeline_nominal = _tl
-    mo.vstack([
-        mo.md("## Scenarios"),
-        mo.ui.table(scenario_table, selection=None, pagination=False),
-        mo.accordion({f"NOAA nominal timeline ({fmt_num(len(_tl), 0)} steps)": mo.ui.table(_tl, selection=None)}),
-    ])
+    mo.vstack(
+        [
+            mo.md("## Scenarios"),
+            mo.ui.table(scenario_table, selection=None, pagination=False),
+            mo.accordion({f"NOAA nominal timeline ({fmt_num(len(_tl), 0)} steps)": mo.ui.table(_tl, selection=None)}),
+        ]
+    )
     return (scenario_table,)
 
 
@@ -1677,7 +2027,16 @@ def _(
     _pname = profile_name or "BAC demo mission (defaults)"
 
     def _tstr(s):
-        return '"' + str(s).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t") + '"'
+        return (
+            '"'
+            + str(s)
+            .replace("\\", "\\\\")
+            .replace('"', '\\"')
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+            + '"'
+        )
 
     def _tval(v):
         if hasattr(v, "item"):
@@ -1699,58 +2058,175 @@ def _(
         return "" if s is None else f"{k} = {s}\n"
 
     _p = io.StringIO()
-    _p.write(textwrap.dedent(f"""\
+    _p.write(
+        textwrap.dedent(f"""\
         # BAC Orbital Lifetime profile
         # Generated {_stamp} UTC (Unix {_unix}) with BAC Orbital Lifetime {TOOL_VERSION}, bac.page/{TOOL_SLUG}.
         # Shared tables follow the mission profile contract; [results.orbital_lifetime] is ignored on load.
-        """))
+        """)
+    )
     _p.write(_kv("name", _pname) + _kv("tool", "bac_orbital_lifetime") + _kv("tool_version", TOOL_VERSION) + "\n")
-    _p.write("[orbit]\n" + _kv("altitude_km", altitude_km) + _kv("inclination_deg", inclination_deg) + _kv("ltdn_hours", ltdn_hours) + _kv("epoch", epoch.isoformat() + "T00:00:00Z") + "\n")
+    _p.write(
+        "[orbit]\n"
+        + _kv("altitude_km", altitude_km)
+        + _kv("inclination_deg", inclination_deg)
+        + _kv("ltdn_hours", ltdn_hours)
+        + _kv("epoch", epoch.isoformat() + "T00:00:00Z")
+        + "\n"
+    )
     _p.write("[mission]\n" + _kv("duration_years", mission_years) + "\n")
-    _p.write("[spacecraft]\n" + _kv("form_factor", form_factor) + _kv("size_x_cm", size_cm[0]) + _kv("size_y_cm", size_cm[1]) + _kv("size_z_cm", size_cm[2]) + _kv("mass_kg", mass_kg) + _kv("drag_coefficient", cd) + _kv("attitude_mission", att_mission) + _kv("attitude_after_mission", att_after) + "\n")
+    _p.write(
+        "[spacecraft]\n"
+        + _kv("form_factor", form_factor)
+        + _kv("size_x_cm", size_cm[0])
+        + _kv("size_y_cm", size_cm[1])
+        + _kv("size_z_cm", size_cm[2])
+        + _kv("mass_kg", mass_kg)
+        + _kv("drag_coefficient", cd)
+        + _kv("attitude_mission", att_mission)
+        + _kv("attitude_after_mission", att_after)
+        + "\n"
+    )
     for _d in deployables:
-        _p.write("[[deployables]]\n" + _kv("name", _d["name"]) + _kv("shape", _d["shape"]) + _kv("count", _d["count"]) + _kv("width_cm", _d["width_cm"]) + _kv("length_cm", _d["length_cm"]) + _kv("flow_angle_deg", _d["flow_angle_deg"]) + _kv("deployed", _d["deployed"]) + _kv("deploy_at_end_of_mission", _d["deploy_at_eom"]) + "\n")
-    _p.write("[solar]\n" + _kv("next_cycle_start", date_of_month_index(next_cycle_mi).strftime("%Y-%m")) + _kv("constant_f107", const_f107) + _kv("constant_ap", const_ap) + _kv("ap_override", ap_override) + _kv("fetch_live", fetch_live) + "\n")
+        _p.write(
+            "[[deployables]]\n"
+            + _kv("name", _d["name"])
+            + _kv("shape", _d["shape"])
+            + _kv("count", _d["count"])
+            + _kv("width_cm", _d["width_cm"])
+            + _kv("length_cm", _d["length_cm"])
+            + _kv("flow_angle_deg", _d["flow_angle_deg"])
+            + _kv("deployed", _d["deployed"])
+            + _kv("deploy_at_end_of_mission", _d["deploy_at_eom"])
+            + "\n"
+        )
+    _p.write(
+        "[solar]\n"
+        + _kv("next_cycle_start", date_of_month_index(next_cycle_mi).strftime("%Y-%m"))
+        + _kv("constant_f107", const_f107)
+        + _kv("constant_ap", const_ap)
+        + _kv("ap_override", ap_override)
+        + _kv("fetch_live", fetch_live)
+        + "\n"
+    )
     _p.write("[results.orbital_lifetime]\n")
-    _p.write(_kv("lifetime_years_nominal", lifetime_nominal) + _kv("lifetime_years_shortest", lifetime_shortest) + _kv("lifetime_years_longest", lifetime_longest))
+    _p.write(
+        _kv("lifetime_years_nominal", lifetime_nominal)
+        + _kv("lifetime_years_shortest", lifetime_shortest)
+        + _kv("lifetime_years_longest", lifetime_longest)
+    )
     _p.write(_kv("reentry_date_nominal", reentry_nominal.isoformat() if reentry_nominal else "beyond horizon"))
-    _p.write(_kv("mission_end_date", mission_end.isoformat()) + _kv("altitude_at_mission_end_km", h_mission_end_nominal) + _kv("disposal_years_nominal", disposal_nominal))
-    _p.write(_kv("complies_5yr_nominal", complies_5yr_nominal) + _kv("complies_5yr_longest", complies_5yr_longest) + _kv("complies_25yr_longest", complies_25yr_longest))
-    _p.write(_kv("ballistic_coefficient_kg_m2", bc_mission) + _kv("drag_area_mission_m2", area_mission_m2) + _kv("drag_area_after_m2", area_after_m2))
-    _p.write(_kv("ltdn_drift_min_per_year_start", ltdn_drift_start) + _kv("ltdn_drift_min_per_year_mission_end", ltdn_drift_mission_end))
+    _p.write(
+        _kv("mission_end_date", mission_end.isoformat())
+        + _kv("altitude_at_mission_end_km", h_mission_end_nominal)
+        + _kv("disposal_years_nominal", disposal_nominal)
+    )
+    _p.write(
+        _kv("complies_5yr_nominal", complies_5yr_nominal)
+        + _kv("complies_5yr_longest", complies_5yr_longest)
+        + _kv("complies_25yr_longest", complies_25yr_longest)
+    )
+    _p.write(
+        _kv("ballistic_coefficient_kg_m2", bc_mission)
+        + _kv("drag_area_mission_m2", area_mission_m2)
+        + _kv("drag_area_after_m2", area_after_m2)
+    )
+    _p.write(
+        _kv("ltdn_drift_min_per_year_start", ltdn_drift_start)
+        + _kv("ltdn_drift_min_per_year_mission_end", ltdn_drift_mission_end)
+    )
     _p.write(_kv("solar_snapshot_date", SOLAR_SNAPSHOT_DATE) + _kv("solar_prediction_source", noaa["source"]) + "\n")
     for _r in runs:
         _y = None if _r["lifetime_days"] is None else _r["lifetime_days"] / 365.25
-        _p.write("[[results.orbital_lifetime.scenarios]]\n" + _kv("name", _r["name"]) + _kv("lifetime_years", _y) + _kv("altitude_at_mission_end_km", _r["h_mission_end"]) + "\n")
+        _p.write(
+            "[[results.orbital_lifetime.scenarios]]\n"
+            + _kv("name", _r["name"])
+            + _kv("lifetime_years", _y)
+            + _kv("altitude_at_mission_end_km", _r["h_mission_end"])
+            + "\n"
+        )
     profile_toml = _p.getvalue()
 
     _md = io.StringIO()
     _md.write(f"# BAC Orbital Lifetime – {_pname}\n\n")
-    _md.write(f"Generated {_stamp} UTC (Unix {_unix}) with BAC Orbital Lifetime {TOOL_VERSION}, bac.page/{TOOL_SLUG}. Profile: {_pname}.\n\n")
+    _md.write(
+        f"Generated {_stamp} UTC (Unix {_unix}) with BAC Orbital Lifetime {TOOL_VERSION}, bac.page/{TOOL_SLUG}. Profile: {_pname}.\n\n"
+    )
     _md.write("## Headline Numbers\n\n")
-    _md.write(f"- Lifetime, NOAA nominal: {fmt_years(lifetime_nominal)} (re-entry {reentry_nominal.isoformat() if reentry_nominal else 'beyond horizon'})\n")
+    _md.write(
+        f"- Lifetime, NOAA nominal: {fmt_years(lifetime_nominal)} (re-entry {reentry_nominal.isoformat() if reentry_nominal else 'beyond horizon'})\n"
+    )
     _md.write(f"- Band: {fmt_years(lifetime_shortest)} to {fmt_years(lifetime_longest)}\n")
-    _md.write(f"- Mission {fmt_num(mission_years, 2)} yr from {epoch.isoformat()} to {mission_end.isoformat()}; altitude at end of mission {('–' if h_mission_end_nominal is None else fmt_num(h_mission_end_nominal, 0) + ' km')}\n")
-    _md.write(f"- {'!' if not complies_5yr_nominal else ''} 5-year disposal: nominal {'met' if complies_5yr_nominal else 'not met'}, longest scenario {'met' if complies_5yr_longest else 'not met'}; 25-year rule in the longest scenario {'met' if complies_25yr_longest else 'not met'}\n")
-    _md.write(f"- Ballistic coefficient {fmt_num(bc_mission, 1)} kg/m² (mass {fmt_num(mass_kg, 2)} kg, Cd {fmt_num(cd, 2)}, area {fmt_num(area_mission_m2 * 1e4, 0)} cm² in the mission attitude, {fmt_num(area_after_m2 * 1e4, 0)} cm² after)\n")
+    _md.write(
+        f"- Mission {fmt_num(mission_years, 2)} yr from {epoch.isoformat()} to {mission_end.isoformat()}; altitude at end of mission {('–' if h_mission_end_nominal is None else fmt_num(h_mission_end_nominal, 0) + ' km')}\n"
+    )
+    _md.write(
+        f"- {'!' if not complies_5yr_nominal else ''} 5-year disposal: nominal {'met' if complies_5yr_nominal else 'not met'}, longest scenario {'met' if complies_5yr_longest else 'not met'}; 25-year rule in the longest scenario {'met' if complies_25yr_longest else 'not met'}\n"
+    )
+    _md.write(
+        f"- Ballistic coefficient {fmt_num(bc_mission, 1)} kg/m² (mass {fmt_num(mass_kg, 2)} kg, Cd {fmt_num(cd, 2)}, area {fmt_num(area_mission_m2 * 1e4, 0)} cm² in the mission attitude, {fmt_num(area_after_m2 * 1e4, 0)} cm² after)\n"
+    )
     _md.write(f"- LTDN drift {fmt_num(ltdn_drift_start, 0)} min/yr at {fmt_num(altitude_km, 0)} km\n\n")
-    _md.write("## Scenarios\n\n| Scenario | Lifetime (yr) | Re-entry | Altitude at end of mission (km) | After mission (yr) |\n|---|---|---|---|---|\n")
+    _md.write(
+        "## Scenarios\n\n| Scenario | Lifetime (yr) | Re-entry | Altitude at end of mission (km) | After mission (yr) |\n|---|---|---|---|---|\n"
+    )
     for _row in scenario_table.to_dict("records"):
-        _md.write(f"| {_row['Scenario']} | {_row['Lifetime (yr)'] if _row['Lifetime (yr)'] is not None else '> horizon'} | {_row['Re-entry']} | {_row['Altitude at end of mission (km)'] if _row['Altitude at end of mission (km)'] is not None else '–'} | {_row['After mission (yr)'] if _row['After mission (yr)'] is not None else '–'} |\n")
+        _md.write(
+            f"| {_row['Scenario']} | {_row['Lifetime (yr)'] if _row['Lifetime (yr)'] is not None else '> horizon'} | {_row['Re-entry']} | {_row['Altitude at end of mission (km)'] if _row['Altitude at end of mission (km)'] is not None else '–'} | {_row['After mission (yr)'] if _row['After mission (yr)'] is not None else '–'} |\n"
+        )
     _md.write("\n## Assumptions\n\n" + ASSUMPTIONS_MD + "\n\n" + ACKNOWLEDGMENT_MD + "\n")
     report_md = _md.getvalue()
     scenarios_csv = scenario_table.to_csv(index=False)
 
-    _dl = mo.hstack([
-        mo.download(data=report_md.encode("utf-8"), filename=f"bac-orbital-lifetime-report-{_date}.md", label="Download report (.md)"),
-        mo.download(data=profile_toml.encode("utf-8"), filename=f"bac-orbital-lifetime-profile-{_date}.toml", label="Download profile (.toml)"),
-        mo.download(data=scenarios_csv.encode("utf-8"), filename=f"bac-orbital-lifetime-scenarios-{_date}.csv", label="Download scenarios (.csv)"),
-    ], justify="start", gap=1, wrap=True)
-    _ship = mo.hstack([
-        mo.download(data=PROFILE_BAC.encode("utf-8"), filename="bac-orbital-lifetime-profile-bac.toml", label="Shipped profile: BAC demo mission"),
-        mo.download(data=PROFILE_GENERIC.encode("utf-8"), filename="bac-orbital-lifetime-profile-generic.toml", label="Shipped profile: generic 3U"),
-    ], justify="start", gap=1, wrap=True)
-    mo.vstack([mo.md("## Export"), mo.md("The report carries the headline numbers, the scenario table and the assumptions; the profile round-trips through the loader and carries `[results.orbital_lifetime]` for the siblings."), _dl, _ship])
+    _dl = mo.hstack(
+        [
+            mo.download(
+                data=report_md.encode("utf-8"),
+                filename=f"bac-orbital-lifetime-report-{_date}.md",
+                label="Download report (.md)",
+            ),
+            mo.download(
+                data=profile_toml.encode("utf-8"),
+                filename=f"bac-orbital-lifetime-profile-{_date}.toml",
+                label="Download profile (.toml)",
+            ),
+            mo.download(
+                data=scenarios_csv.encode("utf-8"),
+                filename=f"bac-orbital-lifetime-scenarios-{_date}.csv",
+                label="Download scenarios (.csv)",
+            ),
+        ],
+        justify="start",
+        gap=1,
+        wrap=True,
+    )
+    _ship = mo.hstack(
+        [
+            mo.download(
+                data=PROFILE_BAC.encode("utf-8"),
+                filename="bac-orbital-lifetime-profile-bac.toml",
+                label="Shipped profile: BAC demo mission",
+            ),
+            mo.download(
+                data=PROFILE_GENERIC.encode("utf-8"),
+                filename="bac-orbital-lifetime-profile-generic.toml",
+                label="Shipped profile: generic 3U",
+            ),
+        ],
+        justify="start",
+        gap=1,
+        wrap=True,
+    )
+    mo.vstack(
+        [
+            mo.md("## Export"),
+            mo.md(
+                "The report carries the headline numbers, the scenario table and the assumptions; the profile round-trips through the loader and carries `[results.orbital_lifetime]` for the siblings."
+            ),
+            _dl,
+            _ship,
+        ]
+    )
     return
 
 
@@ -1784,9 +2260,10 @@ def _(mo):
     mo.md("""
     ## Revision History
 
-        | Version | Date | Change |
-        |---|---|---|
-        | 0.2.0 | 2026-09-18 | Lifetime against launch date sweep (quarterly over eight years, three NOAA scenarios); deployables can deploy at end of mission (drag sail, boom); scenario sources in the CSV. |
+    | Version | Date | Change |
+    |---|---|---|
+    | 0.2.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the BAC profile, its name and the panel defaults move to 500 km and the matching sun-synchronous inclination 97.4°; the lifetime figures move the most of the four tools. Style cell replaced by the siblings' byte-identical one and the chart-conventions cell rewritten in their shape (nebula series colors in place of the semantic yellow/red/green; the scenario map and the chart titles follow), the revision table's indentation fixed, the file formatted with the repository's ruff. First edit made in the bac-utils repository; the molab copy is taken from here. |
+    | 0.2.0 | 2026-09-18 | Lifetime against launch date sweep (quarterly over eight years, three NOAA scenarios); deployables can deploy at end of mission (drag sail, boom); scenario sources in the CSV. |
     | 0.1.0 | 2026-09-17 | First version: NRLMSIS 2.1 table, NOAA prediction with band, six analog cycles, constant case, deployables, attitude switch, local time drift, sensitivity sweeps, profile contract with `[results.orbital_lifetime]`. |
     """)
     return
