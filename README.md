@@ -10,7 +10,7 @@ This table is the record of what exists, what is being worked on and what is pla
 
 | Tool | Type | Domain | What it does | Status | Version |
 | :-- | :-- | :-- | :-- | :-- | :-- |
-| [`bac-common`](lib/bac-common/) | library | CLI scaffold | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary, span-preserving s-expression parser, test harness | available | v0.2.2 |
+| [`bac-common`](lib/bac-common/) | library | CLI scaffold | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary, span-preserving s-expression parser, STEP header metadata, test harness | available | v0.3.0 |
 | [`bac-kicad-common`](lib/bac-kicad-common/) | library | KiCad | Shared KiCad library tooling: TOML field rules, property rendering for KiCad 9 and 10, span edits, write-back with backup | available | v0.1.0 |
 | [`bac-antenna-optimizer`](tools/bac-antenna-optimizer/) | CLI | RF | Antenna design around openEMS: parametric geometry, meshing rules, band targets, cavity-model pre-tuner, tolerance sweeps, sensitivity packs, reports with drawings, charts and KiCad board files | available | v0.7.4 |
 | [`bac-antenna-visualizer`](notebooks/bac-antenna-visualizer/) | marimo notebook | RF | A slider per geometry parameter over an optimizer sensitivity pack: S-parameters, Smith chart, gain and axial ratio, pattern cuts, 3D pattern and fields; runs locally, with a frozen demo snapshot for molab under `demo/` that fetches its packs from the repository | available | v0.3.4 |
@@ -20,7 +20,7 @@ This table is the record of what exists, what is being worked on and what is pla
 | [`bac-csr-ingest`](tools/bac-csr-ingest/) | CLI | resources | Ingests documents and links into the CubeSat Resources site: extraction, LLM classification, review, upload, index, commit | available | v0.4.0 |
 | [`bac-issue-print`](tools/bac-issue-print/) | CLI | repo | Prints a Codeberg issue with all comments as Markdown | available | v0.1.0 |
 | `bac-freecad-generate-artifacts` | CLI | CAD | FreeCAD counterpart of the KiCad artifacts tool: exports the file types and iterations of a part through the FreeCAD CLI, renders previews (absorbs `bac-cad-preview`), fills missing author, organisation and part metadata in STEP and 3MF output | planned | – |
-| `bac-kicad-generate-artifacts` | CLI | KiCad | Produces the release bundle for a KiCad project: render, pinout, schematic PDF, BOM, iBOM, Gerbers, drills, STEP, QR marker, ZIP | planned | – |
+| [`bac-kicad-generate-artifacts`](tools/bac-kicad-generate-artifacts/) | CLI | KiCad | Produces the release bundle for a KiCad project through kicad-cli: render, pinout, schematic PDF, BOM, iBOM, Gerbers, drills, centroid, STEP with header metadata, QR code on a copy of the board, manufacturing ZIP; panels without a schematic | available | v0.6.0 |
 | [`bac-kicad-hlabels`](tools/bac-kicad-hlabels/) | CLI | KiCad | Emits hierarchical-label blocks for a list of net names, ready to paste into a schematic | available | v0.1.0 |
 | [`bac-kicad-libcheck`](tools/bac-kicad-libcheck/) | CLI | KiCad | Verifies a library project: every symbol and footprint placed once, 3D models resolvable, in sync per KiCad's ERC/DRC | available | v0.2.0 |
 | `bac-kicad-maintain` | CLI | KiCad | Maintenance of project files: text and courtyard normalisation on boards, via resizing, schematic label sizes, library namespace migration, size statistics | planned | – |
@@ -96,6 +96,7 @@ Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool n
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.9.0 | 2026-10-06 | `bac-kicad-generate-artifacts` v0.6.0 joins on `bac-common`: the 0.5.0 stage architecture with the installed 0.4.2's behaviour, the live-run bugs of 2026-10-02 fixed (names from the project stem, no doubled prefix, no spaces in Gerber names, `.gbrjob` rewritten), a QR stage on `bac_common.sexp` after Emil Fresk's kicad-qr-inserter, STEP header metadata through the new `bac_common.cad` (`bac-common` v0.3.0), kicad-cli 10 targeted directly; the deployment switch and a synthetic project as fixtures. |
 | 0.8.5 | 2026-10-06 | The notebooks' bac.page links are the molab short links (`bac.page/molab-<tool>`, the demo at `molab-antenna-viz-demo`); five patch bumps. |
 | 0.8.4 | 2026-10-06 | `bac-orbital-lifetime` v0.2.3: the "Solar Activity Assumed" chart drew nothing in the browser since 0.1.0 (a dot in the data column name is nested access to Vega-Lite). The visualizer demo fetches its two S-band packs from `notebooks/bac-antenna-visualizer/demo/packs/` (now tracked) when none sit beside it, so a molab mirror of the file works as is. |
 | 0.8.3 | 2026-10-06 | Chart titles that Altair clipped are split into title and subtitle in the five notebooks (`chart_title` in the shared chart-conventions cell): `bac-link-budget` v0.7.2, `bac-optical-payload` v0.7.2, `bac-power-budget` v0.5.2, `bac-orbital-lifetime` v0.2.2, `bac-antenna-visualizer` v0.3.3. The tool table gains a Type column and links every available tool to its directory. |

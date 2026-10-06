@@ -1,6 +1,6 @@
 [project]
 name = "bac-common"
-version = "0.2.1"
+version = "0.3.0"
 description = "Shared CLI scaffold for Build a CubeSat tools: standard flags, config, terminal profile, error boundary."
 readme = "README.md"
 license = { text = "MIT" }

@@ -1,0 +1,13 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "bbbb0000-0000-4000-8000-000000000003")
+	(paper "A4")
+	(title_block
+		(title "bac Synth Board v2 – Power")
+		(rev "3")
+	)
+	(lib_symbols)
+	(embedded_fonts no)
+)
