@@ -12,7 +12,7 @@
 
 import marimo
 
-__generated_with = "0.24.2"
+__generated_with = "0.25.0"
 app = marimo.App(width="medium", auto_download=["html"])
 
 
@@ -114,7 +114,7 @@ def _():
 def _(np):
     # Constants, reference data and the small set of formulas everything uses.
 
-    TOOL_VERSION = "0.7.1"
+    TOOL_VERSION = "0.7.2"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -2245,12 +2245,17 @@ def _(alt, mo, modes):
             .configure_view(strokeWidth=0)
         )
 
+    def chart_title(text, *notes):
+        """A short title with the reading notes as subtitle lines – Altair never wraps a title, so a long one is clipped."""
+        return alt.Title(text, subtitle=list(notes), subtitleColor=MUTED, subtitleFontSize=11) if notes else text
+
     return (
         IS_DARK,
         MUTED,
         PALETTE,
         SERIES_ORDER,
         TEXT,
+        chart_title,
         rule_label,
         rule_x,
         rule_y,
@@ -2536,6 +2541,7 @@ def _(
     PALETTE,
     TEXT,
     alt,
+    chart_title,
     fmt_int,
     lat_deg,
     lon_deg,
@@ -2648,7 +2654,11 @@ def _(
             width=_w,
             height=_h,
             projection=_proj,
-            title=f"Around {station_name} – the circle the station sees above {ui_min_el.value:g}°, one day of ground track from the first orbit phase, and the samples in view",
+            title=chart_title(
+                f"Around {station_name}",
+                f"The circle the station sees above {ui_min_el.value:g}°, one day of ground track from the first orbit phase,",
+                "and the samples in view",
+            ),
         )
     )
     _credit = (
@@ -3803,6 +3813,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped at the chart width are split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell). No change to the numbers. |
     | 0.7.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): both BAC profiles and the panel default move to 500 km; the sun-synchronous inclination for 500 km is 97.4° (the 450 km profiles carried that value already, computed for 500 km). Every result of the UHF and S-band profiles moves with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.7.0 | 2026-09-14 | Review fixes: duplex is an explicit hardware setting under Spacecraft (half or full) and no longer inferred from a frequency difference, with a callout for full duplex on one frequency; the 10th-percentile day counts every simulated station-day, the ones without a pass as zero, and sits under the card whose margin it uses; a mode name that repeats an earlier row's is skipped and reported, since every curve and card looks a mode up by name; LoRa volumes use the packet payload over its time on air (SX1276 datasheet §4.1.1.7) from new payload and preamble inputs instead of the nominal rate less framing overhead; the target check covers every enabled direction, uplinks named as such; mode-table numbers must be finite or the row is skipped and reported; profile export escapes newlines, tabs and carriage returns. Follow-up round, mirroring the optical payload: dependencies as minimum bounds; profile names its tool and writes `[results.link_budget]` with the usable volume, its role, pass statistics and frequencies; a role dropdown (low rate / high rate); optical payload and power budget profiles load with their orbit and target or station, and their `[results]` tables feed two callouts – payload demand against this link and affordable pass minutes against the station's; two-column control panel with the custom station and custom antenna in accordions, in its own cell so the duplex note can sit under its dropdown and change with it; a station map with the visibility circle, one day of ground track and the samples in view; profile values clamped to control ranges and reported when unreadable; `fmt_num`; one `[[results.link_budget.modes]]` table per mode in the profile, so the power budget can take the LoRa backstop's airtime from the SF12 row. Homogenization: intro at the siblings' length with the tool's URL, its siblings, the project and the repository; the preliminary warning as a callout; export labels and profile file name as in the siblings; the "At 0 dB Margin" card captioned with its own per-pass figure. |
     | 0.6.0 | 2026-09-10 | Target margin policy 3 dB. Noise referenced to the LNA input: the antenna temperature is attenuated by the feeder and the feeder's own noise added, at both ends, with the three terms shown in the breakdown. Atmospheric loss is now the larger of King's elevation table and ITU-R P.676 gaseous absorption at the frequency in use, so S-band no longer borrows a UHF table; rain and other excess loss is an input. Polarization loss from the two axial ratios, worst case or average, replacing the 0.5 / 3 dB switch. Frame length and target frame error rate inputs: for entries on the ideal non-coherent FSK curve the tool shows the FER the library figure implies and the Eb/N0 the target needs, beside the library figure. Two provisional FEC entries for the native waveform: the AT86RF215 convolutional code and MCU Reed–Solomon; the provisional-threshold callout reworded to state the figure is theoretical rather than "unmeasured". A sixth headline card, "At 0 dB Margin", captioned with the 10th-percentile day as "more than … kB on 90% of days"; the headline cards now sit on two rows of three; longest gap between passes. Per-mode summary as CSV. Downlink share moved beside the frequencies. Profile status on its own line. Text tightened, assumptions split from limitations, US spelling, title-case headings, and "Link Budget Breakdown" for the line-item table. |

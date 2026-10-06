@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Regression checks for bac_link_budget.py against the 0.7.1 handoff (§5, numbers at the defaults, 500 km).
+"""Regression checks for bac_link_budget.py against the 0.7.2 notebook (§5, numbers at the defaults, 500 km).
 
 From the bac-utils root: uv run pytest notebooks/bac-link-budget -q
 """
@@ -26,7 +26,7 @@ def _mode(defs, name):
 
 
 def test_version_and_defaults():
-    assert D["TOOL_VERSION"] == "0.7.1"
+    assert D["TOOL_VERSION"] == "0.7.2"
     assert D["profile_tool"] == "bac_link_budget"
     assert D["half_duplex"] is True
     assert not D["profile_warnings"]
@@ -82,7 +82,7 @@ def test_lora_rows_use_packet_airtime():
 def test_profile_export_contract():
     p = tomllib.loads(D["profile_toml"])
     assert p["tool"] == "bac_link_budget"
-    assert p["tool_version"] == "0.7.1"
+    assert p["tool_version"] == "0.7.2"
     assert p["spacecraft"]["duplex"] == "half"
     res = p["results"]["link_budget"]
     assert res["featured_mode"] == "50k GFSK"

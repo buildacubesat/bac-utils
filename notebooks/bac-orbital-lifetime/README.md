@@ -1,4 +1,4 @@
-# bac-orbital-lifetime v0.2.1
+# bac-orbital-lifetime v0.2.2
 
 Build a CubeSat – the order-of-magnitude lifetime of a CubeSat in a circular low Earth orbit, as a marimo notebook. The orbit decays under drag at −√(μa)·ρ·F/B until 120 km; the density is NRLMSIS 2.1 averaged along the orbit and embedded as a table, and the solar activity that drives it comes from the observed F10.7 and Ap record, the NOAA SWPC Cycle 25 prediction with its 75 % band, and a climatology of past cycles for whatever lies past the forecast. Ten scenarios run through the same spacecraft – NOAA nominal, low and high, six replays of past cycles, one constant-flux case – and the band they span is the answer; callouts judge it against the mission and the 5-year and 25-year disposal rules. Size, mass, deployables (which may deploy at end of mission, as a drag sail would) and an attitude switch at end of mission set the ballistic coefficient; a launch-date sweep shows where in the solar cycle a mission starts.
 
@@ -43,6 +43,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.2.2 | 2026-10-06 | Every chart title split into a short title and a subtitle with the reading note; the decay title no longer repeats the legend; numbers unchanged. |
 | 0.2.1 | 2026-10-06 | The BAC planning orbit moves to 500 km (was 450 km) with the 97.4° inclination; the siblings' style cell and chart-conventions shape replace the reconstructed ones (nebula series colors); the regression figures re-recorded. First edit made in the repository. |
 | 0.2.0 | 2026-09-18 | Lifetime against launch date sweep (quarterly over eight years, three NOAA scenarios); deployables can deploy at end of mission; scenario sources in the CSV. Into bac-utils on 2026-10-02 as a byte-identical copy with its scripts and tests. |
 | 0.1.0 | 2026-09-17 | First version: NRLMSIS 2.1 table, NOAA prediction with band, six analog cycles, constant case, deployables, attitude switch, local time drift, sensitivity sweeps, profile contract with `[results.orbital_lifetime]`. |

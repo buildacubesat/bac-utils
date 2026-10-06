@@ -12,7 +12,7 @@
 
 import marimo
 
-__generated_with = "0.24.2"
+__generated_with = "0.25.0"
 app = marimo.App(width="medium", auto_download=["html"])
 
 
@@ -118,7 +118,7 @@ def _():
 def _(np):
     # Constants, reference data and the formulas everything uses.
 
-    TOOL_VERSION = "0.7.1"
+    TOOL_VERSION = "0.7.2"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -1705,6 +1705,10 @@ def _(alt, mo):
             .configure_view(strokeWidth=0)
         )
 
+    def chart_title(text, *notes):
+        """A short title with the reading notes as subtitle lines – Altair never wraps a title, so a long one is clipped."""
+        return alt.Title(text, subtitle=list(notes), subtitleColor=MUTED, subtitleFontSize=11) if notes else text
+
     def rule_x(value, dashed=True):
         return (
             alt.Chart(alt.Data(values=[{"x": value}]))
@@ -1712,7 +1716,16 @@ def _(alt, mo):
             .encode(x="x:Q")
         )
 
-    return FONT, IS_DARK, MUTED, PALETTE, TEXT, rule_x, style_chart
+    return (
+        FONT,
+        IS_DARK,
+        MUTED,
+        PALETTE,
+        TEXT,
+        chart_title,
+        rule_x,
+        style_chart,
+    )
 
 
 @app.cell
@@ -2021,6 +2034,7 @@ def _(
     TEXT,
     accesses,
     alt,
+    chart_title,
     envelope_x_km,
     envelope_y_km,
     mo,
@@ -2173,7 +2187,10 @@ def _(
                 width=_w,
                 height=_h,
                 projection=_proj,
-                title=f"Around {'the custom target' if target_name == 'Custom' else target_name} – nadir footprint, pointing envelope, one day of ground track, and up to twelve access passes",
+                title=chart_title(
+                    f"Around {'the custom target' if target_name == 'Custom' else target_name}",
+                    "Nadir footprint, pointing envelope, one day of ground track, and up to twelve access passes",
+                ),
             )
         )
         _credit = (
@@ -2320,6 +2337,7 @@ def _(
     R_EARTH_KM,
     accesses,
     alt,
+    chart_title,
     fmt_num,
     h_km,
     lens,
@@ -2443,7 +2461,10 @@ def _(
             ).properties(
                 width="container",
                 height=280,
-                title="Resolution against off-nadir angle – the dashed line is the targeting slew in use; hover for the ground distance",
+                title=chart_title(
+                    "Resolution against off-nadir angle",
+                    "The dashed line is the targeting slew in use; hover for the ground distance",
+                ),
             )
         )
 
@@ -2522,6 +2543,7 @@ def _(
     boom_dir,
     boresight,
     cam,
+    chart_title,
     corners,
     corners_in_frame,
     depth,
@@ -2792,8 +2814,11 @@ def _(
             .properties(
                 width="container",
                 height=340,
-                title="Side view in the plane of the sweep (or the tilt); the envelope is its projection onto that plane"
-                + (", green marks the depth-of-field limits" if _show_focus else ""),
+                title=chart_title(
+                    "Side view in the plane of the sweep (or the tilt)",
+                    "The envelope is its projection onto that plane"
+                    + ("; green marks the depth-of-field limits" if _show_focus else ""),
+                ),
             )
         )
 
@@ -2821,7 +2846,10 @@ def _(
             ).properties(
                 width="container",
                 height=260,
-                title="Fill against boom length at the same aim – copper marks where all eight corners are in the frame",
+                title=chart_title(
+                    "Fill against boom length at the same aim",
+                    "Copper marks where all eight corners are in the frame",
+                ),
             )
         )
 
@@ -3766,6 +3794,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped at the chart width are split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell). No change to the numbers. |
     | 0.7.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the primary-imager and boom profiles and the panel default move to 500 km, and the primary-imager profile takes the link budget 0.7.1 volumes at that orbit (3'171 kB/day UHF, 2'395 S-band). GSD, swath, reach and the access count move with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.7.0 | 2026-09-14 | Review fixes: access entry and exit are solved between the 10 s samples – every closest approach that could dip inside the reach is refined on a fine grid and bisected to a tenth of a second – so an access shorter than a sample is found and timed, and the access list shows the closest approach; a saved profile's explicit sensor and lens win over its camera preset on load, and the preset applies only when the camera dropdown is changed; a link budget profile without `[results.link_budget]` says so in a callout instead of claiming an import; a focus distance at or inside the focal length is refused with a callout, and a spacecraft part inside the focal length gets no blur figure and its own callout; the focal-length advice and the diffraction callout now say what the equations say (a longer lens at constant f-number resolves more and leaves Q alone); every angle-to-ground distance – access reach, footprint shift, geolocation – uses the off-nadir chart's spherical geometry with the horizon limit; the Raspberry Pi Global Shutter Camera is the color IMX296LQR-C, with the mono IMX296 kept as its own provisional row; the libraries are described as reference tables, with the Custom fields as the way in. DJI O4 Air Unit and O4 Air Unit Pro as camera presets, sensor rows provisional. Interoperability: a power budget profile loads (orbit, activation location, planned activations as frames) and its affordable activations feed a callout; map settings move to a `[map]` table shared with the link budget, old `[target]` keys still load; `reach_km` in the results; profile values clamped to control ranges and reported when unreadable; newlines escaped in the profile. Homogenization: intro at the siblings' length with the tool's URL, its siblings, the project and the repository; the preliminary warning as a callout; "Headline Numbers"; assumptions as structured paragraphs with glossary links; equal-width panel columns. |
     | 0.6.0 | 2026-09-13 | Camera dropdown: a product sets its sensor and, where fixed, its lens (Raspberry Pi Camera Module 3, HQ Camera, AI Camera and Global Shutter Camera, the three CHC5 evaluation modules, the action cameras and the phone); the sensor dropdown names the product each sensor ships in. Tiny Telescope TT240-40 in the lens library. Interoperability: the saved profile names the tool and its version and carries a `[results.optical_payload]` table with the figures the siblings take; a link budget profile loads directly, its station standing in for the target and its `[results.link_budget]` figure for the downlink volume. Profile writer replaced with the link budget's. |

@@ -111,7 +111,7 @@ def _():
 
 @app.cell
 def _():
-    TOOL_VERSION = "0.5.1"
+    TOOL_VERSION = "0.5.2"
     R_EARTH_KM = 6371.0
     SOLAR_CONST_W_M2 = 1361.0  # AM0, mean Earth distance
 
@@ -2524,6 +2524,10 @@ def _(alt, mo):
             .configure_view(strokeWidth=0)
         )
 
+    def chart_title(text, *notes):
+        """A short title with the reading notes as subtitle lines – Altair never wraps a title, so a long one is clipped."""
+        return alt.Title(text, subtitle=list(notes), subtitleColor=MUTED, subtitleFontSize=11) if notes else text
+
     def rule_y(value, dashed=True):
         return (
             alt.Chart(alt.Data(values=[{"y": value}]))
@@ -3672,6 +3676,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.5.2 | 2026-10-06 | The `chart_title` helper of the chart-conventions cell, shared with the siblings; its two chart titles fit and keep their one line. No change to the numbers. |
     | 0.5.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the BAC profile and the panel default move to 500 km (the generic profile was there already). The orbital period, eclipse fraction and pass count move with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.5.0 | 2026-09-14 | Homogenization with the siblings at their 0.7.0: intro names the tool's URL, its siblings, the project and the repository; the preliminary warning as a callout; "Headline Numbers" and title-case headings and callout titles throughout; assumptions as structured paragraphs with glossary links; report header and export text as in the siblings. Two cross-checks from the sibling profiles' results tables: the link budget's eight-phase pass statistics against this run's single phase, with the affordable pass minutes against its contact minutes, and the optical payload's accesses per day against the scheduled and affordable activations. Profile author detection by signature table as in the siblings. The LoRa backstop's time on air defaults to the SF12 row's packet airtime from a link budget 0.7.0 profile's per-mode results; the BAC profile documents the beacon ladder in its `[beacon]` comments. |
     | 0.4.1 | 2026-09-14 | Intro and callouts in the tighter wording; Schedule at the top of the left column; charts fill the width; passes and activations drawn as translucent bands instead of ticks. |

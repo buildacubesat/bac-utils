@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Regression checks for bac_power_budget.py against the 0.5.1 handoff (§4 and §12, numbers at the defaults, 500 km).
+"""Regression checks for bac_power_budget.py against the 0.5.2 notebook (§4 and §12, numbers at the defaults, 500 km).
 
 From the bac-utils root: uv run pytest notebooks/bac-power-budget -q
 """
@@ -19,7 +19,7 @@ def _run(profile_toml: str) -> dict:
 
 
 def test_version_and_defaults():
-    assert D["TOOL_VERSION"] == "0.5.1"
+    assert D["TOOL_VERSION"] == "0.5.2"
     assert D["profile_tool"] == "bac_power_budget"
     assert D["station_name"] == "Bern" and D["target_name"] == "Bern"
     assert not D["profile_warnings"]
@@ -59,7 +59,7 @@ def test_mode_totals_are_ordered():
 def test_profile_export_contract():
     p = tomllib.loads(D["profile_toml"])
     assert p["tool"] == "bac_power_budget"
-    assert p["tool_version"] == "0.5.1"
+    assert p["tool_version"] == "0.5.2"
     assert p["loads"], "the loads travel as [[loads]] tables"
     assert "power_budget" in p["results"]
     d2 = _run(D["profile_toml"])

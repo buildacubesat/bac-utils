@@ -1,7 +1,7 @@
 # BAC Orbital Lifetime profile – generic 3U with two deployed panels
 name = "Generic 3U, 500 km SSO"
 tool = "bac_orbital_lifetime"
-tool_version = "0.2.1"
+tool_version = "0.2.2"
 
 [orbit]
 altitude_km = 500

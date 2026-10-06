@@ -12,7 +12,7 @@
 
 import marimo
 
-__generated_with = "0.24.2"
+__generated_with = "0.25.0"
 app = marimo.App(width="medium")
 
 
@@ -117,7 +117,7 @@ def _(
     math,
     np,
 ):
-    TOOL_VERSION = "0.2.1"
+    TOOL_VERSION = "0.2.2"
     TOOL_SLUG = "orbital-lifetime-tool"
 
     MU = 3.986004418e14  # m^3/s^2
@@ -393,7 +393,7 @@ def _(textwrap):
         # and launch date are placeholders; the orbit is the standard planning orbit.
         name = "BAC demo mission, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.1"
+        tool_version = "0.2.2"
 
         [orbit]
         altitude_km = 500
@@ -436,7 +436,7 @@ def _(textwrap):
         # BAC Orbital Lifetime profile – generic 3U with two deployed panels
         name = "Generic 3U, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.1"
+        tool_version = "0.2.2"
 
         [orbit]
         altitude_km = 500
@@ -1420,6 +1420,10 @@ def _(alt, mo):
             .configure_view(strokeWidth=0)
         )
 
+    def chart_title(text, *notes):
+        """A short title with the reading notes as subtitle lines – Altair never wraps a title, so a long one is clipped."""
+        return alt.Title(text, subtitle=list(notes), subtitleColor=MUTED, subtitleFontSize=11) if notes else text
+
     def rule_y(value, dashed=True):
         return (
             alt.Chart(alt.Data(values=[{"y": value}]))
@@ -1442,7 +1446,15 @@ def _(alt, mo):
             return SCENARIO_COLOR[which]
         return SCENARIO_COLOR["constant"] if group == "constant" else MUTED
 
-    return MUTED, PALETTE, SCENARIO_COLOR, rule_x, rule_y, scenario_color, style_chart
+    return (
+        MUTED,
+        PALETTE,
+        SCENARIO_COLOR,
+        chart_title,
+        rule_x,
+        scenario_color,
+        style_chart,
+    )
 
 
 @app.cell
@@ -1651,7 +1663,18 @@ def _(
 
 
 @app.cell
-def _(alt, epoch, mission_days, mo, pd, rule_x, runs, scenario_color, style_chart):
+def _(
+    alt,
+    chart_title,
+    epoch,
+    mission_days,
+    mo,
+    pd,
+    rule_x,
+    runs,
+    scenario_color,
+    style_chart,
+):
     _rows = []
     for _r in runs:
         _t, _h = _r["t"], _r["h"]
@@ -1684,7 +1707,10 @@ def _(alt, epoch, mission_days, mo, pd, rule_x, runs, scenario_color, style_char
     )
     _chart = style_chart(
         (_base + rule_x(mission_days / 365.25)).properties(
-            title="Altitude over Time – teal is NOAA nominal, indigo and ochre its low and high band, thin gray the analog cycles, dashed violet the constant case; the dashed rule is end of mission",
+            title=chart_title(
+                "Altitude over Time",
+                "Dashed line: the constant case; thin gray: the analog cycles; dashed rule: end of mission",
+            ),
             width="container",
             height=360,
         )
@@ -1694,7 +1720,18 @@ def _(alt, epoch, mission_days, mo, pd, rule_x, runs, scenario_color, style_char
 
 
 @app.cell
-def _(alt, epoch, mission_days, mo, pd, rule_x, runs, scenario_color, style_chart):
+def _(
+    alt,
+    chart_title,
+    epoch,
+    mission_days,
+    mo,
+    pd,
+    rule_x,
+    runs,
+    scenario_color,
+    style_chart,
+):
     _rows = []
     for _r in runs:
         _t, _f = _r["t"], _r["f107"]
@@ -1722,7 +1759,9 @@ def _(alt, epoch, mission_days, mo, pd, rule_x, runs, scenario_color, style_char
     )
     _chart = style_chart(
         (_base + rule_x(mission_days / 365.25)).properties(
-            title="Solar Flux Each Scenario Flew Through – same colors as the decay chart, until each re-entry",
+            title=chart_title(
+                "Solar Flux Each Scenario Flew Through", "Same colors as the decay chart, until each re-entry"
+            ),
             width="container",
             height=260,
         )
@@ -1739,6 +1778,7 @@ def _(
     alt,
     altitude_km,
     bc_mission,
+    chart_title,
     epoch,
     fmt_num,
     horizon_years,
@@ -1770,7 +1810,10 @@ def _(
     )
     _chart_a = style_chart(
         (_ca + rule_x(altitude_km)).properties(
-            title=f"Lifetime Against Initial Altitude, NOAA nominal – points at the horizon of {fmt_num(horizon_years, 0)} yr are open; the rule is the panel altitude",
+            title=chart_title(
+                "Lifetime Against Initial Altitude, NOAA Nominal",
+                f"Points at the horizon of {fmt_num(horizon_years, 0)} yr are open; the rule is the panel altitude",
+            ),
             width="container",
             height=260,
         )
@@ -1795,7 +1838,10 @@ def _(
     )
     _chart_b = style_chart(
         (_cb + rule_x(bc_mission)).properties(
-            title="Lifetime Against Ballistic Coefficient, NOAA nominal – half to twice the panel value; the rule is the panel value",
+            title=chart_title(
+                "Lifetime Against Ballistic Coefficient, NOAA Nominal",
+                "Half to twice the panel value; the rule is the panel value",
+            ),
             width="container",
             height=260,
         )
@@ -1829,7 +1875,10 @@ def _(
             .mark_rule(strokeDash=[6, 4], color=MUTED)
             .encode(x="x:T")
         ).properties(
-            title="Lifetime Against Launch Date, same spacecraft and altitude – where in the solar cycle the mission starts; the rule is the panel epoch",
+            title=chart_title(
+                "Lifetime Against Launch Date",
+                "Same spacecraft and altitude: where in the solar cycle the mission starts; the rule is the panel epoch",
+            ),
             width="container",
             height=280,
         )
@@ -1850,6 +1899,7 @@ def _(
     DENS_ALT,
     PALETTE,
     alt,
+    chart_title,
     density_slice,
     fmt_num,
     inclination_deg,
@@ -1890,7 +1940,10 @@ def _(
     )
     _chart_d = style_chart(
         _cd.properties(
-            title=f"NRLMSIS 2.1 Density Along a {fmt_num(inclination_deg, 1)}° Orbit at Ap 15 – three levels of solar flux",
+            title=chart_title(
+                f"NRLMSIS 2.1 Density Along a {fmt_num(inclination_deg, 1)}° Orbit at Ap 15",
+                "Three levels of solar flux",
+            ),
             width="container",
             height=260,
         )
@@ -1913,7 +1966,10 @@ def _(
     )
     _chart_l = style_chart(
         (_cl + rule_x(mission_days / 365.25)).properties(
-            title=f"Local Time Drift Along the NOAA Nominal Decay – J2 node rate against the mean Sun{_end_txt}; the rule is end of mission",
+            title=chart_title(
+                "Local Time Drift Along the NOAA Nominal Decay",
+                f"J2 node rate against the mean Sun{_end_txt}; the rule is end of mission",
+            ),
             width="container",
             height=240,
         )
@@ -2262,6 +2318,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.2.2 | 2026-10-06 | Every chart title split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell) – the long ones were clipped at the chart width; the decay chart's title no longer repeats the legend. No change to the numbers. |
     | 0.2.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the BAC profile, its name and the panel defaults move to 500 km and the matching sun-synchronous inclination 97.4°; the lifetime figures move the most of the four tools. Style cell replaced by the siblings' byte-identical one and the chart-conventions cell rewritten in their shape (nebula series colors in place of the semantic yellow/red/green; the scenario map and the chart titles follow), the revision table's indentation fixed, the file formatted with the repository's ruff. First edit made in the bac-utils repository; the molab copy is taken from here. |
     | 0.2.0 | 2026-09-18 | Lifetime against launch date sweep (quarterly over eight years, three NOAA scenarios); deployables can deploy at end of mission (drag sail, boom); scenario sources in the CSV. |
     | 0.1.0 | 2026-09-17 | First version: NRLMSIS 2.1 table, NOAA prediction with band, six analog cycles, constant case, deployables, attitude switch, local time drift, sensitivity sweeps, profile contract with `[results.orbital_lifetime]`. |

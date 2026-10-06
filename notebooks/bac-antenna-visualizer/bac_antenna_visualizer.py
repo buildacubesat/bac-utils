@@ -18,7 +18,7 @@
 
 import marimo
 
-__generated_with = "0.24.2"
+__generated_with = "0.25.0"
 app = marimo.App(width="medium", auto_download=["html"])
 
 
@@ -136,7 +136,7 @@ def _():
 def _(Path, mo, os):
     # Constants: where packs are looked for, what a pack contains, and the glossary.
 
-    TOOL_VERSION = "0.3.2"
+    TOOL_VERSION = "0.3.3"
     PACK_FILES = (
         "pack.json",
         "cases.csv.gz",
@@ -172,7 +172,7 @@ def _(Path, mo, os):
     def gl(text, slug):
         return f"[{text}]({GLOSSARY}{slug})"
 
-    return GLOSSARY, HERE, PACK_FILES, SEARCH_ROOTS, TOOL_VERSION, gl
+    return PACK_FILES, SEARCH_ROOTS, TOOL_VERSION, gl
 
 
 @app.cell
@@ -304,7 +304,17 @@ def _(FOUND, mo):
 
 
 @app.cell
-def _(FOUND, SEARCH_ROOTS, mo, parse_pack, read_location, read_zip, ui_pack, ui_pack_path, ui_pack_upload):
+def _(
+    FOUND,
+    SEARCH_ROOTS,
+    mo,
+    parse_pack,
+    read_location,
+    read_zip,
+    ui_pack,
+    ui_pack_path,
+    ui_pack_upload,
+):
     # Parse the chosen pack. An upload wins over a typed path or URL, and that over the
     # dropdown of discovered packs.
     _blobs = {}
@@ -399,11 +409,30 @@ def _(PACK, mo):
     ui_show_pattern = mo.ui.switch(value=True, label="3D pattern")
     ui_show_efield = mo.ui.switch(value=True, label="3D electric field")
     ui_sidebar = mo.ui.switch(value=False, label="Controls in a sidebar")
-    return AXES, ui_axes, ui_band, ui_freq, ui_planes, ui_show_efield, ui_show_geometry, ui_show_pattern, ui_sidebar
+    return (
+        AXES,
+        ui_axes,
+        ui_band,
+        ui_freq,
+        ui_planes,
+        ui_show_efield,
+        ui_show_geometry,
+        ui_show_pattern,
+        ui_sidebar,
+    )
 
 
 @app.cell
-def _(mo, ui_axes, ui_band, ui_freq, ui_planes, ui_show_efield, ui_show_geometry, ui_show_pattern):
+def _(
+    mo,
+    ui_axes,
+    ui_band,
+    ui_freq,
+    ui_planes,
+    ui_show_efield,
+    ui_show_geometry,
+    ui_show_pattern,
+):
     # Two columns: the geometry you move on the left, how to look at it on the right.
     _left = [
         mo.md("**Geometry**"),
@@ -468,7 +497,17 @@ def _(AXES, PACK, ui_axes, ui_band, ui_freq, ui_planes):
     PLANES = [float(_p) for _p in ui_planes.value] or [0.0]
     AXIS_LABEL = {_a["id"]: _a["label"] for _a in AXES}
     AXIS_UNIT = {_a["id"]: _a.get("unit", "") for _a in AXES}
-    return ACTIVE, AXIS_LABEL, AXIS_UNIT, BAND, F_PICK, MODE, MOVED, PLANES, VALUES
+    return (
+        ACTIVE,
+        AXIS_LABEL,
+        AXIS_UNIT,
+        BAND,
+        F_PICK,
+        MODE,
+        MOVED,
+        PLANES,
+        VALUES,
+    )
 
 
 @app.cell
@@ -542,7 +581,7 @@ def _(AXES, PACK, pd):
             return table[table["case"] == NOMINAL].drop(columns=["case"]).reset_index(drop=True), ""
         return blend_table(table, keys, active, values[active])
 
-    return CASES, NOMINAL, NUMERIC, axis_cases, blend_table, bracket, nominal_scalars, scalars_at, table_for
+    return CASES, axis_cases, nominal_scalars, scalars_at, table_for
 
 
 @app.cell
@@ -661,6 +700,10 @@ def _(alt, mo):
             .configure_view(strokeWidth=0)
         )
 
+    def chart_title(text, *notes):
+        """A short title with the reading notes as subtitle lines – Altair never wraps a title, so a long one is clipped."""
+        return alt.Title(text, subtitle=list(notes), subtitleColor=MUTED, subtitleFontSize=11) if notes else text
+
     def plotly_layout(fig, title, height=520):
         fig.update_layout(
             title=title,
@@ -690,23 +733,29 @@ def _(alt, mo):
         )
 
     return (
-        FONT,
         IS_DARK,
-        MUTED,
         PALETTE,
-        TEXT,
         band_strip,
+        chart_title,
         plotly_layout,
-        rule_label,
-        rule_x,
-        rule_y,
         series_style,
         style_chart,
     )
 
 
 @app.cell
-def _(ACTIVE, AXIS_LABEL, AXIS_UNIT, BAND, MODE, MOVED, NUMBERS, VALUES, gl, mo):
+def _(
+    ACTIVE,
+    AXIS_LABEL,
+    AXIS_UNIT,
+    BAND,
+    MODE,
+    MOVED,
+    NUMBERS,
+    VALUES,
+    gl,
+    mo,
+):
     # Headline cards. Gray, no direction coloring: the callouts below do the judging.
     def _stat(value, label, caption):
         return mo.stat(value=value, label=label, caption=caption, bordered=True)
@@ -836,7 +885,21 @@ def _(AXIS_LABEL, BAND, MODE, MOVED, NUMBERS, mo):
 
 
 @app.cell
-def _(ACTIVE, BAND, MODE, PACK, VALUES, alt, band_strip, gl, mo, pd, series_style, style_chart, table_for):
+def _(
+    ACTIVE,
+    BAND,
+    MODE,
+    PACK,
+    VALUES,
+    alt,
+    band_strip,
+    gl,
+    mo,
+    pd,
+    series_style,
+    style_chart,
+    table_for,
+):
     # Reflection and coupling versus frequency.
     _df, _note = table_for(PACK["sweeps"], ["frequency_hz"], MODE, ACTIVE, VALUES)
     _traces = [("s11_in_db", "network input"), ("s11_db", "one probe alone"), ("s21_db", "probe to probe")]
@@ -894,7 +957,21 @@ def _(ACTIVE, BAND, MODE, PACK, VALUES, alt, band_strip, gl, mo, pd, series_styl
 
 
 @app.cell
-def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, gl, mo, np, pd, style_chart, table_for):
+def _(
+    ACTIVE,
+    BAND,
+    MODE,
+    PACK,
+    PALETTE,
+    VALUES,
+    alt,
+    gl,
+    mo,
+    np,
+    pd,
+    style_chart,
+    table_for,
+):
     # Smith chart of one probe, 0.1 GHz either side of the band, beside the impedance
     # at the band edges and centre – the numbers to hold a VNA measurement against.
     import tomllib as _tomllib
@@ -1049,11 +1126,25 @@ def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, gl, mo, np, pd, style_char
             _out,
         ]
     )
-    return SMITH_TABLE, Z0
+    return
 
 
 @app.cell
-def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, band_strip, gl, mo, style_chart, table_for):
+def _(
+    ACTIVE,
+    BAND,
+    MODE,
+    PACK,
+    PALETTE,
+    VALUES,
+    alt,
+    band_strip,
+    chart_title,
+    gl,
+    mo,
+    style_chart,
+    table_for,
+):
     # Broadside gain and axial ratio versus frequency.
     _df, _note = table_for(PACK["samples"], ["frequency_hz"], MODE, ACTIVE, VALUES)
     if len(_df) == 0:
@@ -1082,7 +1173,10 @@ def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, band_strip, gl, mo, style_
             alt.layer(band_strip(BAND["low_hz"] / 1e9, BAND["high_hz"] / 1e9) + _g, _a)
             .resolve_scale(y="independent")
             .properties(
-                title="Broadside gain (solid) and axial ratio (dashed) versus frequency (the yellow strip is the band)",
+                title=chart_title(
+                    "Broadside gain (solid) and axial ratio (dashed) versus frequency",
+                    "The yellow strip is the band",
+                ),
                 width="container",
                 height=280,
             )
@@ -1105,7 +1199,24 @@ def _(ACTIVE, BAND, MODE, PACK, PALETTE, VALUES, alt, band_strip, gl, mo, style_
 
 
 @app.cell
-def _(ACTIVE, F_PICK, IS_DARK, MODE, PACK, PALETTE, PLANES, VALUES, alt, gl, mo, np, pd, style_chart, table_for):
+def _(
+    ACTIVE,
+    F_PICK,
+    IS_DARK,
+    MODE,
+    PACK,
+    PALETTE,
+    PLANES,
+    VALUES,
+    alt,
+    chart_title,
+    gl,
+    mo,
+    np,
+    pd,
+    style_chart,
+    table_for,
+):
     # Pattern cuts: co- and cross-polar gain versus angle in the chosen planes. The
     # planes take the four most distinct colors of the family palette (teal, ochre,
     # indigo, green – the deep violet sits too close to the indigo), each with its own
@@ -1190,7 +1301,10 @@ def _(ACTIVE, F_PICK, IS_DARK, MODE, PACK, PALETTE, PLANES, VALUES, alt, gl, mo,
                 for _pl, _c in zip(_order, _cols, strict=True)
             ]
             _chart = alt.layer(*_cross_layers, _co_lines, _co_marks).properties(
-                title=f"Pattern cuts at {_f / 1e9:.3f} GHz – wanted hand bold with markers, opposite hand thin and dashed",
+                title=chart_title(
+                    f"Pattern cuts at {_f / 1e9:.3f} GHz",
+                    "Wanted hand bold with markers, opposite hand thin and dashed",
+                ),
                 width="container",
                 height=340,
             )
@@ -1213,7 +1327,18 @@ def _(ACTIVE, F_PICK, IS_DARK, MODE, PACK, PALETTE, PLANES, VALUES, alt, gl, mo,
 
 
 @app.cell
-def _(ACTIVE, MODE, PACK, VALUES, go, mo, np, plotly_layout, table_for, ui_show_pattern):
+def _(
+    ACTIVE,
+    MODE,
+    PACK,
+    VALUES,
+    go,
+    mo,
+    np,
+    plotly_layout,
+    table_for,
+    ui_show_pattern,
+):
     # 3D realized gain at band centre, radius = gain above -15 dBic.
     if not ui_show_pattern.value:
         _out = None
@@ -1288,7 +1413,18 @@ def _(ACTIVE, MODE, PACK, VALUES, go, mo, np, plotly_layout, table_for, ui_show_
 
 
 @app.cell
-def _(ACTIVE, MODE, PACK, VALUES, go, mo, np, plotly_layout, table_for, ui_show_efield):
+def _(
+    ACTIVE,
+    MODE,
+    PACK,
+    VALUES,
+    go,
+    mo,
+    np,
+    plotly_layout,
+    table_for,
+    ui_show_efield,
+):
     # 3D electric field: |E| on each dumped plane, placed where the plane sits.
     if not ui_show_efield.value:
         _out = None
@@ -1395,7 +1531,7 @@ def _(AXES, PACK, VALUES):
         GEOMETRY_NOTE = (
             f"The pack's config did not rebuild at this position ({_exc}); showing the nominal case's stored geometry."
         )
-    return GEOMETRY, GEOMETRY_NOTE, live_model
+    return GEOMETRY, GEOMETRY_NOTE
 
 
 @app.cell
@@ -1555,7 +1691,18 @@ def _(CASES, PACK, SENS, mo, np):
 
 @app.cell
 def _(
-    ACKNOWLEDGMENT_MD, ASSUMPTIONS_MD, AXIS_LABEL, AXIS_UNIT, MODE, NUMBERS, PACK, SENS, TOOL_VERSION, VALUES, dt, mo
+    ACKNOWLEDGMENT_MD,
+    ASSUMPTIONS_MD,
+    AXIS_LABEL,
+    AXIS_UNIT,
+    MODE,
+    NUMBERS,
+    PACK,
+    SENS,
+    TOOL_VERSION,
+    VALUES,
+    dt,
+    mo,
 ):
     # Export: the sensitivity table and the current position as one markdown report,
     # the table as CSV.
@@ -1707,6 +1854,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.3.3 | 2026-10-06 | Two chart titles that were clipped at the chart width split into a short title and a subtitle (`chart_title` in the chart-conventions cell, shared with the siblings). No change to what it shows otherwise. |
     | 0.3.2 | 2026-10-02 | Moved from `tools/` to the `notebooks/` group of bac-utils with its four siblings; the paths it names follow. No change to what it shows. |
     | 0.3.1 | 2026-10-02 | Conventions pass in bac-utils (SPDX header, ruff, tests under the workspace pytest); no change to what it shows. |
     | 0.3.0 | 2026-09-28 | Runs locally only: the WebAssembly (molab) code paths, the GitHub fallback and the wheel are gone. Packs are discovered in `BAC_ANTENNA_PACKS`, the notebook's `packs/` folder and the antenna folders of a bac-hardware checkout next to bac-utils; a path, URL or upload of a pack folder or pack zip works too. Geometry is always rebuilt live from the optimizer. The status line names the pack's source and release when the pack carries them. |

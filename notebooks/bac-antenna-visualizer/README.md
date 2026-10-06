@@ -90,6 +90,7 @@ The notebook's own revision history (its last cell) has the detail per version.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.3.3 | 2026-10-06 | Two clipped chart titles split into title and subtitle (`chart_title`); nothing else changes. |
 | 0.3.2 | 2026-10-06 | Demo snapshot for molab added under `demo/` with tests (§6); README headings numbered. No change to the notebook. |
 | 0.3.2 | 2026-10-02 | Moved from `tools/` to the `notebooks/` group with its four siblings; the paths it names follow. No change to what it shows. |
 | 0.3.1 | 2026-10-02 | Brought onto the bac-utils conventions: SPDX header, ruff, tests collectable by the workspace pytest, a minimum version on the optimizer dependency. No change to what it shows. |
