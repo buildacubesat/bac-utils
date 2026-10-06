@@ -13,7 +13,7 @@ This table is the record of what exists, what is being worked on and what is pla
 | `bac-common` | library | Shared CLI scaffold: standard flags, TOML config, `.env` loading, `--init` helpers, the BAC terminal profile, error boundary, span-preserving s-expression parser, test harness | available | v0.2.1 |
 | `bac-kicad-common` | library | Shared KiCad library tooling: TOML field rules, property rendering for KiCad 9 and 10, span edits, write-back with backup | available | v0.1.0 |
 | `bac-antenna-optimizer` | RF | Antenna design around openEMS: parametric geometry, meshing rules, band targets, cavity-model pre-tuner, tolerance sweeps, sensitivity packs, reports with drawings, charts and KiCad board files | available | v0.7.4 |
-| `bac-antenna-visualizer` | notebook | A slider per geometry parameter over an optimizer sensitivity pack: S-parameters, Smith chart, gain and axial ratio, pattern cuts, 3D pattern and fields; runs locally | available | v0.3.2 |
+| `bac-antenna-visualizer` | notebook | A slider per geometry parameter over an optimizer sensitivity pack: S-parameters, Smith chart, gain and axial ratio, pattern cuts, 3D pattern and fields; runs locally, with a frozen demo snapshot for molab under `demo/` | available | v0.3.2 |
 | `bac-cad-preview` | CAD | Renders STEP, STL and 3MF files to 720 px WebP previews framed like the KiCad artifacts render, with an X/Y/Z scale gizmo; the preview stage of the planned `bac-freecad-generate-artifacts` | available | v0.5.0 |
 | `bac-can-up` | bench | Brings up the CANable SLCAN interface: fresh `slcand`, bitrate, `can0` up | available | v1.2.0 |
 | `bac-convention-check` | repo | Lints a tree against the BAC guides (typography, naming, licensing, packaging, flags); runs in this repo's CI | available | v0.2.1 |
@@ -67,7 +67,7 @@ uv run ruff check .
 
 ## 3. Notebooks
 
-The engineering notebooks under `notebooks/` – link budget, optical payload, power budget, orbital lifetime, and the local-only antenna visualizer – are single marimo files with PEP 723 metadata. Run one in its own environment with `uvx marimo edit --sandbox notebooks/bac-link-budget/bac_link_budget.py`, or in the workspace environment with `uv run marimo edit <file>`. The four published ones are the molab copies behind the bac.page links, byte for byte apart from the SPDX line; each of them carries the shipped profiles as TOML files under `examples/` and headless regression tests. `notebooks/README.md` has the rules of the class.
+The engineering notebooks under `notebooks/` – link budget, optical payload, power budget, orbital lifetime, and the local-only antenna visualizer (with a frozen demo snapshot that runs on molab) – are single marimo files with PEP 723 metadata. Run one in its own environment with `uvx marimo edit --sandbox notebooks/bac-link-budget/bac_link_budget.py`, or in the workspace environment with `uv run marimo edit <file>`. The four published ones are the molab copies behind the bac.page links, byte for byte apart from the SPDX line; each of them carries the shipped profiles as TOML files under `examples/` and headless regression tests. `notebooks/README.md` has the rules of the class.
 
 ## 4. Layout
 
@@ -96,6 +96,7 @@ Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool n
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.8.1 | 2026-10-06 | `bac-antenna-visualizer`: a demo snapshot for molab under `notebooks/bac-antenna-visualizer/demo/` – the visualizer without the optimizer, geometry from the pack's stored models, packs found beside the file – with its own headless tests; the demo is covered by `marimo check` in CI. |
 | 0.8.0 | 2026-10-02 | The `notebooks/` group: `bac-link-budget` v0.7.0, `bac-optical-payload` v0.7.0, `bac-power-budget` v0.5.0 and `bac-orbital-lifetime` v0.2.0 come in as byte-identical copies of the published files with example profiles and regression tests from their handoffs; `bac-antenna-visualizer` v0.3.2 moves there from `tools/`; a shared headless harness; `marimo check` and the notebook tests in CI. `bac-convention-check` v0.2.1 stops flagging a notebook's build-system-less pyproject. |
 | 0.7.0 | 2026-10-02 | `bac-cad-preview` v0.5.0 joins on `bac-common`: STEP, STL and 3MF previews framed like the KiCad artifacts render, faces named with the project's axis letters, `--out-dir`, output collisions refused; the `step` extra carries OpenCascade. |
 | 0.6.0 | 2026-10-02 | The two antenna tools from the S-band sessions brought in: `bac-antenna-optimizer` v0.7.4 (tag `bac-antenna-optimizer-v0.7.3` marks the version that generated the S-band cross patch in bac-hardware) and `bac-antenna-visualizer` v0.3.1, both on the conventions; the root `.gitignore` takes over their ignore rules. `bac-common` v0.2.1 and a root `conftest.py` pin the terminal widths under test, so the suite passes at any width (five tests failed at 80 columns before). The tool table becomes the tracking view of everything planned for the repository. |

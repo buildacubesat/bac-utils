@@ -41,6 +41,9 @@ sim/runs/**/*.log
 
 # Antenna visualizer – local sensitivity packs are attached to the antenna's release, not tracked here
 notebooks/bac-antenna-visualizer/packs/
+# Antenna visualizer demo – only the notebook is tracked; the pack zips beside it go to molab by hand
+notebooks/bac-antenna-visualizer/demo/*
+!notebooks/bac-antenna-visualizer/demo/bac_antenna_visualizer_demo.py
 
 # KiCad
 *-backups/
