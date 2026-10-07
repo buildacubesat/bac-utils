@@ -36,8 +36,9 @@ class Tools:
         return Path(self.svg_raster).name.startswith("inkscape")
 
 
-def find_tools(which: Which = shutil.which) -> Tools:
+def find_tools(which: Which | None = None) -> Tools:
     """Locate the programs every run needs, or raise one error naming all that are missing."""
+    which = which or shutil.which  # looked up at call time, so tests can replace shutil.which
     kicad_cli = which("kicad-cli")
     raster = which("inkscape") or which("rsvg-convert")
     missing = [name for name, found in (("kicad-cli", kicad_cli), ("inkscape or rsvg-convert", raster)) if not found]

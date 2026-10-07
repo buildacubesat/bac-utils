@@ -320,6 +320,7 @@ def stage_ibom(ctx: Context) -> str:
         raise ConfigError(f"iBOM script not found: {s.ibom_script}", "Check script in [ibom] of the config.")
     py = ibom_python(ctx)
     netlist = _work(ctx) / "ibom-netlist.xml"
+    # The plugin takes --dest-dir relative to the board's folder, so both paths go in absolute.
     browser = () if ctx.open else ("--no-browser",)
     with ctx.spinner("Building the interactive BOM"):
         ctx.run(
@@ -337,9 +338,9 @@ def stage_ibom(ctx: Context) -> str:
         )
         ctx.run(
             [
-                py, str(s.ibom_script), "--dest-dir", str(plan.out_dir), "--name-format", plan.ibom_html.stem,
-                "--dark-mode", "--highlight-pin1", "selected", "--dnp-field", "BOM", "--netlist-file", str(netlist),
-                *browser, _board(ctx),
+                py, str(s.ibom_script), "--dest-dir", str(plan.out_dir.resolve()),
+                "--name-format", plan.ibom_html.stem, "--dark-mode", "--highlight-pin1", "selected",
+                "--dnp-field", "BOM", "--netlist-file", str(netlist.resolve()), *browser, _board(ctx),
             ]
         )  # fmt: skip
     if ctx.run.dry_run:

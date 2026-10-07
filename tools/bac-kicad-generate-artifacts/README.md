@@ -51,7 +51,7 @@ Stages run in this order; `--only` and `--skip` pick from them.
 | `schematic` | `<sch-base>-schematic.pdf` | Black and white, all sheets. |
 | `pinout` | `<base>-pinout.webp` | `Edge.Cuts`, `F.Fab` and `F.Silkscreen` as a single black-and-white SVG, rasterised at 4× and scaled to 80 % of a 1920 × 1080 px transparent canvas. |
 | `bom` | `<sch-base>-bom.csv` | `kicad-cli sch export bom` with the field list, labels and grouping from `[bom]`. |
-| `ibom` | `<base>-ibom.html` | Opt-in (`--ibom`). Exports a `kicadxml` netlist and runs the InteractiveHtmlBom plugin (`script` in `[ibom]`) with the first Python that imports `pcbnew`: `python` in `[ibom]`, then `/usr/bin/python3`, then `python3`. Dark mode, pin 1 highlighted, `BOM` as the DNP field; the plugin's browser tab opens only with `--open`. |
+| `ibom` | `<base>-ibom.html` | Opt-in (`--ibom`). Exports a `kicadxml` netlist and runs the InteractiveHtmlBom plugin (`script` in `[ibom]`) with the first Python that imports `pcbnew`: `python` in `[ibom]`, then `/usr/bin/python3`, then `python3`. Dark mode, pin 1 highlighted, `BOM` as the DNP field; the plugin's browser tab opens only with `--open`. The plugin takes a relative `--dest-dir` as relative to the board's folder, so it gets absolute paths. |
 | `gerbers` | `gerber/` | Into an emptied `gerber/`: the board's copper layers (read from its `(layers …)` block, in stack order) plus `F.Paste`, `B.Paste`, `F.Silkscreen`, `B.Silkscreen`, `F.Mask`, `B.Mask`, `Edge.Cuts`; on a panel also `User.Comments` (V-cut lines). RS-274X without X2 attributes, 6 digits, KiCad extensions. Zone fills are exported as saved: `--check-zones` is never passed, so a panel's fills stay as the panelizer left them and a board's fills are the ones its designer last filled. |
 | `drills` | `drill/` | Into an emptied `drill/`: Excellon, absolute origin, millimetres, decimal format. |
 | `centroid` | `centroid/<base>-centroid.pos` | ASCII, millimetres, both sides in one file, SMD only, DNP excluded, drill/place file origin. |
@@ -110,7 +110,7 @@ The stage is a reimplementation of Emil Fresk's [kicad-qr-inserter](https://gith
 
 ## 6. Fixtures and tests
 
-`tests/fixtures/deployment-switch/kicad10/` is the BAC deployment switch (KiCad 10 format, one sheet, two footprints, 4.8 × 8.7 mm) with a `QR_MARKER` text box added on `B.SilkS`; it is the live fixture for a run with the installed KiCad. `tests/fixtures/eps/` holds a hand-written four-layer project with renamed inner layers, a hierarchical sheet and two marker boxes, and a schematic-less copy of it as a panel with a V-cut line on `User.Comments`. `kicad-cli` is not needed to run the tests: a stand-in runner writes the files each subcommand would produce. The 109 tests cover the title block and version tags, the naming, the layer map and the rename pass including the job file, the QR geometry front and back, every stage, the command line and the config.
+`tests/fixtures/deployment-switch/kicad10/` is the BAC deployment switch (KiCad 10 format, one sheet, two footprints, 4.8 × 8.7 mm) with a `QR_MARKER` text box added on `B.SilkS`; it is the live fixture for a run with the installed KiCad. `tests/fixtures/eps/` holds a hand-written four-layer project with renamed inner layers, a hierarchical sheet and two marker boxes, and a schematic-less copy of it as a panel with a V-cut line on `User.Comments`. `kicad-cli` is not needed to run the tests: a stand-in runner writes the files each subcommand would produce. The 110 tests cover the title block and version tags, the naming, the layer map and the rename pass including the job file, the QR geometry front and back, every stage, the command line and the config.
 
 A run on the deployment switch with kicad-cli present looks like this:
 
@@ -143,7 +143,7 @@ MIT, like the rest of bac-utils. The QR stage follows Emil Fresk's kicad-qr-inse
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
-| 0.6.0 | 2026-10-06 | Rebuilt on `bac-common` as `tools/bac-kicad-generate-artifacts` in bac-utils, merging the 0.5.0 architecture with the 0.4.2 behaviour (§7). New: the `qr` stage, STEP header metadata, `--open`, `--patch`, `--init`/`--config`, the name from the project stem, Gerber names without spaces, `.gbrjob` rewrite, kicad-cli 10 targeted directly, Pillow instead of `cwebp`. Fixtures: the deployment switch and a synthetic project with a panel; 109 tests. |
+| 0.6.0 | 2026-10-06 | Rebuilt on `bac-common` as `tools/bac-kicad-generate-artifacts` in bac-utils, merging the 0.5.0 architecture with the 0.4.2 behaviour (§7). New: the `qr` stage, STEP header metadata, `--open`, `--patch`, `--init`/`--config`, the name from the project stem, Gerber names without spaces, `.gbrjob` rewrite, kicad-cli 10 targeted directly, Pillow instead of `cwebp`. Fixtures: the deployment switch and a synthetic project with a panel; 110 tests. |
 | 0.5.0 | 2026-05 | Candidate (never installed): `Config`, `Runner`, `Plan` and `Stage` architecture, `--only`/`--skip`/`--verbose`, 48 tests of the pure functions. |
 | 0.4.2 | 2026-08-06 | Panelized boards: also skip the pinout WebP export. |
 | 0.4.1 | 2026-08-06 | Panelized boards: include the `User.Comments` layer in the Gerber export (V-cut lines). |

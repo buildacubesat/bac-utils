@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import zipfile
+from pathlib import Path
 
 from bac_kicad_generate_artifacts import __version__, cli
 from bac_kicad_generate_artifacts.stages import STAGE_NAMES
@@ -53,9 +54,22 @@ def test_unknown_stage_lists_the_stages(fake, synth):
 
 
 def test_missing_programs_are_named(no_config, monkeypatch, synth):
+    # a machine with kicad-cli installed must see the same result: the lookup happens at call time
     monkeypatch.setattr("bac_kicad_generate_artifacts.runner.shutil.which", lambda name: None)
     r = invoke(cli._main, [str(synth)])
     assert r.exit_code == 1 and "kicad-cli" in r.stderr and "rsvg-convert" in r.stderr
+    monkeypatch.setattr("bac_kicad_generate_artifacts.runner.shutil.which", lambda name: f"/usr/bin/{name}")
+    r = invoke(cli._main, ["--dry-run", "--only", "centroid", str(synth)])
+    assert r.exit_code == 0, r.output
+
+
+def test_relative_output_root_is_made_absolute(fake, synth, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    r = invoke(cli._main, ["--desktop", "out", "--only", "centroid", str(synth)])
+    assert r.exit_code == 0, r.output
+    (cmd,) = [c for c in fake.commands if c[1:4] == ["pcb", "export", "pos"]]
+    assert cmd[cmd.index("--output") + 1].startswith(str(tmp_path / "out"))
+    assert f"Output     {tmp_path / 'out' / 'synth-v2r3'}" in r.stdout
 
 
 def test_init_writes_the_config_once(no_config, tmp_path):
@@ -71,6 +85,7 @@ def test_init_writes_the_config_once(no_config, tmp_path):
     assert path.is_file() and "Wrote" in r.stdout
     text = path.read_text()
     assert f'script = "{plugin}"' in text and 'prefix = "bac"' in text and "${ITEM_NUMBER}" in text
+    assert "[metadata]" in r.stdout and "[ibom]" not in r.stdout  # Rich must not eat the table names as markup
     r = invoke(cli._main, ["--init"])
     assert r.exit_code == 0 and "left as it is" in r.stdout
     assert path.read_text() == text
@@ -211,6 +226,9 @@ def test_ibom_stage(fake, synth, tmp_path):
     assert probe[0][0] == "/opt/kicad/python3"  # the configured interpreter is probed first
     (ibom_cmd,) = [c for c in fake.commands if str(plugin) in c]
     assert ibom_cmd[0] == "/opt/kicad/python3" and "--dark-mode" in ibom_cmd
+    # the plugin resolves --dest-dir against the board's folder: both paths must be absolute
+    assert Path(ibom_cmd[ibom_cmd.index("--dest-dir") + 1]).is_absolute()
+    assert Path(ibom_cmd[ibom_cmd.index("--netlist-file") + 1]).is_absolute()
     assert any(c[1:4] == ["sch", "export", "netlist"] and "kicadxml" in c for c in fake.commands)
 
 

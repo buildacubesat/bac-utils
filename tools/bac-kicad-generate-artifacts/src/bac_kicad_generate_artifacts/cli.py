@@ -91,8 +91,8 @@ def do_init(config_path: str | None) -> int:
     if script:
         ui.step(f"iBOM plugin: {ui.path(script)}")
     else:
-        ui.step("iBOM plugin: not found – set script in [ibom] once InteractiveHtmlBom is installed")
-    ui.step("Set author and organization in [metadata]; they go into the STEP file header.")
+        ui.step(ui.esc("iBOM plugin: not found – set script in [ibom] once InteractiveHtmlBom is installed"))
+    ui.step(ui.esc("Set author and organization in [metadata]; they go into the STEP file header."))
     return 0
 
 
@@ -236,7 +236,8 @@ def _main(argv: list[str], debug: bool) -> int:
         raise UsageError("Give at least one KiCad project folder.", f"See `{TOOL_NAME} --help`.")
     only, skip = parse_stage_list(args.only), parse_stage_list(args.skip)
     settings = load_settings(args.config)
-    root = Path(args.desktop).expanduser() if args.desktop else (settings.output_root or desktop_dir())
+    # Absolute: the iBOM plugin resolves a relative --dest-dir against the board's folder, not the cwd.
+    root = (Path(args.desktop).expanduser() if args.desktop else (settings.output_root or desktop_dir())).resolve()
     run = Run(
         settings=settings,
         tools=find_tools(),
