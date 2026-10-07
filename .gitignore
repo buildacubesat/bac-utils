@@ -25,6 +25,8 @@ ops/*/uv.lock
 # Tool outputs that are always regenerable
 exports/
 out/
+# The operations suite's snapshots (the notebook's backup box writes under the data directory)
+backups/
 *.fixed
 *.bak
 

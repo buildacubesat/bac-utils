@@ -1,0 +1,76 @@
+# Build a CubeSat – pricing configuration
+# Hand-edited. Tabular data lives in the CSV files alongside this.
+version = "0.1.0"
+updated = "2026-10-07"
+
+# Vendor table. currency drives FX conversion; shipping/bank/duties are
+# multiplicative overhead factors on landed cost.
+vendors = [
+  { key = "nihil.space", name = "nihil.space (in-house FDM)", currency = "USD", shipping = 1, bank = 1, duties = 1, true_currency = "CHF" },
+  { key = "PCBWay", name = "PCBWay", currency = "USD", shipping = 1.05, bank = 1.01, duties = 1.1, true_currency = "USD" },
+  { key = "Digikey", name = "Digikey", currency = "USD", shipping = 1, bank = 1, duties = 1.1, true_currency = "USD" },
+  { key = "Digikey / Snaptron", name = "Digikey / Snaptron", currency = "USD", shipping = 1, bank = 1, duties = 1.1, true_currency = "USD" },
+  { key = "Accu", name = "Accu", currency = "USD", shipping = 1.1, bank = 1, duties = 1.25, true_currency = "GBP" },
+  { key = "RAJA", name = "RAJA", currency = "USD", shipping = 1.05, bank = 1, duties = 1, true_currency = "EUR" },
+  { key = "Jumbo", name = "Jumbo", currency = "USD", shipping = 1, bank = 1, duties = 1, true_currency = "CHF" },
+  { key = "Post", name = "Swiss Post", currency = "USD", shipping = 1, bank = 1, duties = 1, true_currency = "CHF" },
+  { key = "DHL", name = "DHL", currency = "USD", shipping = 1, bank = 1, duties = 1, true_currency = "CHF" },
+]
+
+# Discount tiers. kind = "percentage" (uses value) or "at_cost".
+discount_tiers = [
+  { label = "Education", kind = "percentage", value = 0.1, units = 5 },
+  { label = "Nonprofit", kind = "at_cost", value = 0.0, units = 5 },
+]
+
+# Regional price multipliers applied to the EU-baseline export price.
+regions = [
+  { label = "EU", multiplier = 1.0, currency = "EUR", adjust = 0.0 },
+  { label = "US", multiplier = 1.1, currency = "USD", adjust = 0.0 },
+  { label = "CH", multiplier = 1.1, currency = "CHF", adjust = 0.0 },
+  { label = "AU", multiplier = 1.05, currency = "AUD", adjust = 0.0 },
+  { label = "CA", multiplier = 1.05, currency = "CAD", adjust = 0.0 },
+  { label = "UK", multiplier = 1.05, currency = "GBP", adjust = 0.0 },
+  { label = "APAC", multiplier = 0.95, currency = "USD", adjust = 0.0 },
+  { label = "RoW", multiplier = 0.9, currency = "USD", adjust = 0.0 },
+]
+
+[financials]
+base_currency           = "CHF"
+target_margin           = 0.2
+vat                     = 0.081
+salary_monthly          = 2000
+working_days_per_month  = 20
+hours_per_day           = 8
+social_insurance_factor = 1.1
+expense_safety_factor   = 1.1
+overhead_safety_factor  = 1.05
+
+[nonprofit]
+basis = "fully_loaded"
+
+# Exchange rates: 1 unit of <currency> = <rate> of the base currency.
+# The base currency itself is 1.0.
+[fx]
+source  = "manual"
+updated = "2026-06-04"
+AUD = 0.53
+CAD = 0.59
+CHF = 1
+EUR = 0.94
+GBP = 1.09
+USD = 0.75
+
+# Global price rounding. Applies to FINAL prices only.
+[rounding]
+direction = "up"
+multiple  = 1
+
+[batch]
+ordered   = 25
+lost      = 1
+donations = 1
+returns   = 1
+warranty  = 1
+reserved  = 1
+not_sold  = 0

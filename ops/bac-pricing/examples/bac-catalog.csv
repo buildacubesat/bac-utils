@@ -1,0 +1,4 @@
+sku,item_id,name,category,shopify_handle,net_weight_g,shipping_weight_g,package_length_mm,package_width_mm,package_height_mm,hs_code,legal_country_of_origin,customs_description,declared_value,declared_value_currency,eccn,origin_story,barcode,image_ref,license
+bac-dev-kit-2u-v1r1,dev_kit_v1,Dev Kit v1,dev,,,,,,,902300,CH,"CubeSat educational development kit (bench-top, ground-only, non-flight)",,,,,,,
+bac-dev-eps-main-board-v2r2,eps_v2,EPS v2,dev,,,,,,,,,,,,,,,,
+bac-edu-kit-1u-v1r1,edu_kit_v1,Education Kit v1,edu,,,,,,,,,,,,,,,,

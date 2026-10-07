@@ -1,0 +1,63 @@
+item_id,sku,name,type,category,subcategory,vendor,hs_code,country_of_origin,unit,sellable,domain,notes
+dev_kit_v1,bac-dev-kit-2u-v1r1,Dev Kit v1,assembly,Hardware,KIT,,,,kit,true,ground,2U bench-top development platform. Ground-only.
+structure,,Structure,subassembly,Hardware,STR,,,,pcs,false,ground,
+rails_2u,,Rails 2U,part,Hardware,STR,PCBWay,,,pcs,false,ground,
+eps_bay,,EPS Bay,part,Hardware,STR,PCBWay,,,pcs,false,ground,
+end_frame,,End Frame,part,Hardware,STR,PCBWay,,,pcs,false,ground,
+end_plate,,End Plate,part,Hardware,STR,PCBWay,,,pcs,false,ground,
+dummies_18650,,18650 Dummies FDM,part,Hardware,STR,nihil.space,,,pcs,false,ground,
+eps_bay_inserts,,EPS Bay Inserts FDM,part,Hardware,STR,nihil.space,,,pcs,false,ground,
+eps_bay_standoffs,,EPS Bay Standoffs FDM,part,Hardware,STR,nihil.space,,,pcs,false,ground,
+pcb_holders_short,,PCB Holders Short,part,Hardware,STR,nihil.space,,,pcs,false,ground,
+pcb_holders_long,,PCB Holders Long,part,Hardware,STR,nihil.space,,,pcs,false,ground,
+eps_v2,bac-dev-eps-main-board-v2r2,EPS v2,subassembly,Hardware,EPS,,,,pcs,true,ground,Sold as a standalone spare; revision 2 is the r2 of the SKU.
+eps_mainboard,,EPS Main Board PCBA,part,Hardware,EPS,PCBWay,,,pcs,false,ground,
+bc_pcb,,Battery Contact PCB,subassembly,Hardware,EPS,,,,pcs,false,ground,
+bc_pcb_pcb,,Battery Contact PCB – bare PCB,part,Hardware,EPS,PCBWay,,,pcs,false,ground,
+bc_pcb_comp,,Battery Contact PCB – components,part,Hardware,EPS,Digikey / Snaptron,,,pcs,false,ground,
+bc_pcb_smt,,Battery Contact PCB – SMT assembly,service,Hardware,EPS,,,,service,false,ground,External SMT assembly. Quote pending.
+buck,,Buck Module TPSM5D1806,subassembly,Hardware,EPS,,,,pcs,false,ground,
+buck_pcb,,Buck Module TPSM5D1806 – bare PCB,part,Hardware,EPS,PCBWay,,,pcs,false,ground,
+buck_comp,,Buck Module TPSM5D1806 – components,part,Hardware,EPS,Digikey,,,pcs,false,ground,
+buck_smt,,Buck Module TPSM5D1806 – SMT assembly,service,Hardware,EPS,,,,service,false,ground,External SMT assembly. Quote pending.
+charger,,Charger Module BQ25306,subassembly,Hardware,EPS,,,,pcs,false,ground,
+charger_pcb,,Charger Module BQ25306 – bare PCB,part,Hardware,EPS,PCBWay,,,pcs,false,ground,
+charger_comp,,Charger Module BQ25306 – components,part,Hardware,EPS,Digikey,,,pcs,false,ground,
+charger_smt,,Charger Module BQ25306 – SMT assembly,service,Hardware,EPS,,,,service,false,ground,External SMT assembly. Quote pending.
+compute,,Compute,subassembly,Hardware,CDH,,,,pcs,false,ground,
+mcu_carrier,,MCU Carrier PCBA,part,Hardware,CDH,PCBWay,,,pcs,false,ground,
+cm5_carrier,,CM5 Carrier PCBA,part,Hardware,CDH,PCBWay,,,pcs,false,ground,
+util_breadboard,,Utility Breadboard PCBA,part,Hardware,CDH,PCBWay,,,pcs,false,ground,
+interconnect,,Interconnect,subassembly,Hardware,ICD,,,,pcs,false,ground,
+bacbus_12,,bacBus 12.5mm PCB,part,Hardware,ICD,PCBWay,,,pcs,false,ground,
+bacbus_30,,bacBus 30.5mm PCB,part,Hardware,ICD,PCBWay,,,pcs,false,ground,
+coretx_ra,,Coretx Right Angle Connector,part,Hardware,ICD,Digikey,,,pcs,false,ground,
+fasteners,,Fasteners,subassembly,Hardware,FST,,,,pcs,false,ground,
+m3x30,,M3x30,part,Hardware,FST,Accu,,,pcs,false,ground,Shared across Fasteners and Packaging subassemblies.
+m3_nuts,,M3 Nuts,part,Hardware,FST,Accu,,,pcs,false,ground,Shared across Fasteners and Packaging subassemblies.
+m3_washers,,M3 Washers,part,Hardware,FST,Accu,,,pcs,false,ground,Shared across Fasteners and Packaging subassemblies.
+m2x4,,M2x4,part,Hardware,FST,Accu,,,pcs,false,ground,
+m2x_unknown,,M2x?,part,Hardware,FST,Accu,,,pcs,false,ground,
+m2_washers,,M2 Washers,part,Hardware,FST,Accu,,,pcs,false,ground,
+m3x10,,M3x10,part,Hardware,FST,Accu,,,pcs,false,ground,
+m3x14,,M3x14,part,Hardware,FST,Accu,,,pcs,false,ground,
+alignment_shims,,Alignment Shims,part,Hardware,FST,Jumbo,,,pcs,false,ground,
+packaging,,Packaging,subassembly,Hardware,PKG,,,,pcs,false,ground,
+fdm_box,,FDM Box PLA,part,Hardware,PKG,nihil.space,,,pcs,false,ground,
+fdm_lid,,FDM Lid ESD PET,part,Hardware,PKG,nihil.space,,,pcs,false,ground,
+fdm_case,,FDM Case PLA,part,Hardware,PKG,nihil.space,,,pcs,false,ground,
+fdm_pocket,,FDM Dep Switch Pocket Inserts,part,Hardware,PKG,nihil.space,,,pcs,false,ground,
+card,,Card,part,Hardware,PKG,RAJA,,,pcs,false,ground,
+inner_box,,Inner Box,part,Hardware,PKG,RAJA,,,pcs,false,ground,
+outer_box,,Outer Box,part,Hardware,PKG,RAJA,,,pcs,false,ground,
+padding,,Padding,part,Hardware,PKG,RAJA,,,pcs,false,ground,
+tape,,Tape,part,Hardware,PKG,RAJA,,,pcs,false,ground,
+label,,Label,part,Hardware,PKG,RAJA,,,pcs,false,ground,
+shipping,,Outbound Shipping,subassembly,Logistics,SHP,,,,pcs,false,ground,Average shipping-loss provisions.
+loss_post,,Average Loss (Post),service,Logistics,SHP,Post,,,service,false,ground,
+loss_dhl,,Average Loss (DHL),service,Logistics,SHP,DHL,,,service,false,ground,
+edu_kit_v1,bac-edu-kit-1u-v1r1,Education Kit v1,assembly,Hardware,KIT,,,,kit,true,ground,1U turnkey education bundle. Shares EPS v2 with Dev Kit. SCAFFOLD: contents per kit description; quantities and new-item quotes pending.
+edu_structure_1u,,1U Structure (Education),part,Hardware,STR,,,,pcs,false,ground,Placeholder – quote + spec pending.
+solar_panels,,Solar Panels (set),part,Hardware,EPS,,,,set,false,ground,Placeholder – quote pending.
+hatch_panels,,Hatch Panels (set),part,Hardware,STR,,,,set,false,ground,Placeholder – quote pending.
+edu_case,,Storage Case (Education),part,Hardware,PKG,,,,pcs,false,ground,Placeholder – quote pending.

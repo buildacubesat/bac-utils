@@ -39,6 +39,7 @@ ignore = ["B008"]
 # a cell is a notebook global (the harness and the tests read it through `defs`) even
 # when no other cell uses it, so it is not an unused local.
 "notebooks/**/*.py" = ["E501", "B018", "F841"]
+"ops/*/src/*/notebook.py" = ["E501", "B018", "F841"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["bac_common", "bac_kicad_common", "bac_suite_db", "notebook_harness"]

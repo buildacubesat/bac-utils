@@ -1,0 +1,10 @@
+# Build a CubeSat – business operations suite
+# Bootstrap settings only: operational parameters live in the database as versioned rows.
+# bac-db --init writes this file to ~/.config/bac/bac-suite.toml.
+
+[storage]
+# "postgres" (canonical, one shared store for every engine) or "files" (work from the data
+# directory's CSV/TOML files; no database needed).
+backend = "postgres"
+# Data files: import source, export target, and the working set in files mode.
+data_dir = "~/bac/ops-data"

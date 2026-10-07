@@ -1,0 +1,37 @@
+[project]
+name = "bac-suite"
+version = "0.2.0"
+description = "Build a CubeSat business operations suite shell: one web app serving every installed engine's notebook over the shared database."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "bac-common>=0.3",
+    "bac-suite-db>=0.1",
+    "bac-pricing>=1.4",
+    "rich>=13.7",
+    "marimo>=0.14",
+    "uvicorn>=0.30",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+bac-suite = "bac_suite.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bac_suite"]
+
+[tool.uv.sources]
+bac-common = { workspace = true }
+bac-suite-db = { workspace = true }
+bac-pricing = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
