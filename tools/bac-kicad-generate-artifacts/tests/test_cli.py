@@ -69,7 +69,7 @@ def test_relative_output_root_is_made_absolute(fake, synth, tmp_path, monkeypatc
     assert r.exit_code == 0, r.output
     (cmd,) = [c for c in fake.commands if c[1:4] == ["pcb", "export", "pos"]]
     assert cmd[cmd.index("--output") + 1].startswith(str(tmp_path / "out"))
-    assert f"Output     {tmp_path / 'out' / 'synth-v2r3'}" in r.stdout
+    assert f"Output     {tmp_path / 'out' / 'bac-synth-v2r3'}" in r.stdout
 
 
 def test_init_writes_the_config_once(no_config, tmp_path):
@@ -130,7 +130,7 @@ def test_full_run_on_the_synthetic_project(fake, synth, tmp_path):
     out = tmp_path / "out"
     r = invoke(cli._main, ["--desktop", str(out), "--qr", "${COMMENT4}", str(synth)])
     assert r.exit_code == 0, r.output
-    project_dir = out / "synth-v2r3"
+    project_dir = out / "bac-synth-v2r3"
     names = sorted(p.name for p in project_dir.iterdir())
     (zip_name,) = [n for n in names if n.endswith(".zip")]
     assert sorted(set(names) - {zip_name}) == [
@@ -190,7 +190,7 @@ def test_config_drives_prefix_metadata_and_qr(fake, synth, tmp_path):
     r = invoke(cli._main, ["--config", str(cfg), str(synth)])
     assert r.exit_code == 0, r.output
     # the prefix is not "bac", so the stem's bac- stays part of the name
-    project_dir = tmp_path / "root" / "bac-synth-v2r3"
+    project_dir = tmp_path / "root" / "acme-eps-bac-synth-v2r3"
     assert (project_dir / "acme-eps-bac-synth-v2r3-render.webp").is_file()
     header = read_step_header(project_dir / "acme-eps-bac-synth-v2r3-model.step")
     assert header.author == ["Mänu"] and header.organization == ["Build a CubeSat"]
@@ -210,7 +210,7 @@ def test_panel_skips_the_schematic_stages(fake, panel, tmp_path):
     (gerber_cmd,) = [c for c in fake.commands if c[1:4] == ["pcb", "export", "gerbers"]]
     assert gerber_cmd[gerber_cmd.index("--layers") + 1].endswith(",Edge.Cuts,User.Comments")
     assert not any(c[1] == "sch" for c in fake.commands)
-    names = sorted(p.name for p in (out / "synth-panel-v1r1").iterdir())
+    names = sorted(p.name for p in (out / "bac-synth-panel-v1r1").iterdir())
     assert "bac-synth-panel-v1r1-render.webp" in names and not any("bom" in n or "schematic" in n for n in names)
 
 
@@ -221,7 +221,7 @@ def test_ibom_stage(fake, synth, tmp_path):
     cfg.write_text(f'[ibom]\nscript = "{plugin}"\npython = "/opt/kicad/python3"\n')
     r = invoke(cli._main, ["--config", str(cfg), "--desktop", str(tmp_path / "o"), "--only", "ibom", str(synth)])
     assert r.exit_code == 0, r.output
-    assert (tmp_path / "o" / "synth-v2r3" / "bac-synth-v2r3-ibom.html").is_file()
+    assert (tmp_path / "o" / "bac-synth-v2r3" / "bac-synth-v2r3-ibom.html").is_file()
     probe = [c for c in fake.commands if c[1:3] == ["-c", "import pcbnew"]]
     assert probe[0][0] == "/opt/kicad/python3"  # the configured interpreter is probed first
     (ibom_cmd,) = [c for c in fake.commands if str(plugin) in c]
@@ -265,7 +265,7 @@ def test_a_failing_stage_marks_the_project_and_the_run_continues(fake, synth, tm
     assert r.exit_code == 1
     assert "✗ STEP → bac-synth-v2r3-model.step: kicad-cli failed (exit 1): Error: something kicad-cli says" in r.stdout
     assert "✓ Zip" in r.stdout  # later stages still ran
-    assert "Failed" in r.stdout and not (out / "synth-v2r3" / ".work").exists()
+    assert "Failed" in r.stdout and not (out / "bac-synth-v2r3" / ".work").exists()
 
 
 def test_several_projects_and_a_bad_folder(fake, synth, panel, tmp_path):
@@ -282,14 +282,14 @@ def test_several_projects_and_a_bad_folder(fake, synth, panel, tmp_path):
 def test_patch_revision(fake, synth, tmp_path):
     r = invoke(cli._main, ["--desktop", str(tmp_path / "o"), "--patch", "1", "--only", "bom,centroid", str(synth)])
     assert r.exit_code == 0, r.output
-    d = tmp_path / "o" / "synth-v2r3.1"
+    d = tmp_path / "o" / "bac-synth-v2r3.1"
     assert (d / "bac-synth-v2r3.1-bom.csv").is_file() and (d / "centroid" / "bac-synth-v2r3.1-centroid.pos").is_file()
 
 
 def test_debug_keeps_the_work_folder_and_shows_commands(fake, synth, tmp_path):
     r = invoke(cli._main, ["--debug", "--desktop", str(tmp_path / "o"), "--only", "qr,render", "--qr", "x", str(synth)])
     assert r.exit_code == 0, r.output
-    assert (tmp_path / "o" / "synth-v2r3" / ".work" / "project" / "bac-synth-v2.kicad_pcb").is_file()
+    assert (tmp_path / "o" / "bac-synth-v2r3" / ".work" / "project" / "bac-synth-v2.kicad_pcb").is_file()
     assert "$ /usr/bin/kicad-cli pcb render" in r.stdout
 
 
@@ -306,7 +306,7 @@ def test_deployment_switch_fixture(fake, dsw, tmp_path):
     out = tmp_path / "o"
     r = invoke(cli._main, ["--desktop", str(out), "--qr", "${COMMENT4}", str(dsw)])
     assert r.exit_code == 0, r.output
-    d = out / "deployment-switch-v1r1"
+    d = out / "bac-deployment-switch-v1r1"
     assert (d / "bac-deployment-switch-v1r1-render.webp").is_file()
     assert "1 marker, encodes 'https://bac.page/dsw-v1'" in r.stdout
     gerbers = sorted(p.name for p in (d / "gerber").iterdir())

@@ -1,4 +1,4 @@
-# bac-kicad-generate-artifacts v0.6.0
+# bac-kicad-generate-artifacts v0.6.1
 
 Build a CubeSat – the release bundle of a KiCad project from one command. For every project folder given, the tool drives `kicad-cli` through the stages of a hardware release and puts the results into one folder: a 720 × 720 px 3D render, a 1920 × 1080 px pinout plot, the schematic PDF, the CSV BOM, an optional interactive HTML BOM, Gerbers and Excellon drills, the pick-and-place centroid file, the STEP model with author and organisation in its header, an optional QR code on the board, and a timestamped manufacturing ZIP. Every file is named after the BAC artifact scheme `<prefix>-<subsystem>-<name>-<vXrY>-<kind>.<ext>`, with the version and revision read from the board's title block.
 
@@ -64,7 +64,7 @@ A folder without a `.kicad_sch` file is a **panel**: the tool says so with a `!`
 
 ## 4. Names and the config file
 
-The output folder is `<root>/<name>-<vXrY>/`. The pieces of the scheme:
+The output folder is `<root>/<base>/`, so two projects of the same name in different subsystems never share a folder. The pieces of the scheme:
 
 - **prefix** – `bac` (`prefix` in `[naming]`).
 - **subsystem** – the folder below the hardware repository on the project's path: `.../bac-hardware/inhibit/deployment-switch/kicad10` gives `inhibit` (`hardware_root` in `[naming]` names the repository folder). A project outside that repository gets no subsystem and the prefix stands alone; so does a project folder that is the subsystem itself.
@@ -143,6 +143,7 @@ MIT, like the rest of bac-utils. The QR stage follows Emil Fresk's kicad-qr-inse
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.6.1 | 2026-10-07 | The output folder is named like the artifacts (`bac-inhibit-deployment-switch-v1r1/`, was `deployment-switch-v1r1/`), so two projects of one name in different subsystems no longer share a folder. From the first live run: the iBOM plugin gets absolute paths (it resolves `--dest-dir` against the board's folder), the program lookup happens at call time, `--init` keeps its `[table]` names. |
 | 0.6.0 | 2026-10-06 | Rebuilt on `bac-common` as `tools/bac-kicad-generate-artifacts` in bac-utils, merging the 0.5.0 architecture with the 0.4.2 behaviour (§7). New: the `qr` stage, STEP header metadata, `--open`, `--patch`, `--init`/`--config`, the name from the project stem, Gerber names without spaces, `.gbrjob` rewrite, kicad-cli 10 targeted directly, Pillow instead of `cwebp`. Fixtures: the deployment switch and a synthetic project with a panel; 110 tests. |
 | 0.5.0 | 2026-05 | Candidate (never installed): `Config`, `Runner`, `Plan` and `Stage` architecture, `--only`/`--skip`/`--verbose`, 48 tests of the pure functions. |
 | 0.4.2 | 2026-08-06 | Panelized boards: also skip the pinout WebP export. |

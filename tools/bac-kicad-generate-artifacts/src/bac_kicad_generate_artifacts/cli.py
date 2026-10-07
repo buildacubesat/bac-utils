@@ -2,7 +2,7 @@
 """bac-kicad-generate-artifacts – the release bundle of a KiCad project from one command.
 
 For every project folder given (the one holding the ``.kicad_pro``), the tool
-creates ``<root>/<name>-<vXrY>/`` on the desktop (or ``--desktop``) and runs
+creates ``<root>/<prefix>-<subsystem>-<name>-<vXrY>/`` on the desktop (or ``--desktop``) and runs
 the stages in order: an optional QR code on a copy of the board, the 3D
 render, the schematic PDF, the pinout plot, the CSV BOM, the optional
 interactive BOM, Gerbers, drills, the centroid file, the STEP model, and

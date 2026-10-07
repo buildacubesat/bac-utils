@@ -319,11 +319,11 @@ class TestPlan:
     def test_paths(self, tmp_path: Path):
         plan = make_plan(discover(SYNTH), tmp_path, prefix="bac", hardware_root="fixtures")
         assert plan.base == "bac-eps-synth-v2r3"
-        assert plan.out_dir == tmp_path / "synth-v2r3"
+        assert plan.out_dir == tmp_path / "bac-eps-synth-v2r3"  # the subsystem keeps two projects of one name apart
         assert plan.render_webp.name == "bac-eps-synth-v2r3-render.webp"
-        assert plan.centroid_pos == tmp_path / "synth-v2r3" / "centroid" / "bac-eps-synth-v2r3-centroid.pos"
+        assert plan.centroid_pos == tmp_path / "bac-eps-synth-v2r3" / "centroid" / "bac-eps-synth-v2r3-centroid.pos"
         assert plan.schematic_pdf.name == "bac-eps-synth-v2r3-schematic.pdf"
-        assert plan.qr_board == tmp_path / "synth-v2r3" / ".work" / "project" / "bac-synth-v2.kicad_pcb"
+        assert plan.qr_board == tmp_path / "bac-eps-synth-v2r3" / ".work" / "project" / "bac-synth-v2.kicad_pcb"
 
     def test_patch_and_separate_schematic_tag(self, tmp_path: Path):
         plan = make_plan(discover(SYNTH), tmp_path, prefix="bac", hardware_root="none", pcb_patch=1, sch_patch=None)
@@ -336,4 +336,4 @@ class TestPlan:
 
     def test_deployment_switch_without_hardware_root(self, tmp_path: Path):
         plan = make_plan(discover(DSW), tmp_path, prefix="bac", hardware_root="bac-hardware")
-        assert plan.base == "bac-deployment-switch-v1r1" and plan.out_dir.name == "deployment-switch-v1r1"
+        assert plan.base == "bac-deployment-switch-v1r1" and plan.out_dir.name == "bac-deployment-switch-v1r1"

@@ -1,6 +1,6 @@
 [project]
 name = "bac-kicad-generate-artifacts"
-version = "0.6.0"
+version = "0.6.1"
 description = "Generate the release artifacts of a KiCad project: render, pinout, schematic PDF, BOM, iBOM, Gerbers, drills, centroid, STEP, QR marker and the manufacturing ZIP."
 readme = "README.md"
 license = { text = "MIT" }

@@ -478,4 +478,5 @@ def make_plan(
         sch_tag = pcb_tag
     else:
         sch_tag = apply_patch_rev(make_vr_tag(project.sch_title.title, project.sch_title.rev), sch_patch)
-    return Plan(project, name, asset_prefix(prefix, subsystem, name), pcb_tag, sch_tag, root / f"{name}-{pcb_tag}")
+    asset = asset_prefix(prefix, subsystem, name)
+    return Plan(project, name, asset, pcb_tag, sch_tag, root / f"{asset}{name}-{pcb_tag}")
