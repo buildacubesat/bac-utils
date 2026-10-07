@@ -1,4 +1,4 @@
-# bac-common v0.3.0
+# bac-common v0.4.0
 
 Build a CubeSat – the shared scaffold every BAC command-line tool is built on. It implements the parts of the BAC Project & Tooling Guide §3 and the BAC Interface Design Guide §10 that are the same for every tool, so a tool contains only its own logic.
 
@@ -13,6 +13,7 @@ Lifted from the CSR Ingest reference implementation (`csr_ingest/ui.py`, `errors
 | `bac_common.config` | `default_config_path()`, `load_toml()`, `load_env()`, `pick()` (env over TOML over default), `require_setup()` pointing at `--init`, `write_config()`, `write_env()` (owner-only permissions) |
 | `bac_common.sexp` | Span-recording reader for KiCad s-expression files: `parse()`/`parse_file()` give `Node`/`Atom` trees that remember their character spans, `apply_edits()` splices replacements into the original text, `quoted()`/`escape()`/`unescape()` handle KiCad's string escapes, `fmt_number()`, `line_indent()`, `format_version()` |
 | `bac_common.cad` | Metadata in exported CAD files: `read_step_header()`/`set_step_header()` fill the `FILE_NAME` entity of a STEP file (model name, author, organisation, authorisation) without touching the data section; `step_product_names()` lists the `PRODUCT` entities |
+| `bac_common.gsheets` | Google Sheets through a service account, behind the `gsheets` extra: `SheetsClient.from_service_account()`/`read_range()` returning rows of strings, `credentials_path()` (`BAC_GCP_CREDENTIALS` over the configured path), `spreadsheet_id()` accepting an id or a URL, `quote_sheet_title()`, `sheet_url()`; API refusals become `ExternalToolError` with the fix as the detail (a 403 names the service account to share the sheet with) |
 | `bac_common.errors` | `BacError` with `exit_code` and an optional `detail` line; `ConfigError`, `UsageError` (2), `ExternalToolError`, `UserAbort` (0), `SkipItem` |
 | `bac_common.utils` | `sha256_file()`, `short_hash()`, `slugify()`, `safe_filename()`, `is_kebab()` |
 | `bac_common.testing` | `invoke()` to run a tool's `main` in-process with captured output, `assert_standard_flags()` for the `-v` and `--help` contract |
@@ -64,7 +65,7 @@ dependencies = ["bac-common>=0.1"]
 bac-common = { workspace = true }
 ```
 
-Interactive prompts are not part of the core; install the `prompts` extra (`InquirerPy`) in tools that need guided selection.
+Interactive prompts are not part of the core; install the `prompts` extra (`InquirerPy`) in tools that need guided selection. The Google client libraries are the `gsheets` extra (`google-api-python-client`, `google-auth`); a tool that reads a spreadsheet depends on `bac-common[gsheets]`, every other tool stays without them.
 
 ## 3. Rules the helpers enforce
 
@@ -74,6 +75,7 @@ Every message may contain Rich markup, so anything from outside the tool – fil
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.4.0 | 2026-10-07 | `bac_common.gsheets`: the service-account Sheets reader lifted from `bac-update-content-plan` 0.3.0 and generalised, behind the optional `gsheets` extra so no other tool pays for the Google client libraries. Lazy imports, a testable `SheetsClient` wrapper, the key path from `BAC_GCP_CREDENTIALS` or config, ids accepted as URLs, API errors mapped to `ExternalToolError` with the next step (a 403 names the account to share with). |
 | 0.3.0 | 2026-10-06 | `bac_common.cad`: the STEP header helper `bac-kicad-generate-artifacts` uses to put the artifact name, author and organisation into the `FILE_NAME` entity in place of the exporter's placeholders; the FreeCAD artifacts tool will add 3MF. Header-only edit: the data section is copied through byte for byte; non-ASCII is written in Part 21's `\X2\…\X0\` form. |
 | 0.2.1 | 2026-10-02 | `testing.invoke` pins the Rich consoles to 250 columns and `COLUMNS` to 80 while the tool runs: Rich output is captured unwrapped and untruncated whatever the terminal is, and `--help` is still measured at the width a user sees. Five tests across three tools failed at 80 columns before, because pytest's temporary paths pushed a message past the width. |
 | 0.2.0 | 2026-09-07 | `bac_common.sexp`: the span-recording s-expression reader the KiCad tools share, lifted from bac-kicad-tools' `bac_kicad_core.sexpr` and extended with tree helpers (`child`, `value`, `walk`, `find_all`), `parse_file`, `format_version`, overlap-checked `apply_edits`, and string escapes that survive a write-back (`\n`, `\t`, quotes, backslashes). Round-trips the four BAC library fixtures byte for byte. |

@@ -2,7 +2,7 @@
 """bac-media-convert – batch conversions with one subcommand per recipe.
 
 ``webp-square`` centre-crops images to squares and writes WebP for the
-shop; ``cfr`` turns variable-frame-rate video into constant-rate H.264 MP4
+store; ``cfr`` turns variable-frame-rate video into constant-rate H.264 MP4
 for editing. Both take files or folders, plan every output before
 starting, skip outputs that exist unless ``--force``, and show a progress
 bar with a ✓ line per file. No persistent settings, so no ``--init``,
@@ -34,7 +34,7 @@ app = typer.Typer(
     rich_markup_mode=None,
     pretty_exceptions_enable=False,
     help=(
-        "Build a CubeSat – batch media conversions: square WebP for the shop, "
+        "Build a CubeSat – batch media conversions: square WebP for the store, "
         "constant-frame-rate MP4 from variable-rate video.\n\n"
         "\b\n"
         "Examples:\n"

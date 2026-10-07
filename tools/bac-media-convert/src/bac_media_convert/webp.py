@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MIT
 """Square WebP export on Pillow – the helper other tools reuse.
 
-The shop wants product images square, no larger than 3840 px on a side,
+The store wants product images square, no larger than 3840 px on a side,
 as WebP at quality 90 with the slowest (best) encoder method. This module
-is the one place that knows those numbers; ``bac-shop-product-cropper``
-will import :func:`export_webp` for its size-targeted export.
+is the one place that knows those numbers; ``bac-store-product-cropper``
+imports :func:`export_webp` for its size-targeted export.
 """
 
 from __future__ import annotations

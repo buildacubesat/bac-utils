@@ -1,6 +1,6 @@
-# bac-media-convert v0.1.0
+# bac-media-convert v0.1.1
 
-Build a CubeSat – the batch conversions the shop and the video work keep needing, as one tool with a subcommand per recipe. `webp-square` centre-crops product photos to squares and writes WebP; `cfr` re-encodes variable-frame-rate screen captures to constant-rate H.264 MP4 that editors handle. Both take files or folders, plan every output before starting, never overwrite silently, and show a progress bar with one ✓ line per file.
+Build a CubeSat – the batch conversions the store and the video work keep needing, as one tool with a subcommand per recipe. `webp-square` centre-crops product photos to squares and writes WebP; `cfr` re-encodes variable-frame-rate screen captures to constant-rate H.264 MP4 that editors handle. Both take files or folders, plan every output before starting, never overwrite silently, and show a progress bar with one ✓ line per file.
 
 It replaces two shell loops (`convert_to_square_webp.sh` on ImageMagick, `webm-vfr-to-25fps.sh` on ffmpeg). ImageMagick is no longer needed; ffmpeg 5.1 or newer is, for `cfr` only.
 
@@ -44,10 +44,11 @@ Exit codes: `0` everything converted or skipped, `1` at least one file failed or
 
 ## 3. Reusing the WebP export
 
-`bac_media_convert.webp` is importable: `load_oriented(path)`, `square_crop(image)`, `fit_max_side(image, px)`, `export_webp(image, target, quality=, method=)` returning the file size, and `convert_square_webp(source, target, max_side=, quality=)`. `bac-shop-product-cropper` will build its size-targeted export on `export_webp` when it is ported.
+`bac_media_convert.webp` is importable: `load_oriented(path)`, `square_crop(image)`, `fit_max_side(image, px)`, `export_webp(image, target, quality=, method=)` returning the file size, and `convert_square_webp(source, target, max_side=, quality=)`. `bac-store-product-cropper` builds its size-targeted export on `export_webp`.
 
 ## 4. Version history
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.1.1 | 2026-10-07 | Wording: the Shopify store is "the store" in the help text, the module docstrings and this README (was "shop"); `bac-store-product-cropper` now builds on `export_webp` as announced. No behaviour change. |
 | 0.1.0 | 2026-09-04 | Two shell loops merged into one Typer tool on `bac-common`: `webp-square` on Pillow (drops ImageMagick), `cfr` on ffmpeg via argv with `-fps_mode cfr` instead of the deprecated `-vsync`. Files or folders, `--out-dir`, output collisions refused before work, existing outputs skipped unless `--force` (the loops overwrote silently and `a.jpg`/`a.png` collided on `a.webp`), EXIF orientation applied, progress bar and per-file ✓/✗ lines, summary, `--dry-run`, `-v`, hidden `--debug`; `ffmpeg` absent reported by name; a folder listing leaves the tool's own `_<fps>fps.mp4` outputs alone; outputs written as `.part` files and renamed when complete. 26 tests, ffmpeg mocked. |
