@@ -21,8 +21,7 @@ dev = [
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-extend-exclude = ["blender"]
-# honour extend-exclude even when a file is named explicitly (editors, pre-commit)
+# honour excludes even when a file is named explicitly (editors, pre-commit)
 force-exclude = true
 
 [tool.ruff.lint]
@@ -42,10 +41,10 @@ ignore = ["B008"]
 "ops/*/src/*/notebook.py" = ["E501", "B018", "F841"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["bac_common", "bac_kicad_common", "bac_suite_db", "notebook_harness"]
+known-first-party = ["bac_common", "bac_kicad_common", "bac_suite_db", "notebook_harness", "bac_vse_tools"]
 
 [tool.pytest.ini_options]
-testpaths = ["lib", "tools", "notebooks", "ops"]
+testpaths = ["lib", "tools", "notebooks", "ops", "blender"]
 # importlib mode lets every tool keep its own tests/test_cli.py without
 # module-name collisions when the whole workspace runs in one session.
 addopts = "-q --import-mode=importlib"

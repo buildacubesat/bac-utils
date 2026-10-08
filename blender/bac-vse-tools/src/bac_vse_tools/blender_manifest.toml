@@ -1,0 +1,20 @@
+# Build a CubeSat – bac-vse-tools, the VSE Tools extension for Blender's Video Sequencer.
+schema_version = "1.0.0"
+
+id = "bac_vse_tools"
+version = "1.0.0"
+name = "BAC VSE Tools"
+tagline = "Bulk import, sequential proxies and meta separation for the VSE"
+maintainer = "Build a CubeSat contributors"
+type = "add-on"
+website = "https://github.com/buildacubesat/bac-utils/tree/main/blender/bac-vse-tools"
+tags = ["Sequencer"]
+blender_version_min = "4.2.0"
+license = ["SPDX:MIT"]
+copyright = ["2025-2026 Build a CubeSat contributors"]
+
+[permissions]
+files = "Reads the folder of clips to import; writes autosave copies and proxy files where you point it"
+
+[build]
+paths_exclude_pattern = ["__pycache__/", "/.*", "/*.zip"]

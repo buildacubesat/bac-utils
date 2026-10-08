@@ -32,7 +32,7 @@ This table is the record of what exists, what is being worked on and what is pla
 | [`bac-store-product-cropper`](tools/bac-store-product-cropper/) | Tk GUI | media | Framing product photos for the store by hand, one window per batch, each crop exported as WebP under a size target; may later fold into a store artifact-generation tool | available | v0.2.0 |
 | `bac-reference-gallery` | CLI and pages | design | Design-reference pages for the BAC guides plus a PNG/PDF renderer; home of the shared `tokens.css` | planned | – |
 | [`bac-update-content-plan`](tools/bac-update-content-plan/) | CLI | content | Renders the content plan from a Google Sheet into the docs repository as one Markdown table; commits and pushes on request | available | v0.4.0 |
-| `bac-vse-tools` | Blender extension | video | One extension with three sub-panels: bulk import, sequential proxies, separate meta strips preserving trim | planned | – |
+| [`bac-vse-tools`](blender/bac-vse-tools/) | Blender extension | video | One extension with three sub-panels in the VSE sidebar: bulk import of a folder of clips end to end, proxies built one strip at a time, meta strips separated with their trim kept | available | v1.0.0 |
 | [`bac-link-budget`](notebooks/bac-link-budget/) | marimo notebook | RF | Link budget for a CubeSat radio link: passes, margins, data volume per day, validated against the AMSAT/IARU link model and SGP4 | available | v0.7.3 |
 | [`bac-optical-payload`](notebooks/bac-optical-payload/) | marimo notebook | optics | Earth-observation and boom-camera optics: GSD, swath, smear, access and illumination over a target, days to downlink | available | v0.7.3 |
 | [`bac-power-budget`](notebooks/bac-power-budget/) | marimo notebook | power | Generation, storage and loads over the orbit with a scheduler and safe mode | available | v0.5.3 |
@@ -57,7 +57,7 @@ uv tool install ./tools/bac-issue-print
 bac-issue-print --init
 ```
 
-The Blender extension is installed from a zip built in `blender/bac-vse-tools`. The ops suite is described in `ops/README.md`.
+The Blender extension is installed from a zip of `blender/bac-vse-tools/src/bac_vse_tools/` through Preferences → Get Extensions → Install from Disk; its README has the two ways to build the zip. The ops suite is described in `ops/README.md`.
 
 To work on the repository itself:
 
@@ -98,6 +98,7 @@ Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool n
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.12.0 | 2026-10-07 | `bac-vse-tools` v1.0.0: the three Blender add-ons as one extension under `blender/` with a manifest, three panels under VSE Tools and settings in a property group on the scene; Bulk Import no longer saves the open file and keeps its copies out of the media folder (autosave opt-in, confirmed) and keeps Blender's A/V sync through the Add Movie operator, the proxy build runs as a background job with a timeout over the whole wait and stale proxies ignored, Separate Meta asks before removing strips. Tested headless inside Blender 4.5 through the `bpy` wheel; `blender/` joins ruff and pytest. |
 | 0.11.0 | 2026-10-07 | `bac-update-content-plan` v0.4.0 rewritten on `bac-common` (sheet, range, repository and branch in `~/.config/bac/`, the repository validated before the sheet is fetched, pipes escaped, the commit limited to the file, confirmation before `git push`, `--dry-run` reports what would change) and `bac-store-product-cropper` v0.2.0 repackaged under its new name (the double-Enter save, the stretched preview, the quality-order crash and the double listing fixed; `--out-dir`, collision check, skip of existing outputs). `bac-common` v0.4.0 adds `bac_common.gsheets` behind the `gsheets` extra. `bac-media-convert` v0.1.1: "the store" replaces "the shop" here and in its own text; the planned `bac-builder` and `bac-catalog` rows follow. |
 | 0.10.0 | 2026-10-07 | The business operations suite joins under `ops/`: `bac-suite-db` v0.1.0 (the shared PostgreSQL layer lifted from bac-pricing's `bac_store.py`, `bac-db` on `bac-common`, the DSN in `.env` and redacted everywhere, the SKU scheme as a parser), `bac-pricing` v1.4.0 (engine, store and notebook as a package with the `bac-pricing` launcher, the data files as `examples/` with the three SKUs migrated to the guide scheme, the notebook on the shared style cell with one control panel, validation on import, the parity test as pytest with a guarded live variant) and `bac-suite` v0.2.0 (engines found through entry points). The SQL was run against PostgreSQL 16 before release and the live tests keep doing so with `BAC_TEST_DSN`; `ops/README.md` describes the group. |
 | 0.9.1 | 2026-10-07 | `bac-kicad-generate-artifacts` v0.6.1: the output folder carries the full artifact name (`bac-inhibit-deployment-switch-v1r1/`), fixes from the first live run (absolute paths for the iBOM plugin, program lookup at call time, `--init` text). |
