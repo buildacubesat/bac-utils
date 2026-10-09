@@ -1,0 +1,268 @@
+/* tokens.css – Build a CubeSat design tokens as CSS custom properties.
+
+   The executable copy of the BAC Identity Guide v0.8 (§3 typography, §4 colour,
+   §5 form, §7 Mission surfaces) and the motion tokens of the BAC Interface
+   Design Guide v0.1 (§4.1). The guides are authoritative; this file follows
+   them. Other copies of these values – the marimo style cell, the Rich colours
+   in bac-common, the bac-suite index page – take them from here.
+
+   Two semantic tokens differ from Identity Guide §4.4 so small text meets
+   WCAG AA (decided 2026-10-08, guide change drafted): --text-muted and --link.
+   The section "Derived for interfaces" holds values the guides describe but
+   do not list (inks for text on tints, chart series on dark surfaces), each
+   written as a color-mix() of canonical tokens.
+
+   Light and dark: the semantic tokens follow prefers-color-scheme, and a
+   data-theme="light" or data-theme="dark" attribute on any element pins its
+   subtree to one mode, text colour included (Interface Design Guide §3). */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;1,6..12,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+/* 1. Canonical tokens – the same in light and dark */
+:root {
+  /* Typography – Identity Guide §3 */
+  --font-logo: 'Nunito', system-ui, sans-serif; /* wordmark only */
+  --font-display: 'Nunito Sans', system-ui, sans-serif;
+  --font-body: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.375rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.25rem;
+  --text-3xl: 3rem;
+  --text-4xl: 4rem;
+  --text-5xl: 5.5rem;
+
+  --lh-tight: 1.05;
+  --lh-snug: 1.2;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.65;
+
+  --ls-tight: -0.02em;
+  --ls-normal: 0;
+  --ls-wide: 0.04em;
+  --ls-wider: 0.12em;
+
+  /* Brand and accent – Identity Guide §4.1 */
+  --bac-yellow: #F7D400;
+  --bac-yellow-press: #D8BA00;
+  --bac-blue: #4277FD;
+  --bac-blue-press: #2F5FD6;
+  --bac-green: #84C45A;
+  --bac-red: #CE6C63;
+
+  /* Nebula palette – Identity Guide §4.2; decorative, Mission and data visualisation */
+  --nebula-cyan: #087C9B;
+  --nebula-blue: #3B35B8;
+  --nebula-copper: #C88732;
+  --nebula-violet: #21105F;
+  --nebula-ember: #A94E52; /* Mission only: quiet caution, disclaimer outlines */
+
+  --nebula-cyan-tint: #E0F4F8;
+  --nebula-blue-tint: #ECEAF9;
+  --nebula-copper-tint: #FAF0DC;
+  --nebula-violet-tint: #ECE9F5;
+
+  /* Warm neutral ramp – Identity Guide §4.3 */
+  --warm-0: #FAF9F7;
+  --warm-50: #EFEFED;
+  --warm-100: #E6E5E1;
+  --warm-200: #D7D6D1;
+  --warm-300: #C0BFB9;
+  --warm-400: #A3A29C;
+  --warm-500: #888884;
+  --warm-600: #6C6B67;
+  --warm-700: #54534F;
+  --warm-800: #3F3F3F;
+  --warm-900: #2B2926;
+  --warm-950: #201E1C;
+
+  /* Mission surfaces – Identity Guide §7 */
+  --space-ink: #171320;
+  --space-surface: #241B3F;
+  --space-paper: #F6F0E6;
+  --space-muted: #8F879E;
+
+  --mission-viewport-bg: #171320;
+  --mission-viewport-border: rgba(8, 124, 155, 0.38);
+  --mission-viewport-glow: inset 0 0 24px rgba(8, 124, 155, 0.16), inset 0 0 72px rgba(59, 53, 184, 0.14);
+  --mission-paper-well-bg: rgba(255, 255, 255, 0.42);
+  --mission-paper-well-border: rgba(36, 27, 63, 0.14);
+  --mission-paper-well-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.70), inset 0 -1px 3px rgba(23, 19, 32, 0.08);
+  --mission-card-shadow: 0 1px 2px rgba(23, 19, 32, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.55), inset 0 -1px 2px rgba(23, 19, 32, 0.06);
+
+  /* Spacing, container – Identity Guide §5.1 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+  --container: 1200px;
+  --container-narrow: 760px;
+
+  /* Corners – Identity Guide §5.2 */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+
+  /* Shadows and borders – Identity Guide §5.3, §5.4 */
+  --shadow-xs: 0 1px 2px rgba(32, 30, 28, 0.06);
+  --shadow-sm: 0 1px 3px rgba(32, 30, 28, 0.08), 0 1px 2px rgba(32, 30, 28, 0.05);
+  --shadow-md: 0 4px 12px rgba(32, 30, 28, 0.08), 0 2px 4px rgba(32, 30, 28, 0.05);
+  --shadow-lg: 0 12px 32px rgba(32, 30, 28, 0.12), 0 4px 8px rgba(32, 30, 28, 0.06);
+  --shadow-focus: 0 0 0 3px rgba(66, 119, 253, 0.35);
+  --border-w: 1px;
+  --border-w-thick: 1.5px;
+
+  /* Motion – Interface Design Guide §4.1 */
+  --ease-standard: cubic-bezier(0.2, 0, 0.1, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur-normal: 200ms;
+  --dur-slow: 320ms;
+
+  /* Derived for interfaces – text on Mission paper (space-paper and paper wells), AA at 4.5:1 */
+  --mission-cyan-ink: color-mix(in srgb, var(--nebula-cyan) 90%, var(--warm-950));
+  --mission-copper-ink: color-mix(in srgb, var(--nebula-copper) 65%, var(--warm-950));
+}
+
+/* 2. Semantic tokens, light – the default, and anything under data-theme="light" */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: var(--warm-50);
+  --bg-raised: #FFFFFF;
+  --surface-card: #FFFFFF;
+  --surface-sunken: var(--warm-100);
+  --surface-hover: var(--warm-100);
+  --text: var(--warm-800);
+  --text-strong: var(--warm-950);
+  --text-muted: var(--warm-600); /* Identity Guide §4.4 says #888884 – 3.09:1 on --bg, below AA */
+  --text-faint: var(--warm-400); /* disabled and decorative only, never content */
+  --text-on-accent: var(--warm-950);
+  --border: var(--warm-200);
+  --border-strong: var(--warm-300);
+  --link: var(--bac-blue-press); /* Identity Guide §4.4 says #4277FD – 3.45:1 on --bg, below AA */
+  --focus-ring: var(--bac-blue);
+
+  --bac-green-tint: #EEF5E6;
+  --bac-red-tint: #F7E9E7;
+  --bac-blue-tint: #E7EEFE;
+  --bac-yellow-tint: #FDF6CC;
+
+  /* Derived for interfaces – text on the tints and on cards, AA at 4.5:1 */
+  --bac-green-ink: color-mix(in srgb, var(--bac-green) 50%, var(--warm-950));
+  --bac-red-ink: color-mix(in srgb, var(--bac-red) 60%, var(--warm-950));
+  --bac-blue-ink: var(--bac-blue-press);
+  --bac-yellow-ink: var(--warm-950);
+
+  /* Chart series in the canonical order – Interface Design Guide §8.1 */
+  --chart-1: var(--nebula-cyan);
+  --chart-2: var(--nebula-blue);
+  --chart-3: var(--nebula-copper);
+  --chart-4: var(--nebula-violet);
+  --chart-5: var(--bac-green);
+  --chart-6: var(--bac-red);
+}
+
+/* 3. Semantic tokens, dark – the same block twice: once for the system
+   preference, once for data-theme="dark". Accents do not change; neutrals,
+   surfaces, tints and the derived values do. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: var(--warm-950);
+    --bg-raised: var(--warm-900);
+    --surface-card: #272421;
+    --surface-sunken: #1A1816;
+    --surface-hover: #322F2B;
+    --text: var(--warm-50);
+    --text-strong: #FFFFFF;
+    --text-muted: var(--warm-400); /* Identity Guide §4.4 says #888884 – 4.34:1 on cards, below AA */
+    --text-faint: var(--warm-600);
+    --text-on-accent: var(--warm-950);
+    --border: #3A3733;
+    --border-strong: #4B4843;
+    --link: color-mix(in srgb, var(--bac-blue) 70%, #FFFFFF); /* #4277FD is 4.18:1 on --bg */
+    --focus-ring: var(--bac-blue);
+
+    --bac-green-tint: #232A1D;
+    --bac-red-tint: #2E211F;
+    --bac-blue-tint: #1C2438;
+    --bac-yellow-tint: #2C2913;
+
+    --bac-green-ink: var(--bac-green);
+    --bac-red-ink: color-mix(in srgb, var(--bac-red) 80%, #FFFFFF);
+    --bac-blue-ink: color-mix(in srgb, var(--bac-blue) 70%, #FFFFFF);
+    --bac-yellow-ink: var(--bac-yellow);
+
+    /* Lighter derived shades keep 3:1 graphical contrast on dark surfaces (Interface Design Guide §8.1) */
+    --chart-1: color-mix(in srgb, var(--nebula-cyan) 70%, #FFFFFF);
+    --chart-2: color-mix(in srgb, var(--nebula-blue) 60%, #FFFFFF);
+    --chart-3: var(--nebula-copper);
+    --chart-4: color-mix(in srgb, var(--nebula-violet) 50%, #FFFFFF);
+    --chart-5: var(--bac-green);
+    --chart-6: var(--bac-red);
+  }
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: var(--warm-950);
+  --bg-raised: var(--warm-900);
+  --surface-card: #272421;
+  --surface-sunken: #1A1816;
+  --surface-hover: #322F2B;
+  --text: var(--warm-50);
+  --text-strong: #FFFFFF;
+  --text-muted: var(--warm-400);
+  --text-faint: var(--warm-600);
+  --text-on-accent: var(--warm-950);
+  --border: #3A3733;
+  --border-strong: #4B4843;
+  --link: color-mix(in srgb, var(--bac-blue) 70%, #FFFFFF);
+  --focus-ring: var(--bac-blue);
+
+  --bac-green-tint: #232A1D;
+  --bac-red-tint: #2E211F;
+  --bac-blue-tint: #1C2438;
+  --bac-yellow-tint: #2C2913;
+
+  --bac-green-ink: var(--bac-green);
+  --bac-red-ink: color-mix(in srgb, var(--bac-red) 80%, #FFFFFF);
+  --bac-blue-ink: color-mix(in srgb, var(--bac-blue) 70%, #FFFFFF);
+  --bac-yellow-ink: var(--bac-yellow);
+
+  --chart-1: color-mix(in srgb, var(--nebula-cyan) 70%, #FFFFFF);
+  --chart-2: color-mix(in srgb, var(--nebula-blue) 60%, #FFFFFF);
+  --chart-3: var(--nebula-copper);
+  --chart-4: color-mix(in srgb, var(--nebula-violet) 50%, #FFFFFF);
+  --chart-5: var(--bac-green);
+  --chart-6: var(--bac-red);
+}
+
+/* 4. A pinned subtree sets its own text colour: color is inherited as a
+   computed value, so without this a data-theme="light" area inside a dark
+   page would keep the page's light text. */
+[data-theme] { color: var(--text); }

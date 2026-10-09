@@ -35,6 +35,7 @@ __all__ = [
     "READONLY_SCOPE",
     "SheetsClient",
     "credentials_path",
+    "credentials_source",
     "service_account_email",
     "sheet_url",
     "spreadsheet_id",
@@ -82,21 +83,49 @@ def quote_sheet_title(title: str) -> str:
     return "'" + title.replace("'", "''") + "'"
 
 
-def credentials_path(configured: str | os.PathLike[str] | None = None) -> Path:
-    """Where the service-account key is: ``BAC_GCP_CREDENTIALS``, else the configured path.
+def credentials_source(
+    configured: str | os.PathLike[str] | None = None, *, configured_as: str = "the tool's config"
+) -> tuple[Path, str]:
+    """The service-account key path and where it came from: ``BAC_GCP_CREDENTIALS``, else the configured path.
 
-    The file must exist. Nothing is read here; :meth:`SheetsClient.from_service_account` does that.
+    ``configured_as`` names the configured setting in messages, for example
+    ``"[credentials] file"``. The variable wins over the setting by design, so
+    a stale value in a ``.env`` above the working directory hides the config;
+    every message says which of the two was used. The file must exist.
+    Nothing is read here; :meth:`SheetsClient.from_service_account` does that.
     """
-    raw = os.getenv(CREDENTIALS_ENV) or (str(configured) if configured else "")
-    if not raw:
+    env = os.getenv(CREDENTIALS_ENV)
+    if env:
+        raw, source = env, CREDENTIALS_ENV
+    elif configured:
+        raw, source = str(configured), configured_as
+    else:
         raise ConfigError(
             "No service-account key configured.",
-            f"Set {CREDENTIALS_ENV}=/path/to/key.json in a .env file or the environment.",
+            f"Set {CREDENTIALS_ENV}=/path/to/key.json in a .env file or the environment, or {configured_as}.",
         )
     path = Path(raw).expanduser()
     if not path.is_file():
-        raise ConfigError(f"Service-account key not found: {path}", f"Check {CREDENTIALS_ENV} or the configured path.")
-    return path
+        if source == CREDENTIALS_ENV and configured:
+            detail = (
+                f"{path} – set by {CREDENTIALS_ENV}, which wins over {configured_as}; "
+                "check the environment and any .env above the working directory."
+            )
+        elif source == CREDENTIALS_ENV:
+            detail = (
+                f"{path} – set by {CREDENTIALS_ENV}; check the environment and any .env above the working directory."
+            )
+        else:
+            detail = f"{path} – set by {configured_as}."
+        raise ConfigError("Service-account key not found.", detail)
+    return path, source
+
+
+def credentials_path(
+    configured: str | os.PathLike[str] | None = None, *, configured_as: str = "the tool's config"
+) -> Path:
+    """Where the service-account key is; see :func:`credentials_source`."""
+    return credentials_source(configured, configured_as=configured_as)[0]
 
 
 def service_account_email(key_path: Path) -> str | None:

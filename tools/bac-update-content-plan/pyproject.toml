@@ -1,12 +1,12 @@
 [project]
 name = "bac-update-content-plan"
-version = "0.4.0"
+version = "0.4.1"
 description = "Render the content plan from a Google Sheet into the docs repository and commit it."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 dependencies = [
-    "bac-common[gsheets]>=0.4",
+    "bac-common[gsheets]>=0.4.1",
     "rich>=13.7",
     "python-dotenv>=1.0",
 ]

@@ -1,6 +1,6 @@
 [project]
 name = "bac-link-budget"
-version = "0.7.0"
+version = "0.7.3"
 description = "Marimo notebook: first-order link budget between a LEO satellite and one ground station – margins against elevation, data per pass and per day, the AMSAT/IARU line-item budget"
 readme = "README.md"
 license = { text = "MIT" }

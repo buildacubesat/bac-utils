@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>BAC product sheet exemplar</title>
+<link rel="stylesheet" href="../css/gallery.css">
+<style>
+  .product-sheet {
+    width:1055px;
+    height:1491px;
+    padding:0;
+    background:var(--space-paper);
+    color:var(--warm-800);
+    box-shadow:none;
+  }
+  .ps-hero {
+    height:332px;
+    position:relative;
+    overflow:hidden;
+    padding:38px 42px 30px;
+    color:var(--space-paper);
+    background:
+      radial-gradient(ellipse at 72% 8%, rgba(77,63,196,.38) 0, rgba(77,63,196,.08) 17%, transparent 33%),
+      radial-gradient(ellipse at 84% 46%, rgba(8,124,155,.18) 0, transparent 28%),
+      radial-gradient(circle at 52% 22%, rgba(255,255,255,.85) 0 1px, transparent 1.3px),
+      radial-gradient(circle at 19% 64%, rgba(255,255,255,.65) 0 1px, transparent 1.3px),
+      radial-gradient(circle at 88% 76%, rgba(255,255,255,.7) 0 1px, transparent 1.3px),
+      var(--space-ink);
+  }
+  .ps-hero::before {
+    content:"";
+    position:absolute; inset:0;
+    opacity:.36;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,.95) 0 .8px, transparent 1.2px),
+      radial-gradient(circle, rgba(255,255,255,.5) 0 .75px, transparent 1.1px);
+    background-size:71px 71px, 113px 113px;
+    background-position:17px 31px, 61px 19px;
+  }
+  .ps-hero::after {
+    content:"";
+    position:absolute; width:620px; height:260px; right:-120px; top:-86px;
+    border:1px solid rgba(143,135,158,.28); border-radius:50%; transform:rotate(-12deg);
+    box-shadow:0 72px 0 -1px rgba(143,135,158,.13), 0 145px 0 -1px rgba(143,135,158,.08);
+  }
+  .ps-hero > * { position:relative; z-index:2; }
+  .ps-brand { display:flex; align-items:center; gap:16px; }
+  .ps-brand-mark { width:47px; height:58px; flex:none; }
+  .ps-brand-title { font:600 18px/1.05 var(--font-display); letter-spacing:.17em; text-transform:uppercase; }
+  .ps-brand-sub { margin-top:8px; font:500 11px/1 var(--font-mono); letter-spacing:.22em; color:#d9d4d5; text-transform:uppercase; }
+  .ps-title { margin-top:24px; font:700 72px/.92 var(--font-display); letter-spacing:-.045em; }
+  .ps-title .v { color:#7067ee; }
+  .ps-subtitle { margin-top:13px; font:500 16px/1 var(--font-mono); letter-spacing:.16em; text-transform:uppercase; color:#e7e2df; }
+  .ps-pills { display:flex; gap:10px; margin-top:20px; }
+  .ps-pill { padding:9px 13px 8px; border:1px solid rgba(8,124,155,.9); border-radius:5px; font:600 10px/1 var(--font-mono); letter-spacing:.055em; text-transform:uppercase; color:#65d4e2; background:rgba(23,19,32,.45); }
+  .ps-pill.violet { border-color:rgba(112,103,238,.78); color:#b8b0ff; }
+  .ps-price-cluster { position:absolute; right:42px; top:54px; width:262px; }
+  .ps-draft { margin-left:auto; width:max-content; padding:9px 13px 8px; border:1px solid var(--nebula-copper); border-radius:6px; color:#e7a04a; font:600 11px/1 var(--font-mono); letter-spacing:.09em; text-transform:uppercase; box-shadow:inset 0 0 20px rgba(200,135,50,.08); }
+  .ps-price { margin-top:19px; padding:15px 18px 14px; border:1px solid rgba(8,124,155,.55); border-radius:11px; background:rgba(9,14,24,.74); box-shadow:inset 0 0 24px rgba(8,124,155,.12), 0 7px 24px rgba(0,0,0,.14); text-align:right; }
+  .ps-price small { display:block; font:500 9px/1 var(--font-mono); letter-spacing:.14em; text-transform:uppercase; color:#ddd6d0; }
+  .ps-price strong { display:block; margin-top:9px; font:700 30px/1 var(--font-display); letter-spacing:-.02em; }
+  .ps-meta { margin-top:10px; text-align:right; color:#32bed0; font:500 9px/1.2 var(--font-mono); }
+
+  .ps-body { height:1159px; padding:26px 34px 18px; background:linear-gradient(180deg,#F7F2E9 0%,#F6F0E6 100%); }
+  .ps-top { display:grid; grid-template-columns: 425px 1fr; gap:20px; height:381px; }
+  .ps-viewport { position:relative; overflow:hidden; border:1px solid rgba(8,124,155,.42); border-radius:14px; background:
+      linear-gradient(rgba(8,124,155,.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(8,124,155,.08) 1px, transparent 1px),
+      #101421;
+      background-size:24px 24px;
+      box-shadow:inset 0 0 28px rgba(8,124,155,.16), inset 0 0 68px rgba(33,16,95,.22), 0 4px 12px rgba(32,30,28,.08);
+  }
+  .ps-viewport::before { content:""; position:absolute; inset:11px; border:1px solid rgba(105,208,225,.24); border-radius:8px; }
+  .ps-viewport::after { content:""; position:absolute; left:24px; right:24px; bottom:29px; height:1px; background:linear-gradient(90deg,rgba(105,208,225,.5) 0 20%,transparent 20% 100%); }
+  .ps-v-label { position:absolute; left:25px; top:22px; color:#eef1ef; font:600 15px var(--font-mono); letter-spacing:.08em; }
+  .ps-v-caption { position:absolute; right:24px; bottom:18px; color:#b9b4b8; font:500 8px var(--font-mono); letter-spacing:.17em; text-transform:uppercase; }
+  .ps-wireframe { position:absolute; width:255px; height:315px; object-fit:contain; left:82px; top:42px; filter:brightness(1.23) saturate(.78); }
+  .ps-crosshair { position:absolute; left:28px; bottom:52px; width:36px; height:36px; border:1px solid rgba(246,240,230,.55); border-radius:50%; }
+  .ps-crosshair::before,.ps-crosshair::after{content:"";position:absolute;background:rgba(246,240,230,.55);}
+  .ps-crosshair::before{left:17px;top:-8px;width:1px;height:52px}.ps-crosshair::after{top:17px;left:-8px;width:52px;height:1px}
+
+  .ps-well { padding:22px 24px; border:1px solid var(--mission-paper-well-border); border-radius:12px; background:rgba(255,255,255,.44); box-shadow:var(--mission-paper-well-shadow); }
+  .ps-section-head { display:flex; align-items:center; gap:10px; color:var(--mission-cyan-ink); }
+  .ps-section-head .ico { width:24px; height:24px; border:1.5px solid currentColor; border-radius:50%; display:grid; place-items:center; font:700 12px var(--font-mono); }
+  .ps-section-head h2 { margin:0; font:700 16px/1 var(--font-display); letter-spacing:.05em; text-transform:uppercase; }
+  .ps-head-rule { flex:1; height:1px; background:rgba(84,83,79,.38); margin-left:7px; }
+  .ps-overview p { margin:18px 0 0; font:400 12.8px/1.58 var(--font-body); color:#44413e; }
+  .ps-kvline { margin-top:21px; padding-bottom:13px; border-bottom:1px solid rgba(84,83,79,.27); display:flex; justify-content:space-between; gap:18px; align-items:center; }
+  .ps-kvline b,.ps-subhead { font:700 10.5px/1 var(--font-mono); text-transform:uppercase; letter-spacing:.06em; color:var(--nebula-blue); }
+  .ps-kvline span { font:500 10.5px var(--font-body); }
+  .ps-included { margin-top:16px; }
+  .ps-subhead-row { display:flex; align-items:center; gap:12px; }
+  .ps-subhead-row .line { height:1px; flex:1; background:rgba(84,83,79,.28); }
+  .ps-checks { display:grid; grid-template-columns:1fr 1fr; gap:8px 23px; margin-top:14px; font:500 10.2px/1.4 var(--font-body); }
+  .ps-check { display:flex; gap:8px; align-items:flex-start; }
+  .ps-check::before { content:"✓"; color:var(--mission-cyan-ink); font:700 13px var(--font-mono); margin-top:-1px; }
+
+  .ps-specs { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; height:236px; margin-top:14px; }
+  .ps-card { border:1px solid rgba(84,83,79,.16); border-radius:10px; background:rgba(255,255,255,.40); box-shadow:var(--mission-card-shadow); padding:14px 15px 12px; }
+  .ps-card-title { display:flex; align-items:center; gap:9px; padding-bottom:10px; border-bottom:1.5px solid rgba(84,83,79,.46); color:#176e86; }
+  .ps-card-title.violet { color:var(--nebula-blue); }
+  .ps-card-title .iconbox { width:23px;height:23px;border:1.5px solid currentColor;border-radius:5px;display:grid;place-items:center;font:700 10px var(--font-mono); }
+  .iconbox svg, .roundico svg { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .iconbox svg { width:14px; height:14px; }
+  .roundico svg { width:26px; height:26px; }
+  .ps-card-title h3 { margin:0; font:700 11px/1 var(--font-display); letter-spacing:.045em; text-transform:uppercase; }
+  .ps-table { width:100%; border-collapse:collapse; margin-top:4px; }
+  .ps-table td { padding:7px 0 6px; border-bottom:1px solid rgba(84,83,79,.16); font:500 9.7px/1.15 var(--font-body); }
+  .ps-table tr:last-child td { border-bottom:0; }
+  .ps-table td:last-child { text-align:right; color:#302e2b; padding-left:10px; }
+  .ps-table .ok { color:var(--mission-cyan-ink); font-weight:700; }
+  .ps-table .ext { color:var(--nebula-blue); }
+  .ps-link { color:var(--mission-cyan-ink); }
+
+  .ps-cases { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; height:176px; margin-top:14px; }
+  .ps-case { position:relative; padding:17px 17px 14px 91px; border:1px solid rgba(84,83,79,.14); border-top:2px solid var(--nebula-cyan); border-radius:10px; background:rgba(255,255,255,.34); box-shadow:var(--mission-card-shadow); }
+  .ps-case.violet { border-top-color:var(--nebula-blue); }
+  .ps-case.copper { border-top-color:var(--nebula-copper); }
+  .ps-case .roundico { position:absolute; left:17px; top:18px; width:54px; height:54px; border:1.5px solid currentColor; border-radius:50%; display:grid; place-items:center; font:700 19px var(--font-mono); color:var(--mission-cyan-ink); }
+  .ps-case.violet .roundico,.ps-case.violet .case-no,.ps-case.violet h3 { color:var(--nebula-blue); }
+  .ps-case.copper .roundico,.ps-case.copper .case-no,.ps-case.copper h3 { color:var(--mission-copper-ink); }
+  .case-no { font:700 25px/.9 var(--font-display); color:var(--mission-cyan-ink); }
+  .ps-case h3 { margin:5px 0 0; font:700 12px/1.05 var(--font-display); letter-spacing:.045em; text-transform:uppercase; color:#176e86; }
+  .ps-case p { margin:12px 0 0; font:400 8.8px/1.42 var(--font-body); }
+
+  .ps-bottom { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; height:169px; margin-top:14px; }
+  .ps-bottom .ps-card { padding-top:13px; }
+  .ps-bottom .ps-card-title { padding-bottom:9px; }
+
+  .ps-disclaimer { height:40px; margin-top:14px; border:1px solid rgba(169,78,82,.72); border-radius:7px; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:0 14px; color:#A94E52; background:rgba(255,255,255,.20); font:500 8.6px/1 var(--font-mono); }
+  .ps-disclaimer .disc-left { display:flex; align-items:center; gap:9px; }
+  .ps-disclaimer .tri { width:18px; height:18px; border:1.3px solid currentColor; clip-path:polygon(50% 0,100% 100%,0 100%); display:grid; place-items:end center; padding-bottom:1px; font:700 9px/1 var(--font-mono); }
+  .ps-disclaimer .right { color:var(--warm-600); }
+  .ps-example-note { position:absolute; bottom:10px; left:34px; color:var(--warm-600); font:500 7.5px/1 var(--font-mono); letter-spacing:.035em; }
+</style>
+</head>
+<body>
+<main class="board product-sheet" data-theme="light">
+  <header class="ps-hero">
+    <div class="ps-brand">
+      <svg class="ps-brand-mark" viewBox="0 0 48 58" fill="none" aria-hidden="true"><g stroke="#F6F0E6" stroke-width="1.35" stroke-linejoin="round"><path d="M24 2 43 13v32L24 56 5 45V13L24 2Z"/><path d="m5 13 19 11 19-11M24 24v32M5 29l19 11 19-11"/><path d="M5 45 24 34l19 11"/></g></svg>
+      <div><div class="ps-brand-title">Build a CubeSat</div><div class="ps-brand-sub">Open-source space hardware</div></div>
+    </div>
+    <div class="ps-title">Dev Kit <span class="v">v1</span></div>
+    <div class="ps-subtitle">2U CubeSat Development Kit</div>
+    <div class="ps-pills"><span class="ps-pill">Development hardware</span><span class="ps-pill violet">2U CubeSat form factor</span><span class="ps-pill">Fully open source</span></div>
+    <div class="ps-price-cluster"><div class="ps-draft">Preliminary draft</div><div class="ps-price"><small>Price and availability</small><strong>See the store</strong></div><div class="ps-meta">bac-dev-kit-2u-v1r1 · r0 · EXAMPLE</div></div>
+  </header>
+
+  <section class="ps-body">
+    <div class="ps-top">
+      <div class="ps-viewport">
+        <div class="ps-v-label">2U</div>
+        <img class="ps-wireframe" src="../assets/cubesat-wireframe.svg" alt="Technical wireframe of a 2U CubeSat structure">
+        <div class="ps-crosshair"></div>
+        <div class="ps-v-caption">Product image · 3:2</div>
+      </div>
+      <div class="ps-well ps-overview">
+        <div class="ps-section-head"><div class="ico" aria-hidden="true">·</div><h2>Overview</h2><div class="ps-head-rule"></div></div>
+        <p>Dev Kit v1 is the hardware foundation for the Build a CubeSat platform on the bench: an aluminium 2U structure, a full EPS, two MCU carriers, a CM5 carrier, and a prototyping breadboard. Bring your own CM5, MicroMod boards, and 18650 cells.</p>
+        <div class="ps-kvline"><b>Software targets</b><span>Zephyr on STM32 · NASA F' on CM5</span></div>
+        <div class="ps-included">
+          <div class="ps-subhead-row"><div class="ps-subhead" style="color:#176e86">Included</div><div class="line"></div></div>
+          <div class="ps-checks">
+            <div class="ps-check">1× 2U Al 6061-T6 structure</div><div class="ps-check">1× Raspberry Pi CM5 carrier</div>
+            <div class="ps-check">1× EPS: 30 W, STM32F405</div><div class="ps-check">1× Breadboard PCB</div>
+            <div class="ps-check">2× MicroMod carriers</div><div class="ps-check">Holders, fasteners, case</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ps-specs">
+      <div class="ps-card">
+        <div class="ps-card-title"><div class="iconbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7l9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg></div><h3>Structure &amp; power</h3></div>
+        <table class="ps-table"><tr><td>Dimensions</td><td>100×100×227 mm</td></tr><tr><td>Mass</td><td>TBD</td></tr><tr><td>Holders</td><td>PLA (PEEK opt.)</td></tr><tr><td>Buck module</td><td>TI TPSM5D1806</td></tr><tr><td>Charger</td><td>TI BQ25306</td></tr><tr><td>Battery</td><td>2S2P (1S/4S opt.)</td></tr></table>
+      </div>
+      <div class="ps-card">
+        <div class="ps-card-title violet"><div class="iconbox"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></div><h3>MCU nodes</h3></div>
+        <table class="ps-table"><tr><td>Teensy</td><td class="ok">✓</td></tr><tr><td>RP2040</td><td class="ok">✓</td></tr><tr><td>STM32F405</td><td class="ok">✓</td></tr><tr><td>ESP32</td><td class="ok">✓</td></tr><tr><td>nRF52840</td><td class="ok">✓</td></tr><tr><td>nRF9151</td><td class="ext">extendable</td></tr></table>
+      </div>
+      <div class="ps-card">
+        <div class="ps-card-title"><div class="iconbox"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h4M7 13h10M7 17h6"/></svg></div><h3>SBC node</h3></div>
+        <table class="ps-table"><tr><td>Compatibility</td><td>All CM5</td></tr><tr><td>Sensors</td><td>2× INA260, BNO086</td></tr><tr><td>Stack</td><td>2× CAN bacBus</td></tr><tr><td>External</td><td>UART, USB 2.0</td></tr><tr><td>Storage</td><td>M.2 Key-M 2260</td></tr><tr><td>Power</td><td>bacBus / USB-C</td></tr></table>
+      </div>
+    </div>
+
+    <div class="ps-cases">
+      <div class="ps-case"><div class="roundico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9 12 4l10 5-10 5L2 9Z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg></div><div class="case-no">01</div><h3>Education</h3><p>Hands-on subsystem simulation, teaching with the CubeSat form factor, student team builds and demonstrators.</p></div>
+      <div class="ps-case violet"><div class="roundico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg></div><div class="case-no">02</div><h3>Development</h3><p>Bring up Zephyr and F' on the hardware; develop and test subsystem and ground-segment software; iterate on the BAC stack.</p></div>
+      <div class="ps-case copper"><div class="roundico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6L4 19a1.5 1.5 0 0 0 1.3 2h13.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7 15h10"/></svg></div><div class="case-no">03</div><h3>Experimentation</h3><p>Prototype new boards in the BAC form factor, wire up sensors over CAN, run bench power and integration testing.</p></div>
+    </div>
+
+    <div class="ps-bottom">
+      <div class="ps-card"><div class="ps-card-title"><div class="iconbox"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.9 7.6-3.8M8.2 13.1l7.6 3.8"/></svg></div><h3>Open source by design</h3></div><table class="ps-table"><tr><td>Hardware</td><td>CERN-OHL-S 2.0</td></tr><tr><td>Software</td><td>MIT</td></tr><tr><td>Docs</td><td>CC BY-SA 4.0</td></tr></table></div>
+      <div class="ps-card"><div class="ps-card-title violet"><div class="iconbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div><h3>Pricing &amp; availability</h3></div><table class="ps-table"><tr><td>Price</td><td class="ext">In the store</td></tr><tr><td>Availability</td><td class="ext">In the store</td></tr><tr><td>Product sheet</td><td>Example, not a quote</td></tr></table></div>
+      <div class="ps-card"><div class="ps-card-title"><div class="iconbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></div><h3>Order &amp; resources</h3></div><table class="ps-table"><tr><td>Store</td><td class="ps-link">buildacubesat.space</td></tr><tr><td>Docs</td><td>bac.page/devkit-v1</td></tr><tr><td>Repo</td><td>bac.page/repo</td></tr></table></div>
+    </div>
+
+    <div class="ps-disclaimer"><div class="disc-left"><span class="tri">!</span><span>Development, education &amp; ground testing only. Not flight-qualified.</span></div><span class="right">nihil.space GmbH · Bern · r0</span></div>
+    <div class="ps-example-note">REFERENCE EXEMPLAR · PRODUCT DETAILS AND AVAILABILITY MUST BE VERIFIED AGAINST CURRENT SOURCE DOCUMENTS BEFORE PUBLICATION</div>
+  </section>
+</main>
+</body>
+</html>

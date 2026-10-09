@@ -33,6 +33,7 @@ def test_missing_key_is_reported_before_fetching(tmp_path, monkeypatch):
     result = invoke(_main, ["--config", str(config)])
     assert result.exit_code == 1
     assert "key not found" in result.stderr
+    assert "set by [credentials] file" in result.stderr
     assert client.calls == []
 
 
@@ -306,3 +307,15 @@ def test_target_outside_repo_is_refused(tmp_path: Path, monkeypatch):
     result = invoke(_main, ["--config", str(config)])
     assert result.exit_code == 1
     assert "relative path inside" in result.stderr
+
+
+def test_the_opening_names_where_the_key_path_came_from(tmp_path, monkeypatch):
+    repo = make_repo(tmp_path)
+    config, key = write_setup(tmp_path, repo)
+    install_fake_client(monkeypatch, FakeClient())
+    result = invoke(_main, ["--config", str(config), "--dry-run"])
+    assert result.exit_code == 0, result.output
+    assert "([credentials] file)" in result.stdout
+    monkeypatch.setenv("BAC_GCP_CREDENTIALS", str(key))
+    result = invoke(_main, ["--config", str(config), "--dry-run"])
+    assert "(BAC_GCP_CREDENTIALS)" in result.stdout

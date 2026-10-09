@@ -1,4 +1,4 @@
-# bac-update-content-plan v0.4.0
+# bac-update-content-plan v0.4.1
 
 Build a CubeSat – renders the content plan, which lives in a Google Sheet, as one Markdown table into the docs repository and, on request, commits and pushes it. The sheet stays the place where the plan is edited; the file is a generated view of it that the documentation site publishes.
 
@@ -70,5 +70,6 @@ Nothing in the tool is specific to Build a CubeSat except the defaults `--init` 
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.4.1 | 2026-10-08 | The opening panel shows the service-account key and where its path came from (`BAC_GCP_CREDENTIALS` or `[credentials] file`), and a missing key says which of the two named it – the variable wins, so a stale one in a `.env` above the working directory looked like a broken config. Needs `bac-common` 0.4.1. |
 | 0.4.0 | 2026-10-07 | Rewritten on `bac-common`: the sheet id, range, repository, file and branch move out of the code into `~/.config/bac/bac-update-content-plan.toml` written by `--init`; the Sheets reader becomes `bac_common.gsheets`; `-v`, `--env-file`, `--config`, `--dry-run` (fetch, compare, report, change nothing), hidden `--debug`; Rich opening panel, step lines and summary; the repository is validated and switched to the branch before the sheet is fetched (0.3.0 wrote the file and failed afterwards); `--push` implies `--commit` and asks before pushing (`-y`); the commit carries the file only (0.3.0 swept whatever else was staged into it); the summary prints even when git fails afterwards; pipes in cells are escaped instead of the cell being cut at the first one; a generated-file note on line 1; the status column is configurable; 38 tests with a fake Sheets client and throwaway git repositories; versions aligned (pyproject said 0.3.0, the package 0.2.0); `.env.example`. `--branch` is gone – the branch is configuration. |
 | 0.3.0 | – | Last version before the homogenization: hard-coded sheet id and `/home/mnu` paths, `--dry-run` printing the Markdown to stdout, `--commit`, `--push`, `--branch`, `-m`. |

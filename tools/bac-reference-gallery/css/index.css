@@ -1,0 +1,53 @@
+/* index.css – the gallery's overview page.
+   Build a CubeSat – every colour through tokens.css; follows light and dark mode. */
+@import url('./tokens.css');
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); }
+a { color: var(--link); }
+:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 64px 28px 100px; }
+header { display: grid; grid-template-columns: 1fr auto; gap: 36px; align-items: start; padding-bottom: 34px; border-bottom: 1px solid var(--border); }
+h1 { margin: 8px 0 16px; font: 700 56px/1 var(--font-display); letter-spacing: -.035em; color: var(--text-strong); }
+p { font-size: 14px; line-height: 1.65; max-width: 760px; }
+.eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+.badge { border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin: 34px 0 0; padding: 0; list-style: none; }
+.item {
+  position: relative;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.item:hover { box-shadow: var(--shadow-md); }
+/* The whole card is the link: the title's anchor stretches over it, and the card shows the focus ring. */
+.item h2 a { color: inherit; text-decoration: none; }
+.item h2 a::after { content: ''; position: absolute; inset: 0; }
+.item h2 a:focus-visible { outline: none; }
+.item:focus-within { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.item:hover h2 a { text-decoration: underline; }
+
+.preview { height: 280px; background: var(--surface-sunken); overflow: hidden; position: relative; }
+.preview iframe { width: 1600px; height: 1000px; border: 0; transform: scale(.36); transform-origin: top left; pointer-events: none; }
+.item.portrait .preview iframe { width: 1055px; height: 1491px; position: absolute; left: 50%; top: 0; transform: translateX(-50%) scale(.185); transform-origin: top center; }
+.meta { padding: 18px 20px 20px; }
+.meta h2 { margin: 0 0 8px; font: 700 22px/1.15 var(--font-display); color: var(--text-strong); }
+.meta p { margin: 0; font-size: 12px; line-height: 1.55; color: var(--text-muted); }
+
+.refs { margin-top: 42px; padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-card); }
+.refs code { font-family: var(--font-mono); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .item { transition: transform var(--dur-normal) var(--ease-standard), box-shadow var(--dur-normal) var(--ease-standard); }
+  .item:hover { transform: translateY(-2px); }
+}
+
+@media (max-width: 800px) {
+  header { grid-template-columns: 1fr; gap: 16px; }
+  .grid { grid-template-columns: 1fr; }
+  h1 { font-size: 42px; }
+}

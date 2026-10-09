@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
+<title>BAC Ops vs Mission</title>
+<link rel="stylesheet" href="../css/gallery.css">
+</head>
+<body>
+<main class="board" style="padding:46px 54px;">
+  <div class="page-chip">BAC reference exemplar · 02</div>
+  <div style="display:flex;align-items:end;justify-content:space-between;margin-bottom:25px;">
+    <div><div class="eyebrow kicker">Same information, different communication mode</div><h1 class="h2" style="font-size:34px;margin-top:9px;">Ops vs Mission</h1></div>
+    <div class="pill">REFERENCE EXAMPLE · NOT LIVE DATA</div>
+  </div>
+
+  <section style="display:grid;grid-template-columns:1fr 1fr;gap:22px;height:800px;">
+    <article style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:28px 30px;position:relative;overflow:hidden;">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <div><div class="eyebrow">OPS · TECHNICAL COMMUNICATION</div><h2 class="h2" style="margin-top:14px;">EPS integration test</h2><div class="small muted" style="margin-top:6px;">Power system · bench integration</div></div>
+        <span class="pill yellow">! REVIEW REQUIRED</span>
+      </div>
+      <div class="callout warning" style="margin-top:24px;">! Rail B exceeded the provisional current threshold during the transient test. Validate the limit before release.</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;">
+        <div class="card stat"><div class="label">Input</div><div class="value">8.1 <span style="font-size:15px;">V</span></div><div class="sub">bench supply</div></div>
+        <div class="card stat"><div class="label">Rail A</div><div class="value">5.02 <span style="font-size:15px;">V</span></div><div class="sub">nominal</div></div>
+        <div class="card stat"><div class="label">Rail B</div><div class="value">3.34 <span style="font-size:15px;">V</span></div><div class="sub">! review transient</div></div>
+      </div>
+      <div class="section-label" style="margin-top:24px;">Measurement summary</div>
+      <table class="data-table" style="margin-top:10px;"><thead><tr><th scope="col">Channel</th><th scope="col" class="num">Measured</th><th scope="col" class="num">Target</th><th scope="col">Status</th></tr></thead><tbody>
+        <tr><td>Rail A voltage</td><td class="num">5.02 V</td><td class="num">5.00 V</td><td><span class="pill green">✓ PASS</span></td></tr>
+        <tr><td>Rail B voltage</td><td class="num">3.34 V</td><td class="num">3.30 V</td><td><span class="pill green">✓ PASS</span></td></tr>
+        <tr><td>Transient current</td><td class="num">2.41 A</td><td class="num">≤ 2.20 A</td><td><span class="pill yellow">! WARN</span></td></tr>
+      </tbody></table>
+      <div class="section-label" style="margin-top:24px;">Interpretation</div>
+      <p class="small" style="margin-top:11px;">The steady-state rails are within the example limits. Treat the transient as an engineering question, not a visual flourish: keep the caveat prominent and the rest of the page quiet.</p>
+      <div style="position:absolute;bottom:24px;left:30px;right:30px;border-top:1px solid var(--border);padding-top:11px;display:flex;justify-content:space-between;" class="micro muted"><span>Flat surfaces · monochrome hierarchy</span><span>Yellow = functional meaning</span></div>
+    </article>
+
+    <article data-theme="light" class="mission-paper" style="border:1px solid rgba(36,27,63,.15);border-radius:14px;overflow:hidden;position:relative;">
+      <header class="mission-viewport" style="height:248px;border:0;border-radius:0 0 14px 14px;padding:27px 30px;">
+        <img src="../assets/orbital-grid.svg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;">
+        <div style="position:relative;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;">
+          <div><div class="eyebrow" style="color:var(--nebula-copper);">MISSION · PRESENTATION COMMUNICATION</div><h2 style="font:700 34px/1.05 var(--font-display);letter-spacing:-.025em;margin:15px 0 5px;">EPS integration test</h2><div class="small" style="color:var(--space-muted);">Power system · bench integration</div></div>
+          <span class="pill copper">PRELIMINARY</span>
+        </div>
+        <div style="position:absolute;z-index:2;bottom:24px;left:30px;right:30px;display:flex;gap:28px;align-items:end;">
+          <div><div class="micro" style="color:var(--space-muted);">RAIL A</div><div style="font:700 30px var(--font-display);">5.02 V</div></div>
+          <div><div class="micro" style="color:var(--space-muted);">RAIL B</div><div style="font:700 30px var(--font-display);">3.34 V</div></div>
+          <div style="margin-left:auto"><span class="pill yellow">! REVIEW REQUIRED</span></div>
+        </div>
+      </header>
+      <div style="padding:21px 27px 25px;">
+        <div class="callout warning">! Rail B exceeded the provisional current threshold during the transient test. Functional warnings remain BAC Yellow, even in Mission.</div>
+        <div class="card sunken" style="padding:16px 18px;margin-top:16px;">
+          <div class="section-label">Measurement summary</div>
+          <table class="data-table" style="margin-top:8px;"><thead><tr><th scope="col">Channel</th><th scope="col" class="num">Measured</th><th scope="col">Status</th></tr></thead><tbody>
+            <tr><td>Rail A voltage</td><td class="num">5.02 V</td><td>✓ PASS</td></tr>
+            <tr><td>Rail B voltage</td><td class="num">3.34 V</td><td>✓ PASS</td></tr>
+            <tr><td>Transient current</td><td class="num">2.41 A</td><td>! WARN</td></tr>
+          </tbody></table>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
+          <div class="card sunken" style="padding:15px 16px;"><div class="eyebrow mission-cyan">What stays the same</div><div class="small" style="margin-top:8px;">Meaning, data, caveats, accessibility and technical precision.</div></div>
+          <div class="card sunken" style="padding:15px 16px;"><div class="eyebrow mission-copper">What changes</div><div class="small" style="margin-top:8px;">Atmosphere, decorative emphasis, hierarchy and presentation energy.</div></div>
+        </div>
+      </div>
+    </article>
+  </section>
+  <div class="footer-note"><span>Communication purpose determines Ops or Mission</span><span>BAC Identity Guide · Interface semantics unchanged</span></div>
+</main>
+</body>
+</html>

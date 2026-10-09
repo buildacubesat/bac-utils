@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
+<title>BAC interface patterns</title>
+<link rel="stylesheet" href="../css/gallery.css">
+<style>
+  .demo-dark { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 21px 23px; color: var(--text); }
+  .demo-dark .tile { background: var(--surface-card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; }
+  .demo-dark .log { margin-top: 14px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 8px; padding: 14px 15px; font: 400 10px/1.65 var(--font-mono); }
+  .ok-glyph { color: var(--bac-green); }
+  .warn-glyph { color: var(--bac-yellow); }
+  /* A terminal keeps the user's own theme; this one stands for a common dark profile in both page modes. */
+  .terminal { background: #151515; border-radius: 9px; padding: 17px 19px; color: #E8E8E8; font: 400 11px/1.65 'Noto Mono', 'DejaVu Sans Mono', monospace; box-shadow: var(--shadow-md); }
+  .terminal .dim { color: #A0A0A0; }
+  .terminal .path { color: #6DCFE0; }
+  .terminal .pass { color: #84C45A; }
+  .terminal .fail { color: #CE6C63; }
+</style>
+</head>
+<body>
+<main class="board" style="padding:44px 56px;">
+  <div class="page-chip">BAC reference exemplar · 04</div>
+  <div style="display:flex;justify-content:space-between;align-items:end;"><div><div class="eyebrow kicker">Interface patterns</div><h1 class="h2" style="font-size:34px;margin-top:9px;">Minimal surface, maximum clarity</h1></div><div class="pill">LIGHT + DARK · FUNCTIONAL UI</div></div>
+
+  <section style="display:grid;grid-template-columns:1.08fr .92fr;gap:22px;margin-top:27px;height:780px;">
+    <div class="card" style="padding:22px 24px;">
+      <div class="section-label">Controls</div>
+      <div style="display:flex;gap:10px;margin-top:14px;align-items:center;"><button type="button" class="btn primary">Run analysis</button><button type="button" class="btn">Export</button><button type="button" class="btn ghost">Cancel</button><button type="button" class="btn danger">Delete run</button></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:17px;">
+        <div class="field"><label for="target-margin">Target margin</label><div class="control"><input class="input" id="target-margin" name="target-margin" type="text" inputmode="decimal" value="20" aria-describedby="target-margin-unit"><span class="unit" id="target-margin-unit">%</span></div></div>
+        <div class="field"><label for="profile">Profile</label><div class="control"><select class="input" id="profile" name="profile"><option>Development</option><option>Education</option><option>Flight</option></select></div></div>
+      </div>
+      <div class="micro muted" style="margin-top:10px;">One visually dominant yellow action. Small semantic warnings may coexist.</div>
+
+      <div class="section-label" style="margin-top:23px;">Semantic state</div>
+      <div style="display:flex;gap:8px;margin-top:13px;"><span class="pill green">✓ PASS</span><span class="pill red">✗ FAIL</span><span class="pill yellow">! WARN</span><span class="pill blue">INFO</span><span class="pill">NEUTRAL</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+        <div class="callout success">✓ Upload completed. 12 artifacts published.</div><div class="callout error">✗ Build failed. See the first actionable error.</div>
+        <div class="callout warning">! Two quotations are still provisional.</div><div class="callout info">Info: values exclude VAT and shipping.</div>
+      </div>
+
+      <div class="section-label" style="margin-top:23px;">Stats &amp; data table</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:13px;">
+        <div class="card stat current"><div class="label">Selected batch</div><div class="value">20</div><div class="sub">units</div></div>
+        <div class="card stat"><div class="label">Unit cost</div><div class="value">412</div><div class="sub">CHF · example</div></div>
+        <div class="card stat"><div class="label">Coverage</div><div class="value" style="color:var(--bac-green-ink);">94%</div><div class="sub">quoted BOM</div></div>
+      </div>
+      <table class="data-table" style="margin-top:17px;"><thead><tr><th scope="col">Subsystem</th><th scope="col" class="num">Cost</th><th scope="col" class="num">Share</th><th scope="col">Status</th></tr></thead><tbody>
+        <tr><td>Structure</td><td class="num">84 CHF</td><td class="num">20%</td><td>✓ quoted</td></tr>
+        <tr><td>Power</td><td class="num">176 CHF</td><td class="num">43%</td><td>✓ quoted</td></tr>
+        <tr><td>Compute</td><td class="num">152 CHF</td><td class="num">37%</td><td>! provisional</td></tr>
+      </tbody></table>
+    </div>
+
+    <div style="display:grid;grid-template-rows:1fr .76fr;gap:18px;">
+      <div data-theme="dark" class="demo-dark">
+        <div style="display:flex;justify-content:space-between;align-items:center;"><div class="eyebrow muted">DARK MODE</div><span class="pill yellow">CURRENT</span></div>
+        <div style="font:700 24px var(--font-display);margin-top:13px;color:var(--text-strong);">Bring-up dashboard</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
+          <div class="tile"><div class="micro muted">BUS STATE</div><div style="font:700 24px var(--font-display);margin-top:7px;color:var(--text-strong);">NOMINAL</div><div class="micro" style="color:var(--bac-green-ink);margin-top:5px;">✓ heartbeat active</div></div>
+          <div class="tile"><div class="micro muted">PACKETS</div><div style="font:700 24px var(--font-display);margin-top:7px;color:var(--text-strong);">1'284</div><div class="micro muted" style="margin-top:5px;">this session</div></div>
+        </div>
+        <div class="log">
+          <div><span class="ok-glyph">✓</span> EPS heartbeat received</div>
+          <div><span class="ok-glyph">✓</span> Housekeeping channel valid</div>
+          <div><span class="warn-glyph">!</span> Camera channel unavailable</div>
+        </div>
+        <div class="micro muted" style="margin-top:11px;">Both modes are first-class. Focus, contrast and meaning must survive the switch.</div>
+      </div>
+
+      <div class="terminal">
+        <div class="dim">Build a CubeSat – bac-example v0.1.0</div>
+        <div style="margin-top:9px;border-top:1px solid #444;padding-top:9px;">Found 3 input document(s).</div>
+        <div><span class="pass">✓</span> Uploaded: <span class="path">report.pdf</span></div>
+        <div><span class="pass">✓</span> Uploaded: <span class="path">bom.csv</span></div>
+        <div><span class="fail">✗</span> Failed: <span class="path">render.webp</span> – invalid size</div>
+        <div style="margin-top:9px;border-top:2px solid #777;padding-top:8px;"><b>Processed</b> 3 &nbsp; <b>Uploaded</b> 2 &nbsp; <b>Errors</b> 1</div>
+      </div>
+    </div>
+  </section>
+  <div class="footer-note"><span>Colour carries meaning with text / glyph / structure</span><span>BAC Interface Design Guide</span></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,260 @@
+/* gallery.css – components of the reference boards.
+   Build a CubeSat – every colour goes through the tokens in tokens.css, so a
+   board follows light and dark mode. Mission surfaces keep their own fixed
+   colours: the dark viewport is dark in both modes, and paper areas carry
+   data-theme="light" in the markup. */
+@import url('./tokens.css');
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--surface-sunken);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+a { color: var(--link); }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+.board {
+  width: 1600px;
+  height: 1000px;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg);
+  padding: 56px 64px;
+}
+
+.eyebrow {
+  font: 600 13px/1.1 var(--font-mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+/* The kicker's accent is the yellow bar; yellow text would fail contrast on paper. */
+.kicker { color: var(--text-strong); }
+.kicker::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 4px;
+  margin-right: 10px;
+  vertical-align: .2em;
+  border-radius: 2px;
+  background: var(--bac-yellow);
+}
+.display {
+  margin: 0;
+  font: 700 54px/1.02 var(--font-display);
+  letter-spacing: -.03em;
+  color: var(--text-strong);
+}
+.h2 {
+  margin: 0;
+  font: 700 30px/1.1 var(--font-display);
+  letter-spacing: -.02em;
+  color: var(--text-strong);
+}
+.h3 {
+  margin: 0;
+  font: 700 20px/1.2 var(--font-display);
+  letter-spacing: -.01em;
+  color: var(--text-strong);
+}
+.body { font: 400 14px/1.55 var(--font-body); }
+.small { font: 400 12px/1.45 var(--font-body); }
+.micro { font: 500 10px/1.35 var(--font-body); }
+.muted { color: var(--text-muted); }
+
+.rule { height: 1px; background: var(--border); width: 100%; }
+.rule.thick { height: 2px; background: var(--text); }
+
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+/* Ops well: a recessed area inside a card. It takes --bg, not --surface-sunken:
+   muted text on --surface-sunken is 4.23:1 in light mode, below AA. */
+.card.well {
+  background: var(--bg);
+  box-shadow: none;
+}
+/* Mission paper well: only on space-paper, inside a data-theme="light" area. */
+.card.sunken {
+  background: var(--mission-paper-well-bg);
+  border-color: var(--mission-paper-well-border);
+  box-shadow: var(--mission-paper-well-shadow);
+}
+.mission-viewport {
+  color-scheme: dark;
+  background:
+    radial-gradient(circle at 78% 26%, rgba(59, 53, 184, .28), transparent 22%),
+    radial-gradient(circle at 24% 72%, rgba(8, 124, 155, .22), transparent 26%),
+    var(--mission-viewport-bg);
+  border: 1px solid var(--mission-viewport-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--mission-viewport-glow);
+  color: var(--space-paper);
+  position: relative;
+  overflow: hidden;
+}
+.mission-viewport::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .23;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, .9) 0 1px, transparent 1.2px),
+    radial-gradient(circle, rgba(255, 255, 255, .55) 0 1px, transparent 1.2px);
+  background-size: 83px 83px, 127px 127px;
+  background-position: 13px 11px, 57px 33px;
+}
+.mission-paper { background: var(--space-paper); color: var(--text); }
+.mission-cyan { color: var(--mission-cyan-ink); }
+.mission-copper { color: var(--mission-copper-ink); }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 25px;
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+/* Solar Copper marks a Mission draft label (Identity Guide §4.5) – on the dark viewport only, never as a warning. */
+.pill.copper { border-color: var(--nebula-copper); color: var(--nebula-copper); }
+.pill.yellow { background: var(--bac-yellow); border-color: var(--bac-yellow); color: var(--text-on-accent); }
+.pill.green { background: var(--bac-green-tint); border-color: rgba(132, 196, 90, .55); color: var(--bac-green-ink); }
+.pill.red { background: var(--bac-red-tint); border-color: rgba(206, 108, 99, .55); color: var(--bac-red-ink); }
+.pill.blue { background: var(--bac-blue-tint); border-color: rgba(66, 119, 253, .45); color: var(--bac-blue-ink); }
+
+.btn {
+  display: inline-flex;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  font: 600 12px/1 var(--font-body);
+  background: var(--surface-card);
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.btn:hover { background: var(--surface-hover); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--bac-yellow); border-color: var(--bac-yellow); color: var(--text-on-accent); }
+.btn.primary:hover { background: var(--bac-yellow-press); border-color: var(--bac-yellow-press); }
+.btn.ghost { background: transparent; }
+.btn.ghost:hover { background: var(--surface-hover); }
+.btn.danger { border-color: var(--bac-red); color: var(--bac-red-ink); background: var(--bac-red-tint); }
+
+.field { display: grid; gap: 6px; }
+.field label { font: 500 10px/1.35 var(--font-body); letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); }
+.field .control { position: relative; }
+.input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text);
+  font: 400 12px var(--font-body);
+}
+.field .unit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font: 400 12px var(--font-body);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.stat { padding: 18px; }
+.stat .label { font: 600 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.stat .value { margin-top: 8px; font: 700 31px/1 var(--font-display); letter-spacing: -.025em; color: var(--text-strong); }
+.stat .sub { margin-top: 6px; font: 400 10px var(--font-body); color: var(--text-muted); }
+.stat.current { border-color: var(--bac-yellow); }
+
+.callout { padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); font: 500 12px/1.45 var(--font-body); color: var(--text); }
+.callout.warning { background: var(--bac-yellow-tint); border-color: rgba(247, 212, 0, .65); }
+.callout.success { background: var(--bac-green-tint); border-color: rgba(132, 196, 90, .55); }
+.callout.error { background: var(--bac-red-tint); border-color: rgba(206, 108, 99, .55); }
+.callout.info { background: var(--bac-blue-tint); border-color: rgba(66, 119, 253, .45); }
+
+.data-table { width: 100%; border-collapse: collapse; font: 400 11px/1.35 var(--font-body); }
+.data-table th { text-align: left; font-weight: 700; padding: 8px 9px; border-bottom: 2px solid var(--text); color: var(--text-strong); }
+.data-table td { padding: 8px 9px; border-bottom: 1px solid var(--border); }
+.data-table td.num, .data-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.section-label::after { content: ''; height: 1px; background: var(--border); flex: 1; }
+
+.note { font: 400 10px/1.45 var(--font-body); color: var(--text-muted); }
+
+.page-chip {
+  position: absolute;
+  right: 34px;
+  top: 28px;
+  font: 600 10px var(--font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.footer-note {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  font: 500 9px/1.3 var(--font-mono);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Inline charts: SVG presentation attributes cannot read custom properties, so strokes and fills go through classes. */
+.chart-grid { stroke: var(--border); }
+.chart-axis { stroke: var(--border-strong); }
+.chart-label { fill: var(--text-muted); }
+.chart-text { fill: var(--text); }
+.series-1 { stroke: var(--chart-1); }
+.series-2 { stroke: var(--chart-2); }
+.series-3 { stroke: var(--chart-3); }
+.series-4 { stroke: var(--chart-4); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn { transition: background-color var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  .btn:active { transform: none; }
+}
+
+/* The renderer sets the page size per board; print keeps the screen styles. */
+@media print {
+  .board { break-after: page; }
+}

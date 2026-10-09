@@ -1,6 +1,6 @@
 [project]
 name = "bac-orbital-lifetime"
-version = "0.2.0"
+version = "0.2.4"
 description = "Marimo notebook: orbital decay under drag with an embedded NRLMSIS 2.1 table and ten solar-activity scenarios – lifetime band, disposal rules, lifetime against launch date"
 readme = "README.md"
 license = { text = "MIT" }

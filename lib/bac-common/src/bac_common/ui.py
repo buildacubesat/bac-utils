@@ -2,7 +2,9 @@
 """Terminal presentation, following the BAC Interface Design Guide §10.
 
 Literal colour values here are copies of the canonical BAC tokens and are
-not authoritative; if they disagree with the Identity Guide, update this file.
+not authoritative; their executable source is the reference gallery's
+``css/tokens.css`` (tools/bac-reference-gallery). If they disagree with it
+or with the Identity Guide, update this file.
 
 Markup: every function accepts Rich markup in its message. Values that come
 from outside the tool – file names, LLM output, user input – must pass

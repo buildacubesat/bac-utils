@@ -61,7 +61,9 @@ def _main(argv: list[str], debug: bool) -> int:
     load_env(args.env_file)
     settings = load_settings(load_toml(TOOL, args.config))
     commit = args.commit or args.push
-    key_path = gsheets.credentials_path(settings.credentials_file or None)
+    key_path, key_source = gsheets.credentials_source(
+        settings.credentials_file or None, configured_as="[credentials] file"
+    )
 
     ui.opening(TOOL, __version__, "Content plan from the sheet into the docs repository.")
     ui.fields(
@@ -69,6 +71,7 @@ def _main(argv: list[str], debug: bool) -> int:
             ("Sheet", settings.sheet_url),
             ("Range", settings.a1_range),
             ("Target", settings.target),
+            ("Key", f"{key_path} ({key_source})"),
             ("Branch", f"{settings.branch} ({settings.remote})" if commit else "not committing"),
         ]
     )

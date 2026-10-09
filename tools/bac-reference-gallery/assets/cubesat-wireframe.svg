@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 520" fill="none">
+  <g stroke="#69D0E1" stroke-width="2" opacity=".95" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M112 70 290 34l36 80-177 38-37-82Z"/>
+    <path d="M149 152 326 114v311l-177 49V152Z"/>
+    <path d="M112 70 149 152v322l-37-91V70Z"/>
+    <path d="M149 258 326 218M149 367l177-44"/>
+    <path d="M112 181 149 258M112 291l37 76" opacity=".55"/>
+    <circle cx="188" cy="199" r="7"/>
+    <circle cx="274" cy="181" r="7"/>
+    <circle cx="188" cy="307" r="7"/>
+    <circle cx="274" cy="285" r="7"/>
+    <circle cx="188" cy="414" r="7"/>
+    <circle cx="274" cy="391" r="7"/>
+  </g>
+  <g stroke="#C88732" stroke-width="1.5" opacity=".75">
+    <path d="M88 70H36M112 42V6M326 453h52M350 425v80"/>
+  </g>
+  <g fill="#F6F0E6" opacity=".62" font-family="monospace" font-size="12">
+    <text x="28" y="65">Xm</text><text x="354" y="448">Xp</text>
+    <text x="118" y="18">2U REFERENCE</text>
+  </g>
+</svg>

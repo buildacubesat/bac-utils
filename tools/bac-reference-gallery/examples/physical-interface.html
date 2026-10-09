@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
+<title>BAC physical interface</title>
+<link rel="stylesheet" href="../css/gallery.css">
+<style>
+  .led { width: 28px; height: 28px; border-radius: 50%; margin: auto; border: 2px solid; }
+</style>
+</head>
+<body>
+<main class="board" style="padding:44px 56px;">
+  <div class="page-chip">BAC reference exemplar · 06</div>
+  <div><div class="eyebrow kicker">Physical communication</div><h1 class="h2" style="font-size:34px;margin-top:9px;">Hardware is an interface too</h1><p class="small muted" style="margin-top:9px;max-width:880px;">The same semantic language should survive the boundary between screen, terminal and PCB. Colour helps, but position, typography and behaviour carry meaning too.</p></div>
+
+  <section style="display:grid;grid-template-columns:1.13fr .87fr;grid-template-rows:minmax(0,1fr);gap:22px;margin-top:25px;height:740px;">
+    <div style="display:grid;grid-template-rows:minmax(0,1.08fr) minmax(0,.92fr);gap:18px;">
+      <div class="card" style="padding:20px 22px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="eyebrow">SEPARATE INDICATORS</div><div class="h3" style="margin-top:9px;">Silkscreen identifies meaning</div></div><span class="pill green">PREFERRED</span></div>
+        <img src="../assets/led-board.svg" alt="Illustrative PCB with five status LEDs labelled PWR, OK, WARN, FAULT and ACT in silkscreen" style="width:100%;height:230px;object-fit:contain;margin-top:8px;">
+        <div class="callout info" style="margin-top:4px;">Use labels such as <b>PWR</b>, <b>OK</b>, <b>WARN</b>, <b>FAULT</b>, <b>ACT</b>, <b>RX</b> or <b>TX</b>. Prefer meaning over colour names: <b>FAULT</b> is more useful than <b>RED</b>.</div>
+      </div>
+      <div class="card" style="padding:18px 20px;">
+        <div class="section-label">Semantic continuity</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px;text-align:center;">
+          <div><div class="led" style="background:#FFFFFF;border-color:var(--warm-300);"></div><div class="micro" style="margin-top:8px;">POWER</div><div class="micro muted">white</div></div>
+          <div><div class="led" style="background:var(--bac-green);border-color:#779F61;"></div><div class="micro" style="margin-top:8px;">NOMINAL</div><div class="micro muted">green</div></div>
+          <div><div class="led" style="background:var(--bac-yellow);border-color:#C4AA00;"></div><div class="micro" style="margin-top:8px;">WARNING</div><div class="micro muted">yellow</div></div>
+          <div><div class="led" style="background:var(--bac-red);border-color:#A95750;"></div><div class="micro" style="margin-top:8px;">FAULT</div><div class="micro muted">red</div></div>
+          <div><div class="led" style="background:var(--bac-blue);border-color:#315FD0;"></div><div class="micro" style="margin-top:8px;">ACTIVITY</div><div class="micro muted">blue</div></div>
+        </div>
+        <div class="micro muted" style="margin-top:16px;">Exact LED wavelength does not need to match a screen hex. Preserve semantic role, not RGB identity.</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-rows:minmax(0,1.08fr) minmax(0,.92fr);gap:18px;">
+      <div class="card" style="padding:20px 22px;">
+        <div class="eyebrow">SHARED R/Y/G INDICATOR</div><div class="h3" style="margin-top:9px;">A label alone is not enough</div>
+        <div style="display:flex;align-items:center;gap:28px;margin-top:28px;">
+          <div class="card well" style="padding:18px 22px;text-align:center;">
+            <div style="width:54px;height:54px;border-radius:50%;background:var(--bac-yellow);border:3px solid #C4AA00;margin:auto;box-shadow:0 0 20px rgba(247,212,0,.35);"></div>
+            <div class="eyebrow" style="margin-top:12px;">STATUS</div>
+          </div>
+          <div class="small" style="flex:1;">Silkscreen tells you <i>what the LED is</i>, but not <i>which state is active</i>. If red/yellow/green share one package, add a dynamic second channel.</div>
+        </div>
+        <div style="margin-top:21px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="callout success">✓ Good: distinct temporal patterns where practical.</div>
+          <div class="callout info">Good: repeat the state in a labelled display, log or terminal.</div>
+        </div>
+        <div class="callout error" style="margin-top:10px;">✗ Avoid: three steady colours with no other way to distinguish nominal, warning and fault.</div>
+      </div>
+
+      <div class="mission-viewport" style="padding:20px 22px;border-radius:10px;">
+        <div style="position:relative;z-index:2;"><div class="eyebrow" style="color:var(--nebula-copper);">LABEL / PACKAGING LANGUAGE</div><div style="font:700 26px var(--font-display);margin-top:10px;">Technical, compact, traceable.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;">
+            <div style="border:1px solid rgba(8,124,155,.38);border-radius:8px;padding:14px;"><div class="micro" style="color:var(--space-muted);">BOARD</div><div class="small" style="margin-top:5px;">EPS MAIN BOARD</div><div class="micro" style="color:var(--space-muted);margin-top:10px;">INTERFACE</div><div class="small" style="margin-top:5px;">bacBus · Xm</div></div>
+            <div style="border:1px solid rgba(200,135,50,.38);border-radius:8px;padding:14px;"><div class="micro" style="color:var(--space-muted);">STATE</div><div class="small" style="margin-top:5px;">DEVELOPMENT</div><div class="micro" style="color:var(--space-muted);margin-top:10px;">DOCS</div><div class="small" style="margin-top:5px;">BAC.PAGE/...</div></div>
+          </div>
+          <div class="micro" style="color:var(--space-muted);margin-top:20px;">QR codes, part IDs and short labels should support traceability without turning the PCB into a billboard.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="footer-note"><span>Meaning survives colour through label, position, behaviour or another interface</span><span>BAC Interface Design Guide · Physical indicators</span></div>
+</main>
+</body>
+</html>

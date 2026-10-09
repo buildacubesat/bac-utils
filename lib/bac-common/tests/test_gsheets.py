@@ -80,8 +80,23 @@ def test_credentials_path_errors(tmp_path, monkeypatch):
     monkeypatch.delenv(gsheets.CREDENTIALS_ENV, raising=False)
     with pytest.raises(ConfigError, match="No service-account key"):
         gsheets.credentials_path(None)
-    with pytest.raises(ConfigError, match="not found"):
-        gsheets.credentials_path(tmp_path / "missing.json")
+    with pytest.raises(ConfigError, match="not found") as err:
+        gsheets.credentials_path(tmp_path / "missing.json", configured_as="[credentials] file")
+    assert err.value.detail.endswith("set by [credentials] file.")
+
+
+def test_credentials_source_names_the_variable_when_it_wins(tmp_path, monkeypatch):
+    key = tmp_path / "key.json"
+    key.write_text("{}")
+    monkeypatch.delenv(gsheets.CREDENTIALS_ENV, raising=False)
+    assert gsheets.credentials_source(key, configured_as="[credentials] file") == (key, "[credentials] file")
+    monkeypatch.setenv(gsheets.CREDENTIALS_ENV, str(tmp_path / "stale.json"))
+    with pytest.raises(ConfigError, match="not found") as err:
+        gsheets.credentials_path(key, configured_as="[credentials] file")
+    assert "set by BAC_GCP_CREDENTIALS, which wins over [credentials] file" in err.value.detail
+    assert ".env above the working directory" in err.value.detail
+    monkeypatch.setenv(gsheets.CREDENTIALS_ENV, str(key))
+    assert gsheets.credentials_source(None) == (key, gsheets.CREDENTIALS_ENV)
 
 
 def test_service_account_email(tmp_path: Path):
@@ -159,3 +174,11 @@ def test_missing_extra_is_a_config_error(monkeypatch):
     with pytest.raises(ConfigError, match="not installed") as info:
         gsheets.SheetsClient.from_service_account(Path("key.json"))
     assert "gsheets" in (info.value.detail or "")
+
+
+def test_a_missing_key_from_the_variable_alone_does_not_mention_a_config(tmp_path, monkeypatch):
+    monkeypatch.setenv(gsheets.CREDENTIALS_ENV, str(tmp_path / "stale.json"))
+    with pytest.raises(ConfigError, match="not found") as err:
+        gsheets.credentials_path(None)
+    assert "set by BAC_GCP_CREDENTIALS;" in err.value.detail
+    assert "wins over" not in err.value.detail

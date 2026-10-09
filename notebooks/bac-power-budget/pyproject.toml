@@ -1,6 +1,6 @@
 [project]
 name = "bac-power-budget"
-version = "0.5.0"
+version = "0.5.3"
 description = "Marimo notebook: energy balance on one timeline – per-face generation, loads per mode, beacon cadence, battery state of charge with safe-mode fallback"
 readme = "README.md"
 license = { text = "MIT" }

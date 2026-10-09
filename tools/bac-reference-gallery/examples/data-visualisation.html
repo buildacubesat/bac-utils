@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
+<title>BAC data visualisation</title>
+<link rel="stylesheet" href="../css/gallery.css">
+<style>
+  .series-swatch { height: 8px; border-radius: 4px; }
+  /* The Mission chart sits on the dark viewport in both page modes, so it takes the dark series shades. */
+  .mission-chart .grid line, .mission-chart .grid path { stroke: #524B62; }
+  .mission-chart .label { fill: var(--space-muted); }
+  .mission-chart .text { fill: var(--space-paper); }
+</style>
+</head>
+<body>
+<main class="board" style="padding:44px 56px;">
+  <div class="page-chip">BAC reference exemplar · 05</div>
+  <div style="display:flex;justify-content:space-between;align-items:end;"><div><div class="eyebrow kicker">Data visualisation</div><h1 class="h2" style="font-size:34px;margin-top:9px;">Colour + stroke + label</h1></div><div class="pill">EXAMPLE DATA ONLY</div></div>
+
+  <section style="display:grid;grid-template-columns:1.12fr .88fr;gap:22px;margin-top:26px;height:782px;">
+    <div style="display:grid;grid-template-rows:1.05fr .95fr;gap:18px;">
+      <div class="card" style="padding:20px 22px;">
+        <div style="display:flex;justify-content:space-between;"><div><div class="eyebrow">OPS · LINE CHART</div><div class="h3" style="margin-top:9px;">Power rails during load step</div></div><div class="micro muted" style="text-align:right;">solid = observed<br>dashed = target<br>dotted = estimate</div></div>
+        <svg viewBox="0 0 760 300" style="width:100%;height:300px;margin-top:7px;" role="img" aria-label="Line chart: Rail A and Rail B observed against target and estimate over ten seconds">
+          <g class="chart-grid" stroke-width="1"><path d="M58 38H735M58 96H735M58 154H735M58 212H735M58 270H735" opacity=".65"/></g>
+          <path class="chart-axis" d="M58 26V270" stroke-width="1"/>
+          <g class="chart-label" font-family="monospace" font-size="11"><text x="15" y="43">5.2 V</text><text x="15" y="101">4.8 V</text><text x="15" y="159">4.4 V</text><text x="15" y="217">4.0 V</text><text x="52" y="291">0 s</text><text x="690" y="291">10 s</text></g>
+          <path class="series-1" d="M58 72 C130 74 180 64 222 90 S290 111 350 78 S430 68 510 76 S640 73 735 74" fill="none" stroke-width="4"/>
+          <path class="series-2" d="M58 173 C120 175 182 164 238 188 S318 212 390 174 S510 169 600 172 S690 170 735 171" fill="none" stroke-width="4"/>
+          <path class="series-3" d="M58 75H735" fill="none" stroke-width="3" stroke-dasharray="11 7"/>
+          <path class="series-4" d="M58 174 C160 174 260 177 360 171 S580 169 735 171" fill="none" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round"/>
+          <g class="chart-text" font-family="monospace" font-size="11"><text x="613" y="62">Rail A · observed</text><text x="613" y="192">Rail B · observed</text><text x="625" y="91">target</text><text x="615" y="157">estimate</text></g>
+        </svg>
+      </div>
+
+      <div class="card" style="padding:20px 22px;">
+        <div class="eyebrow">SERIES ORDER · WHEN COLOUR IS NEUTRAL</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-top:13px;">
+          <div><div class="series-swatch" style="background:var(--chart-1);"></div><div class="micro" style="margin-top:7px;">01 CYAN</div></div>
+          <div><div class="series-swatch" style="background:var(--chart-2);"></div><div class="micro" style="margin-top:7px;">02 BLUE</div></div>
+          <div><div class="series-swatch" style="background:var(--chart-3);"></div><div class="micro" style="margin-top:7px;">03 COPPER</div></div>
+          <div><div class="series-swatch" style="background:var(--chart-4);"></div><div class="micro" style="margin-top:7px;">04 VIOLET</div></div>
+          <div><div class="series-swatch" style="background:var(--chart-5);"></div><div class="micro" style="margin-top:7px;">05 GREEN*</div></div>
+          <div><div class="series-swatch" style="background:var(--chart-6);"></div><div class="micro" style="margin-top:7px;">06 RED*</div></div>
+        </div>
+        <div class="callout info" style="margin-top:15px;padding:11px 13px;font-size:10px;">* Reserve green/red for genuine pass/fail meaning when the chart carries semantic state. Extend with tints instead of confusing semantics.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
+          <div><div class="micro muted">GOOD</div><div class="small" style="margin-top:5px;">Direct labels, units, restrained grid, dual encoding.</div></div>
+          <div><div class="micro muted">AVOID</div><div class="small" style="margin-top:5px;">Rainbow palettes, unlabelled axes, hue-only distinctions, decorative 3D.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mission-viewport" data-theme="dark" style="padding:21px 22px;">
+      <div style="position:relative;z-index:2;">
+        <div class="eyebrow" style="color:var(--nebula-copper);">MISSION · DARK CHART SURFACE</div>
+        <div style="font:700 26px var(--font-display);margin-top:10px;">Thermal profile</div>
+        <div class="micro" style="color:var(--space-muted);margin-top:5px;">Derived lighter shades may be used to maintain graphical contrast.</div>
+        <svg class="mission-chart" viewBox="0 0 600 420" style="width:100%;height:420px;margin-top:10px;" role="img" aria-label="Line chart: observed, target and estimated temperature from T+0 to T+60">
+          <g class="grid" stroke-width="1" opacity=".5"><path d="M52 50H574M52 125H574M52 200H574M52 275H574M52 350H574"/><path d="M52 38V350"/></g>
+          <path class="series-1" d="M52 320 C120 305 155 255 215 242 S310 155 358 170 S449 95 574 72" fill="none" stroke-width="4"/>
+          <path class="series-2" d="M52 300 C125 290 182 270 235 253 S330 215 392 205 S490 165 574 150" fill="none" stroke-width="4" stroke-dasharray="11 7"/>
+          <path class="series-3" d="M52 338 C145 323 225 315 300 290 S430 265 574 245" fill="none" stroke-width="4" stroke-dasharray="2 9" stroke-linecap="round"/>
+          <g class="text" font-family="monospace" font-size="12"><text x="410" y="62">observed</text><text x="430" y="178">target</text><text x="434" y="285">estimate</text></g>
+          <g class="label" font-family="monospace" font-size="11"><text x="10" y="54">40 °C</text><text x="10" y="354">−20 °C</text><text x="50" y="374">T+0</text><text x="520" y="374">T+60</text></g>
+        </svg>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:5px;">
+          <div style="border:1px solid rgba(8,124,155,.35);border-radius:8px;padding:12px;background:rgba(255,255,255,.03);"><div class="micro" style="color:var(--chart-1);">GRAPHICAL CONTRAST</div><div class="small" style="margin-top:6px;">Aim for at least 3:1 for meaningful lines, marks and UI glyphs.</div></div>
+          <div style="border:1px solid rgba(200,135,50,.35);border-radius:8px;padding:12px;background:rgba(255,255,255,.03);"><div class="micro" style="color:var(--chart-3);">IDENTITY PRESERVED</div><div class="small" style="margin-top:6px;">A lighter shade may represent the same canonical series on a dark surface.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="footer-note"><span>Chart construction is an interface decision, not decoration</span><span>BAC Interface Design Guide · Identity palette upstream</span></div>
+</main>
+</body>
+</html>
