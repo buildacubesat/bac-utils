@@ -63,7 +63,7 @@ def _(mo):
     :root {
       --text:       #3F3F3F;
       --bg:         #efefed;
-      --text-muted: #888884;
+      --text-muted: #6C6B67;
     }
 
     /* Track marimo's own light/dark setting rather than the operating system.
@@ -71,6 +71,7 @@ def _(mo):
     :root {
       --text: light-dark(#3F3F3F, #efefed);
       --bg:   light-dark(#efefed, #201e1c);
+      --text-muted: light-dark(#6C6B67, #A3A29C);
     }
 
     h1, h2, h3, h4 {
@@ -114,7 +115,7 @@ def _():
 def _(np):
     # Constants, reference data and the small set of formulas everything uses.
 
-    TOOL_VERSION = "0.7.3"
+    TOOL_VERSION = "0.7.4"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -2137,7 +2138,7 @@ def _(alt, mo, modes):
     # series the palette repeats in progressively lighter tints.
 
     IS_DARK = mo.app_meta().theme == "dark"
-    MUTED = "#888884"
+    MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
     TEXT = "#efefed" if IS_DARK else "#3F3F3F"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
     PALETTE = (
@@ -3669,7 +3670,7 @@ def _(mo):
     ASSUMPTIONS_MD = """
     ## Assumptions
 
-    **Orbit.** Circular, two-body, over a spherical Earth, no J2. Averaged over
+    **Orbit.** Circular, two-body, over a spherical Earth, no [J2](https://cubesat-resources.space/references/glossary/#j2). Averaged over
     orbit phase the pass counts and durations match
     [SGP4](https://cubesat-resources.space/references/glossary/#sgp4) within 2%
     between 400 and 600 km. Good enough to plan a mission, not to point an antenna
@@ -3677,12 +3678,12 @@ def _(mo):
 
     **Antennas.** The spacecraft antenna is one gain in every direction, and any
     second radio on board shares it and the receiver. Ground pointing loss comes
-    from the beamwidth and your tracking error and needs a rotator; a fixed
+    from the [beamwidth](https://cubesat-resources.space/references/glossary/#beamwidth-hpbw) and your tracking error and needs a [rotator](https://cubesat-resources.space/references/glossary/#rotator); a fixed
     antenna is not modeled, so pick one that does not need a rotator and set its
     gain accordingly. [Polarization](https://cubesat-resources.space/references/glossary/#polarization-loss)
     loss comes from the two [axial ratios](https://cubesat-resources.space/references/glossary/#axial-ratio) – a linear ground antenna counts as
     40 dB – with the ellipses either crossed (worst case) or averaged over their
-    angle. A tumbling spacecraft earns the worst case.
+    angle. A [tumbling](https://cubesat-resources.space/references/glossary/#tumbling) spacecraft earns the worst case.
 
     **Losses.** [Free-space path loss](https://cubesat-resources.space/references/glossary/#free-space-path-loss) per direction at its own frequency. The
     atmospheric line is the larger of King's elevation table – an empirical
@@ -3695,7 +3696,7 @@ def _(mo):
 
     **Noise.** Signal and noise are both referenced to the [LNA](https://cubesat-resources.space/references/glossary/#lna) input: the antenna
     temperature attenuated by the feeder, plus the feeder's own noise, plus the
-    receiver, which is the [system noise temperature](https://cubesat-resources.space/references/glossary/#system-noise-temperature). The breakdown shows the three terms. The spacecraft sees 290 K of
+    receiver's [noise figure](https://cubesat-resources.space/references/glossary/#noise-figure) as a temperature; together they are the [system noise temperature](https://cubesat-resources.space/references/glossary/#system-noise-temperature). The breakdown shows the three terms. The spacecraft sees 290 K of
     antenna noise, the conservative end of an Earth-filled sky.
 
     **Thresholds.** Library figures are King's table at a
@@ -3704,28 +3705,29 @@ def _(mo):
     unless the entry names a code. Entries marked provisional name a receiver
     nobody has measured; a callout and a line in the report say so when the
     featured mode uses one. For entries on the ideal non-coherent FSK curve the
-    tool also shows the frame error rate the figure implies at your frame length,
+    tool also shows the [frame error rate](https://cubesat-resources.space/references/glossary/#frame-error-rate-fer) the figure implies at your frame length,
     and the [Eb/N0](https://cubesat-resources.space/references/glossary/#ebn0) your target FER would need, assuming independent bit errors –
     shown beside the library figure, never substituted for it. For a coded entry
-    the bit rate you enter is the channel rate, Eb/N0 is per information bit and
+    the bit rate you enter is the channel rate and the [code rate](https://cubesat-resources.space/references/glossary/#code-rate) turns it into the
+    information rate; Eb/N0 is per information bit and
     volume counts information bits, so coding gain and its throughput cost come
-    from one line. The framing overhead slider covers sync, headers and idle
-    only. CW entries carry an SNR in the bandwidth the receiver integrates over
+    from one line. The [framing overhead](https://cubesat-resources.space/references/glossary/#framing-overhead) slider covers sync, headers and idle
+    only. CW entries carry an [SNR](https://cubesat-resources.space/references/glossary/#snr) in the bandwidth the receiver integrates over
     and no data figure. The BAC CW specification asks for a 3 dB [implementation
     loss](https://cubesat-resources.space/references/glossary/#implementation-loss) allowance and 3 dB of [link margin](https://cubesat-resources.space/references/glossary/#link-margin); the tool's global 2 dB allowance and target
     apply instead, which at CW's margins changes no answer.
 
     **Modulation names describe demodulators.** [GMSK](https://cubesat-resources.space/references/glossary/#gmsk), GFSK, MSK and [FSK](https://cubesat-resources.space/references/glossary/#fsk) are one
     continuous-phase family; the 4.2 dB between the GMSK entry and non-coherent
-    FSK is coherent detection against a discriminator. Pick the entry that
-    matches the receiver you will fly, not the transmitter's brochure. The GFSK
-    h = 0.5 entry has no defensible figure and takes the Custom Eb/N0 input.
+    FSK is [coherent detection against a discriminator](https://cubesat-resources.space/references/glossary/#coherent-non-coherent-detection). Pick the entry that
+    matches the receiver you will fly, not the transmitter's brochure. The GFSK entry at
+    [modulation index](https://cubesat-resources.space/references/glossary/#modulation-index-h) h = 0.5 has no defensible figure and takes the Custom Eb/N0 input.
 
     **Reference receive level.** A published input level from Doppler tests under
     a Reed–Solomon-coded configuration, with no error rate attached. It draws a
     reference line on the uplink chart and nothing else.
 
-    **Duplex.** A hardware setting, not a frequency test. Half duplex means one
+    **Duplex.** A hardware setting, not a frequency test. [Half duplex](https://cubesat-resources.space/references/glossary/#duplex-half-full) means one
     radio and one antenna serve both directions, so the pass is split by the
     downlink share; full duplex means separate transmit and receive chains at
     both ends and each direction gets the whole pass. A frequency difference
@@ -3738,7 +3740,7 @@ def _(mo):
     **Volume.** Information rate × time × (1 − overhead) × direction share, over
     the seconds of each [pass](https://cubesat-resources.space/references/glossary/#pass)
     where the margin meets the target. For [LoRa](https://cubesat-resources.space/references/glossary/#lora)
-    rows the information rate is the packet payload over its time on air –
+    rows the information rate is the packet payload over its [time on air](https://cubesat-resources.space/references/glossary/#time-on-air) –
     programmed preamble plus 4.25 sync symbols, explicit header, CRC, the
     symbol rounding of the SX1276 datasheet Rev 5 §4.1.1.7 (p. 31) and
     low-data-rate optimization above 16 ms per symbol – so the framing
@@ -3764,7 +3766,7 @@ def _(mo):
 
     ## Limitations
 
-    Not modeled: antenna patterns at either end, so nulls, tumble fades and
+    Not modeled: [antenna patterns](https://cubesat-resources.space/references/glossary/#radiation-pattern) at either end, so nulls, tumble fades and
     partial deployment are invisible; [Doppler](https://cubesat-resources.space/references/glossary/#doppler-shift)
     (about ±11 kHz at 436 MHz and ±62 kHz at 2.45 GHz, plus 436 Hz or 2.45 kHz
     per ppm of oscillator error) and acquisition, assumed tracked; interference;
@@ -3813,6 +3815,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.4 | 2026-10-09 | Glossary links added on first use for J2, beamwidth, rotator, tumbling, noise figure, frame error rate, code rate, framing overhead, SNR, coherent detection, modulation index, duplex, time on air and radiation pattern; the noise and coded-entry sentences say what the receiver and the code rate contribute. The muted gray of chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.7.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped at the chart width are split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell). No change to the numbers. |
     | 0.7.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): both BAC profiles and the panel default move to 500 km; the sun-synchronous inclination for 500 km is 97.4° (the 450 km profiles carried that value already, computed for 500 km). Every result of the UHF and S-band profiles moves with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |

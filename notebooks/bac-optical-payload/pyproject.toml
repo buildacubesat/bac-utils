@@ -1,6 +1,6 @@
 [project]
 name = "bac-optical-payload"
-version = "0.7.3"
+version = "0.7.4"
 description = "Marimo notebook: what a camera on a small satellite produces – GSD, swath, smear, access and illumination over a target, data volume; and the boom-camera view of the spacecraft"
 readme = "README.md"
 license = { text = "MIT" }

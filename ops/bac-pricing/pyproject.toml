@@ -1,6 +1,6 @@
 [project]
 name = "bac-pricing"
-version = "1.4.0"
+version = "1.4.1"
 description = "Build a CubeSat assembly pricing: multi-level BOM cost rollup and price derivation as a pure engine, a marimo notebook over it, and the pricing engine of the operations suite's database."
 readme = "README.md"
 license = { text = "MIT" }

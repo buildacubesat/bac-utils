@@ -1,4 +1,4 @@
-# bac-orbital-lifetime v0.2.4
+# bac-orbital-lifetime v0.2.5
 
 Build a CubeSat – the order-of-magnitude lifetime of a CubeSat in a circular low Earth orbit, as a marimo notebook. The orbit decays under drag at −√(μa)·ρ·F/B until 120 km; the density is NRLMSIS 2.1 averaged along the orbit and embedded as a table, and the solar activity that drives it comes from the observed F10.7 and Ap record, the NOAA SWPC Cycle 25 prediction with its 75 % band, and a climatology of past cycles for whatever lies past the forecast. Ten scenarios run through the same spacecraft – NOAA nominal, low and high, six replays of past cycles, one constant-flux case – and the band they span is the answer; callouts judge it against the mission and the 5-year and 25-year disposal rules. Size, mass, deployables (which may deploy at end of mission, as a drag sail would) and an attitude switch at end of mission set the ballistic coefficient; a launch-date sweep shows where in the solar cycle a mission starts.
 
@@ -43,6 +43,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.2.5 | 2026-10-09 | The LTDN glossary link fixed (`#ltdn` does not exist); first-use links added for the drag, solar and disposal terms; closing line linked as in the siblings; the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark); numbers unchanged. |
 | 0.2.4 | 2026-10-06 | bac.page links point at the molab short links. |
 | 0.2.3 | 2026-10-06 | The "Solar Activity Assumed" chart was empty in the browser (a dot in the data column name, which Vega-Lite reads as nested access); fixed, numbers unchanged. |
 | 0.2.2 | 2026-10-06 | Every chart title split into a short title and a subtitle with the reading note; the decay title no longer repeats the legend; numbers unchanged. |

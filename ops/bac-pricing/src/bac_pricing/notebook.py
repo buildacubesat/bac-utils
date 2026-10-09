@@ -51,7 +51,7 @@ def _(mo):
     :root {
       --text:       #3F3F3F;
       --bg:         #efefed;
-      --text-muted: #888884;
+      --text-muted: #6C6B67;
     }
 
     /* Track marimo's own light/dark setting rather than the operating system.
@@ -59,6 +59,7 @@ def _(mo):
     :root {
       --text: light-dark(#3F3F3F, #efefed);
       --bg:   light-dark(#efefed, #201e1c);
+      --text-muted: light-dark(#6C6B67, #A3A29C);
     }
 
     h1, h2, h3, h4 {
@@ -122,7 +123,7 @@ def _():
 
 @app.cell
 def _(suite_config):
-    TOOL_VERSION = "1.4.0"
+    TOOL_VERSION = "1.4.1"
     SETTINGS = suite_config.load_settings()
 
     # Currency symbols for display. Unknown codes fall back to the code itself.
@@ -887,7 +888,7 @@ def _(
 @app.cell
 def _(alt, mo):
     IS_DARK = mo.app_meta().theme == "dark"
-    MUTED = "#888884"
+    MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
     TEXT = "#efefed" if IS_DARK else "#3F3F3F"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
     PALETTE = (
@@ -1390,6 +1391,7 @@ def _(TOOL_VERSION, mo):
 
     | Version | Date | Change |
     | :-- | :-- | :-- |
+    | 1.4.1 | 2026-10-09 | The muted gray of secondary text, chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the prices. |
     | 1.4.0 | 2026-10-07 | Joins bac-utils on bac-common and bac-suite-db: settings from the suite config, one control panel, labels on every input, stat cards, the shared style and chart conventions, data checks as a callout, files-mode save and the base-currency switch moved into the store. |
     | 1.3.0 | 2026-07-06 | Database-first storage: Postgres tables, versioned parameters, the suite shell. |
     | 1.2.0 | 2026-06-26 | Editable price breaks; dynamic currency symbols; frankfurter currency list. |

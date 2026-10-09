@@ -62,7 +62,7 @@ def _(mo):
     :root {
       --text:       #3F3F3F;
       --bg:         #efefed;
-      --text-muted: #888884;
+      --text-muted: #6C6B67;
     }
 
     /* Track marimo's own light/dark setting rather than the operating system.
@@ -70,6 +70,7 @@ def _(mo):
     :root {
       --text: light-dark(#3F3F3F, #efefed);
       --bg:   light-dark(#efefed, #201e1c);
+      --text-muted: light-dark(#6C6B67, #A3A29C);
     }
 
     h1, h2, h3, h4 {
@@ -111,7 +112,7 @@ def _():
 
 @app.cell
 def _():
-    TOOL_VERSION = "0.5.3"
+    TOOL_VERSION = "0.5.4"
     R_EARTH_KM = 6371.0
     SOLAR_CONST_W_M2 = 1361.0  # AM0, mean Earth distance
 
@@ -2506,7 +2507,7 @@ def _(
 @app.cell
 def _(alt, mo):
     IS_DARK = mo.app_meta().theme == "dark"
-    MUTED = "#888884"
+    MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
     TEXT = "#efefed" if IS_DARK else "#3F3F3F"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
     PALETTE = (
@@ -2535,7 +2536,7 @@ def _(alt, mo):
             .encode(y="y:Q")
         )
 
-    return PALETTE, rule_y, style_chart
+    return MUTED, PALETTE, rule_y, style_chart
 
 
 @app.cell
@@ -2884,6 +2885,7 @@ def _(
 
 @app.cell
 def _(
+    MUTED,
     PALETTE,
     alt,
     eclipse_runs,
@@ -2920,7 +2922,7 @@ def _(
     )
     _ecl = pd.DataFrame([{"x": s / 3600, "x2": min(e, 86400) / 3600} for s, e in eclipse_runs if s < 86400])
     _shade = (
-        alt.Chart(_ecl).mark_rect(opacity=0.12, color="#888884").encode(x="x:Q", x2="x2:Q")
+        alt.Chart(_ecl).mark_rect(opacity=0.12, color=MUTED).encode(x="x:Q", x2="x2:Q")
         if len(_ecl)
         else alt.Chart(pd.DataFrame({"x": []})).mark_rect()
     )
@@ -3546,21 +3548,21 @@ def _(mo):
     a cell rated under AM1.5 at 1'000 W/m² (the silicon cells) is rescaled to
     1'361 W/m² and multiplied by the AM0 spectral factor. Then a linear power
     loss per kelvin above 25°C at the set cell temperature, and a flat
-    diode-and-mismatch loss. A module is S cells in series by P strings in
-    parallel behind one diode, sized in [U](https://cubesat-resources.space/references/glossary/#u-cubesat-unit) along the face;
+    diode-and-mismatch loss. A module is S cells in series by P
+    [strings](https://cubesat-resources.space/references/glossary/#solar-string) in parallel behind one diode, sized in [U](https://cubesat-resources.space/references/glossary/#u-cubesat-unit) along the face;
     a side face carries as many modules as fit in the CubeSat length. Every
     module on a face sees the same Sun. Nothing is said about degradation
     ([BOL/EOL](https://cubesat-resources.space/references/glossary/#bol-eol)), [albedo](https://cubesat-resources.space/references/glossary/#albedo) or [Earth infrared](https://cubesat-resources.space/references/glossary/#earth-ir).
 
-    **Attitude.** Tumbling puts a quarter of the Sun on every face on average,
-    the isotropic result for flat faces. Nadir-pointed holds +Z at zenith and
+    **Attitude.** [Tumbling](https://cubesat-resources.space/references/glossary/#tumbling) puts a quarter of the Sun on every face on average,
+    the isotropic result for flat faces. [Nadir](https://cubesat-resources.space/references/glossary/#nadir)-pointed holds +Z at zenith and
     +X along velocity; –Z carries the imager, +Z the boom root, so the Z faces
     carry no modules unless told otherwise. Sun-pointed holds the largest
     populated face at the Sun.
 
     **Storage.** All generation goes through the charger at its set efficiency
     into the battery, and every load is drawn from the battery through its
-    [rail](https://cubesat-resources.space/references/glossary/#rail) at that rail's efficiency; the direct path from panel to
+    [rail](https://cubesat-resources.space/references/glossary/#power-rail) at that rail's efficiency; the direct path from panel to
     load is not modeled, which is pessimistic by the charger loss.
     [State of charge](https://cubesat-resources.space/references/glossary/#state-of-charge-soc) is energy over nominal capacity
     with no voltage model; the [depth of discharge](https://cubesat-resources.space/references/glossary/#dod-battery) sets the
@@ -3576,7 +3578,7 @@ def _(mo):
     [safe mode](https://cubesat-resources.space/references/glossary/#safe-mode) with hysteresis. Safe holds the safe column all
     day, the state after a fault or during
     [commissioning](https://cubesat-resources.space/references/glossary/#commissioning): radio listening and beaconing, payload
-    off. Degraded holds the degraded column all day, the state with the radio
+    off. [Degraded](https://cubesat-resources.space/references/glossary/#degraded-mode) holds the degraded column all day, the state with the radio
     node dead and only the EPS and the LoRa backstop alive. State of charge at
     the epoch is the pack's charge when the simulation starts.
 
@@ -3606,7 +3608,7 @@ def _(mo):
     activation. Scheduled activations that fall in safe mode, or in the Safe
     and Degraded scenarios, are counted as not completed.
 
-    **Beacons.** Cadence arithmetic: CW and the data tiers on the radio node's
+    **Beacons.** Cadence arithmetic on the [time on air](https://cubesat-resources.space/references/glossary/#time-on-air): CW and the data tiers on the radio node's
     transmit draw, the [LoRa](https://cubesat-resources.space/references/glossary/#lora) backstop on the function board's, each
     at its own cadence. The policy decides where the radio-node
     [beacons](https://cubesat-resources.space/references/glossary/#beacon) run: in safe mode and the Safe scenario only (the
@@ -3623,8 +3625,8 @@ def _(mo):
     the scheduled ones, or the active-time setting when none was scheduled.
     Each spends the whole surplus, so they are independent maxima, not a pair;
     both read 0 when nominal watts alone exceed generation. They are
-    orbit-average figures and ignore where in the day the energy is. The
-    requested margin is the scheduled day with no load shedding; the run margin
+    [orbit-average](https://cubesat-resources.space/references/glossary/#oap) figures and ignore where in the day the energy is. The
+    requested margin is the scheduled day with no [load shedding](https://cubesat-resources.space/references/glossary/#load-shedding); the run margin
     is what the simulation did after dropping into safe mode.
 
     **Profiles.** A link budget profile loads with its orbit, station, minimum
@@ -3642,7 +3644,7 @@ def _(mo):
     One epoch, so the worst eclipse season is not searched. No thermal model:
     the cell temperature is an input, and the battery's charge-temperature
     limit (0–45°C for the MJ1) is not checked. No voltage or current limits on
-    the rails, no eFuse trip levels, no charger current limit (2 A for the
+    the rails, no [eFuse](https://cubesat-resources.space/references/glossary/#lcl) trip levels, no charger current limit (2 A for the
     LTM8062), no [MPPT](https://cubesat-resources.space/references/glossary/#mppt) tracking loss. Passes come from this
     propagator's single phase, not from the link budget's eight-phase average,
     and the optical payload's access count is a check, not the schedule.
@@ -3676,6 +3678,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.5.4 | 2026-10-09 | Glossary links: the power rails link to a power-rail entry instead of the deployer-rail one; first-use links added for solar strings, tumbling, nadir, degraded mode, time on air, orbit-average power, load shedding and eFuses. The muted gray of chart subtitles, rules, axis lines and ticks and the eclipse band takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.5.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.5.2 | 2026-10-06 | The `chart_title` helper of the chart-conventions cell, shared with the siblings; its two chart titles fit and keep their one line. No change to the numbers. |
     | 0.5.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the BAC profile and the panel default move to 500 km (the generic profile was there already). The orbital period, eclipse fraction and pass count move with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |

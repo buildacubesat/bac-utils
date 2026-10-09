@@ -102,7 +102,7 @@ def _(mo):
     :root {
       --text:       #3F3F3F;
       --bg:         #efefed;
-      --text-muted: #888884;
+      --text-muted: #6C6B67;
     }
 
     /* Track marimo's own light/dark setting rather than the operating system.
@@ -110,6 +110,7 @@ def _(mo):
     :root {
       --text: light-dark(#3F3F3F, #efefed);
       --bg:   light-dark(#efefed, #201e1c);
+      --text-muted: light-dark(#6C6B67, #A3A29C);
     }
 
     h1, h2, h3, h4 {
@@ -159,8 +160,8 @@ def _():
 def _(Path, mo):
     # Constants: the snapshot, where packs are looked for, what a pack contains, and the glossary.
 
-    TOOL_VERSION = "0.3.4"  # the visualizer version this demo is a snapshot of
-    SNAPSHOT_DATE = "2026-10-06"
+    TOOL_VERSION = "0.3.5"  # the visualizer version this demo is a snapshot of
+    SNAPSHOT_DATE = "2026-10-09"
     DEMO_PACKS = ("s-band-cross-patch-2200", "s-band-cross-patch-2400")  # the packs it was frozen and tested with
     # Where the packs are fetched from when none sit beside the file: the demo's own
     # packs/ folder in the public repository (raw.githubusercontent.com allows browser fetches).
@@ -714,7 +715,7 @@ def _(alt, mo):
     # derived tints to keep 3:1 graphical contrast.
 
     IS_DARK = mo.app_meta().theme == "dark"
-    MUTED = "#888884"
+    MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
     TEXT = "#efefed" if IS_DARK else "#3F3F3F"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
     PALETTE = (
@@ -796,6 +797,7 @@ def _(alt, mo):
 
     return (
         IS_DARK,
+        MUTED,
         PALETTE,
         band_strip,
         chart_title,
@@ -1000,7 +1002,9 @@ def _(
         [
             mo.md("## Reflection and Coupling"),
             mo.md(
-                "Three curves that answer different questions. **One probe alone** is the antenna: its minimum is the "
+                "Three "
+                + gl("S-parameter", "s-parameters")
+                + " curves that answer different questions. **One probe alone** is the antenna: its minimum is the "
                 + gl("resonance", "resonance")
                 + ", its depth is the "
                 + gl("match", "impedance-matching")
@@ -1023,6 +1027,7 @@ def _(
     ACTIVE,
     BAND,
     MODE,
+    MUTED,
     PACK,
     PALETTE,
     VALUES,
@@ -1074,7 +1079,7 @@ def _(
         _g = pd.concat(_grid)
         _bg = (
             alt.Chart(_g)
-            .mark_line(color="#888884", strokeWidth=0.6, opacity=0.6)
+            .mark_line(color=MUTED, strokeWidth=0.6, opacity=0.6)
             .encode(
                 x=alt.X("x:Q", title="", scale=alt.Scale(domain=[-1.05, 1.05]), axis=None),
                 y=alt.Y("y:Q", title="", scale=alt.Scale(domain=[-1.05, 1.05]), axis=None),
@@ -1130,7 +1135,7 @@ def _(
         _labels = (
             alt.Chart(SMITH_TABLE)
             .mark_text(
-                align="left", dx=8, dy=-6, font="IBM Plex Mono, ui-monospace, monospace", fontSize=11, color="#888884"
+                align="left", dx=8, dy=-6, font="IBM Plex Mono, ui-monospace, monospace", fontSize=11, color=MUTED
             )
             .encode(x="re:Q", y="im:Q", text="Point:N")
         )
@@ -1379,7 +1384,7 @@ def _(
                 + gl("radiation pattern", "radiation-pattern")
                 + " along planes through boresight: 0° is straight out of "
                 "the antenna, ±90° along the panel. The thin dashed opposite hand shows where the polarization degrades; the "
-                + gl("beamwidth", "beamwidth")
+                + gl("beamwidth", "beamwidth-hpbw")
                 + " and the shoulder near 60° are what pointing has to live with."
             ),
             _out,
@@ -1878,8 +1883,8 @@ def _(mo):
     ASSUMPTIONS_MD = """
     ## Assumptions
 
-    **Cases.** Every case in a pack is one simulation of the antenna with
-    [openEMS](https://cubesat-resources.space/references/glossary/#fdtd) through
+    **Cases.** Every case in a pack is one [FDTD](https://cubesat-resources.space/references/glossary/#fdtd)
+    simulation of the antenna with [openEMS](https://openems.de) through
     bac-antenna-optimizer: full-wave, one parameter changed from the nominal design, the others
     held. The pack's notes say at which mesh and end criterion it was run; the optimizer's
     handoff documents the mesh-convergence and run-to-run error bars.
@@ -1946,6 +1951,7 @@ def _(SNAPSHOT_DATE, TOOL_VERSION, mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.3.5 | 2026-10-09 | The beamwidth glossary link pointed at `#beamwidth`, which does not exist; it now points at `#beamwidth-hpbw`. The FDTD link sits on the method instead of on openEMS, and Reflection and Coupling links S-parameters. The muted gray of chart subtitles, rules, axis lines, ticks and the Smith chart's grid and labels takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No other change to what it shows. |
     | 0.3.4 | 2026-10-06 | The sibling links point at the molab short links; the demo's own link (bac.page/molab-antenna-viz-demo) named in the intro. No other change. |
     | 0.3.3 | 2026-10-06 | Two chart titles that were clipped at the chart width split into a short title and a subtitle (`chart_title` in the chart-conventions cell, shared with the siblings). No change to what it shows otherwise. |
     | 0.3.2 | 2026-10-02 | Moved from `tools/` to the `notebooks/` group of bac-utils with its four siblings; the paths it names follow. No change to what it shows. |

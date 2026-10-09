@@ -90,6 +90,7 @@ The notebook's own revision history (its last cell) has the detail per version.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.3.5 | 2026-10-09 | The beamwidth glossary link fixed (`#beamwidth-hpbw`); FDTD linked on the method, S-parameters in Reflection and Coupling; the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark). Demo re-snapshotted from 0.3.5. |
 | 0.3.4 | 2026-10-06 | Sibling links point at the molab short links; the demo is published at [bac.page/molab-antenna-viz-demo](https://bac.page/molab-antenna-viz-demo). |
 | 0.3.3 | 2026-10-06 | Two clipped chart titles split into title and subtitle (`chart_title`); nothing else changes. Demo re-snapshotted from 0.3.3: it fetches its packs from `demo/packs/` on GitHub when none are beside it, which is what a molab mirror needs. |
 | 0.3.2 | 2026-10-06 | Demo snapshot for molab added under `demo/` with tests (§6); README headings numbered. No change to the notebook. |

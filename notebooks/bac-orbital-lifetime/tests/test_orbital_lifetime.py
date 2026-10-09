@@ -24,7 +24,7 @@ def test_defaults_regression():
     """BAC demo mission at 500 km SSO, 2.0 kg, four tape antennas, launch 2027-06 – the 0.2.1 figures, unchanged in 0.2.2 and 0.2.3.
 
     At 450 km (0.2.0) these were 2.385 / 1.469 / 4.205 yr, 350.6 km at end of mission and 2.45 min/yr."""
-    assert D["TOOL_VERSION"] == "0.2.4"
+    assert D["TOOL_VERSION"] == "0.2.5"
     assert D["lifetime_nominal"] == pytest.approx(5.902, abs=0.005)
     assert D["lifetime_shortest"] == pytest.approx(4.899, abs=0.005)
     assert D["lifetime_longest"] == pytest.approx(7.140, abs=0.005)

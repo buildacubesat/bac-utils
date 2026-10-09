@@ -1,4 +1,4 @@
-# bac-optical-payload v0.7.3
+# bac-optical-payload v0.7.4
 
 Build a CubeSat – a first-order model of what a camera on a small satellite produces, as a marimo notebook with two modes. **Earth observation**: sensor, lens and orbit in; ground sample distance, swath and field of view, Rayleigh spot and sampling factor Q, motion and attitude smear, rolling-shutter skew, the footprint envelope and geolocation uncertainty, frame sizes raw, compressed and as a thumbnail, days to downlink, and access and illumination over a target with the access edges solved between samples. **Boom**: the same camera on a deployable boom looking back at the spacecraft – fill fraction, corners in frame, side view, a sweep of fill against boom length, and a depth-of-field check. A camera dropdown sets sensor and lens from a product (Raspberry Pi cameras, CHC5 modules, action cameras, DJI O4 air units, a phone).
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.7.4 | 2026-10-09 | Glossary links added on first use (pixel pitch, image circle, geolocation accuracy, access, depth of field); the Q thresholds named as Holst's resolution reading, with Q = 2 for Nyquist sampling beside them; the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark); numbers unchanged. |
 | 0.7.3 | 2026-10-06 | bac.page links point at the molab short links. |
 | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped split into a short title and a subtitle (`chart_title`); numbers unchanged. |
 | 0.7.1 | 2026-10-06 | The BAC planning orbit moves to 500 km (was 450 km) in the two BAC profiles and the panel default; the primary-imager profile takes the link budget 0.7.1 volumes; the regression figures re-recorded. First edit made in the repository. |

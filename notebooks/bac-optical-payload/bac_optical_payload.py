@@ -67,7 +67,7 @@ def _(mo):
     :root {
       --text:       #3F3F3F;
       --bg:         #efefed;
-      --text-muted: #888884;
+      --text-muted: #6C6B67;
     }
 
     /* Track marimo's own light/dark setting rather than the operating system.
@@ -75,6 +75,7 @@ def _(mo):
     :root {
       --text: light-dark(#3F3F3F, #efefed);
       --bg:   light-dark(#efefed, #201e1c);
+      --text-muted: light-dark(#6C6B67, #A3A29C);
     }
 
     h1, h2, h3, h4 {
@@ -118,7 +119,7 @@ def _():
 def _(np):
     # Constants, reference data and the formulas everything uses.
 
-    TOOL_VERSION = "0.7.3"
+    TOOL_VERSION = "0.7.4"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -1687,7 +1688,7 @@ def _(
 def _(alt, mo):
     # Chart conventions shared by both modes.
     IS_DARK = mo.app_meta().theme == "dark"
-    MUTED = "#888884"
+    MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
     TEXT = "#efefed" if IS_DARK else "#3F3F3F"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
     PALETTE = (
@@ -3677,19 +3678,22 @@ def _(mo):
 
     **Geometry.** A pinhole camera pointed at [nadir](https://cubesat-resources.space/references/glossary/#nadir): no distortion,
     no vignetting, a rectilinear projection.
-    [GSD](https://cubesat-resources.space/references/glossary/#ground-sample-distance-gsd) is pitch × altitude ÷ focal length,
+    [GSD](https://cubesat-resources.space/references/glossary/#ground-sample-distance-gsd) is [pitch](https://cubesat-resources.space/references/glossary/#pixel-pitch) × altitude ÷ focal length,
     [swath](https://cubesat-resources.space/references/glossary/#swath) is GSD × pixel count, and the
     [field of view](https://cubesat-resources.space/references/glossary/#field-of-view-fov) follows from the sensor size. The
-    image-circle check is a diameter comparison, not a measured illumination
+    [image-circle](https://cubesat-resources.space/references/glossary/#image-circle) check is a diameter comparison, not a measured illumination
     falloff. Every ground distance that depends on an angle – the reach a
     [slew](https://cubesat-resources.space/references/glossary/#slew) buys, the footprint shift at the pointing error, the
-    geolocation uncertainty – comes from the same spherical-Earth geometry as
+    [geolocation](https://cubesat-resources.space/references/glossary/#geolocation-accuracy) uncertainty – comes from the same spherical-Earth geometry as
     the off-nadir chart, horizon limited, so the numbers agree with each other.
 
     **Resolution.** Diffraction as the Rayleigh criterion at a single
     wavelength, 1.22 λ h ÷ D, with Q = λ·N/pitch as the sampling factor: below
     about 0.5 strongly detector limited, above 1 the aperture governs, between
-    the two both matter ([diffraction limit](https://cubesat-resources.space/references/glossary/#diffraction-limit)). At a fixed
+    the two both matter ([diffraction limit](https://cubesat-resources.space/references/glossary/#diffraction-limit)), which is
+    how Q reads for resolution. For sampling, Q = 2 is where the detector samples
+    the optics' finest detail at the Nyquist rate, so below 2 some aliasing is
+    possible. At a fixed
     [f-number](https://cubesat-resources.space/references/glossary/#f-number) a longer lens shrinks GSD and spot together and
     leaves Q alone. [Smear](https://cubesat-resources.space/references/glossary/#image-smear) is the ground motion or the
     attitude motion during the exposure, whichever is asked; the two are not
@@ -3701,7 +3705,7 @@ def _(mo):
     subtracted from the access reach; pointing knowledge sets the geolocation
     uncertainty and nothing else.
 
-    **Access and illumination.** An access is the target inside the reach of
+    **Access and illumination.** An [access](https://cubesat-resources.space/references/glossary/#access-imaging) is the target inside the reach of
     the sub-satellite point, the reach being half the cross-track swath (the
     sensor's long axis is taken as cross-track) plus the ground the slew buys,
     less the pointing error. The [ground track](https://cubesat-resources.space/references/glossary/#ground-track) is sampled
@@ -3725,8 +3729,8 @@ def _(mo):
     happens.
 
     **Boom.** The spacecraft is its envelope, a box with no deployables; the
-    boom is a straight line from the root, drawn only in the side view. Depth
-    of field uses a circle of confusion of two pixel pitches and the thin-lens
+    boom is a straight line from the root, drawn only in the side view.
+    [Depth of field](https://cubesat-resources.space/references/glossary/#depth-of-field) uses a circle of confusion of two pixel pitches and the thin-lens
     formulas. A focus distance at or inside the focal length is refused and the
     center distance used instead; a part of the spacecraft at or inside the
     focal length has no image and no blur figure. With the focus switch on, the
@@ -3777,7 +3781,9 @@ def _(mo):
 
     The geometry follows the standard first-order optical payload relations; the
     Q sampling factor follows Fiete, "Image quality and λFN/p for remote sensing
-    systems", Optical Engineering 38(7), 1999. Camera and sensor figures are from
+    systems", Optical Engineering 38(7), 1999, and its resolution thresholds
+    Holst, "Imaging system performance based upon Fλ/d", Optical Engineering
+    46(10), 2007. Camera and sensor figures are from
     the makers' product pages where the library says so, otherwise derived and
     marked provisional.
 
@@ -3794,6 +3800,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.4 | 2026-10-09 | Glossary links added on first use for pixel pitch, image circle, geolocation accuracy, access and depth of field. The Q thresholds in the assumptions are named as the resolution reading (Holst, now credited in the acknowledgment) and joined by the sampling one, Q = 2 for Nyquist, to match the glossary's diffraction-limit entry. The muted gray of chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.7.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped at the chart width are split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell). No change to the numbers. |
     | 0.7.1 | 2026-10-06 | The BAC planning orbit is 500 km (was 450 km): the primary-imager and boom profiles and the panel default move to 500 km, and the primary-imager profile takes the link budget 0.7.1 volumes at that orbit (3'171 kB/day UHF, 2'395 S-band). GSD, swath, reach and the access count move with the altitude. First edit made in the bac-utils repository; the molab copy is taken from here. |

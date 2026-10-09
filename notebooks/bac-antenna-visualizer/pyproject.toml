@@ -1,6 +1,6 @@
 [project]
 name = "bac-antenna-visualizer"
-version = "0.3.4"
+version = "0.3.5"
 description = "Marimo notebook: how an antenna's characteristics move with its geometry, from bac-antenna-optimizer sensitivity packs"
 readme = "README.md"
 license = { text = "MIT" }

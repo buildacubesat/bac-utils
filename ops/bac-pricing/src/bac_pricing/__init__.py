@@ -10,7 +10,7 @@ suite's database, ``notebook`` the marimo UI over both, ``cli`` the
 
 from pathlib import Path
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 NOTEBOOK = Path(__file__).with_name("notebook.py")
 APP = {"label": "Pricing", "route": "/pricing", "notebook": NOTEBOOK}

@@ -49,7 +49,7 @@ def _(mo):
     :root {
       --text:       #3F3F3F;
       --bg:         #efefed;
-      --text-muted: #888884;
+      --text-muted: #6C6B67;
     }
 
     /* Track marimo's own light/dark setting rather than the operating system.
@@ -57,6 +57,7 @@ def _(mo):
     :root {
       --text: light-dark(#3F3F3F, #efefed);
       --bg:   light-dark(#efefed, #201e1c);
+      --text-muted: light-dark(#6C6B67, #A3A29C);
     }
 
     h1, h2, h3, h4 {
@@ -117,7 +118,7 @@ def _(
     math,
     np,
 ):
-    TOOL_VERSION = "0.2.4"
+    TOOL_VERSION = "0.2.5"
     TOOL_SLUG = "molab-orbital-lifetime"
 
     MU = 3.986004418e14  # m^3/s^2
@@ -393,7 +394,7 @@ def _(textwrap):
         # and launch date are placeholders; the orbit is the standard planning orbit.
         name = "BAC demo mission, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.4"
+        tool_version = "0.2.5"
 
         [orbit]
         altitude_km = 500
@@ -436,7 +437,7 @@ def _(textwrap):
         # BAC Orbital Lifetime profile – generic 3U with two deployed panels
         name = "Generic 3U, 500 km SSO"
         tool = "bac_orbital_lifetime"
-        tool_version = "0.2.4"
+        tool_version = "0.2.5"
 
         [orbit]
         altitude_km = 500
@@ -1402,7 +1403,7 @@ def _(alt, mo):
     # band and the constant case take the first four series colors in that order;
     # the analog cycles are thin muted lines, the constant case is dashed.
     IS_DARK = mo.app_meta().theme == "dark"
-    MUTED = "#888884"
+    MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
     TEXT = "#efefed" if IS_DARK else "#3F3F3F"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
     PALETTE = (
@@ -2292,23 +2293,23 @@ def _(
 @app.cell
 def _(mo):
     _G = "https://cubesat-resources.space/references/glossary/#"
-    ASSUMPTIONS_MD = f"""**Orbit.** Circular, at the altitude above the 6371 km mean radius the siblings use; [inclination]({_G}inclination) fixed, [J2]({_G}j2) taken as a node rotation only, since it does not change the semi-major axis. Eccentric orbits are not modeled; a perigee below the stated altitude decays faster than this tool says. The atmosphere co-rotates with the Earth, which lowers the relative velocity on prograde orbits and raises it on retrograde ones.
+    ASSUMPTIONS_MD = f"""**Orbit.** Circular, at the altitude above the 6371 km mean radius the siblings use; [inclination]({_G}inclination) fixed, [J2]({_G}j2) taken as a node rotation only, since it does not change the semi-major axis. Eccentric orbits are not modeled; a [perigee]({_G}apogee-perigee) below the stated altitude decays faster than this tool says. The atmosphere co-rotates with the Earth, which lowers the relative velocity on prograde orbits and raises it on retrograde ones.
 
-    **Decay.** The semi-major axis loses energy to drag at the rate −√(μa)·ρ·F/B, with B = m/(Cd·A) the ballistic coefficient and F the co-rotation factor, integrated by a midpoint scheme in altitude with steps of at most 3 km or 15 days. Re-entry is called at 120 km, the floor of the density table; the last descent from there takes hours. Nothing is propagated past 30 years.
+    **Decay.** The semi-major axis shrinks under [atmospheric drag]({_G}atmospheric-drag) at the rate −√(μa)·ρ·F/B, with B = m/(Cd·A) the [ballistic coefficient]({_G}ballistic-coefficient) and F the co-rotation factor, integrated by a midpoint scheme in altitude with steps of at most 3 km or 15 days. [Re-entry]({_G}orbital-lifetime) is called at 120 km, the floor of the density table; the last descent from there takes hours. Nothing is propagated past 30 years.
 
-    **Atmosphere.** NRLMSIS 2.1 mass density, averaged along a circular orbit at the stated inclination (36 positions, four local-time offsets, equinox and solstice) with each sample's geodetic altitude taken against the WGS84 ellipsoid, so the polar bulge and the flattening are inside the table without a second Earth model in the notebook. The table spans 120 to 1'000 km, F10.7 65 to 300 sfu, Ap 4 to 100 and inclinations 0 to 97.5° (retrograde values mirror), and is interpolated linearly in log density; values outside are clamped. The daily and 81-day F10.7 are taken equal, which is what a monthly series can say. Built offline by `scripts/build_density_table.py` with pymsis, because the model is compiled Fortran and does not run in the browser.
+    **Atmosphere.** NRLMSIS 2.1 mass density, averaged along a circular orbit at the stated inclination (36 positions, four local-time offsets, equinox and solstice) with each sample's geodetic altitude taken against the WGS84 ellipsoid, so the polar bulge and the flattening are inside the table without a second Earth model in the notebook. The table spans 120 to 1'000 km, [F10.7]({_G}f107) 65 to 300 sfu, [Ap]({_G}ap-index) 4 to 100 and inclinations 0 to 97.5° (retrograde values mirror), and is interpolated linearly in log density; values outside are clamped. The daily and 81-day F10.7 are taken equal, which is what a monthly series can say. Built offline by `scripts/build_density_table.py` with pymsis, because the model is compiled Fortran and does not run in the browser.
 
-    **Solar activity.** Observed monthly F10.7 and Ap from CelesTrak's SW-All record, the NOAA SWPC Cycle 25 prediction with its 75 % band, and a climatology of cycles 20 to 24 by cycle phase for whatever lies past the forecast. NOAA nominal follows the prediction, then blends over a year into the climatology; NOAA high and low follow the band edges, then a climatology scaled to the strongest and weakest recorded cycle peaks, floored at 65 sfu. The analog scenarios replay a past cycle at the same phase as the launch: cycle 19 is the strongest on record, cycle 24 the weakest, and where a replay runs off the record it continues with the climatology. The next cycle's minimum is a panel input; NOAA expects it between 2029 and 2032. Ap follows the record and its climatology unless overridden. The live fetch replaces the prediction only; the history is refreshed by `scripts/build_solar_snapshot.py`.
+    **Solar activity.** Observed monthly F10.7 and Ap from CelesTrak's SW-All record, the NOAA SWPC [Cycle 25]({_G}solar-cycle) prediction with its 75 % band, and a climatology of cycles 20 to 24 by cycle phase for whatever lies past the forecast. NOAA nominal follows the prediction, then blends over a year into the climatology; NOAA high and low follow the band edges, then a climatology scaled to the strongest and weakest recorded cycle peaks, floored at 65 sfu. The analog scenarios replay a past cycle at the same phase as the launch: cycle 19 is the strongest on record, cycle 24 the weakest, and where a replay runs off the record it continues with the climatology. The next cycle's minimum is a panel input; NOAA expects it between 2029 and 2032. Ap follows the record and its climatology unless overridden. The live fetch replaces the prediction only; the history is refreshed by `scripts/build_solar_snapshot.py`.
 
-    **Drag area.** The body is a box of the form factor's outer dimensions. Tumbling averages the projected area of a convex body to a quarter of its surface, a panel to half its one-sided area and a cylinder to π/4 of its broadside area; the fixed attitudes take the ram face plus each deployable at its flow angle; minimum and maximum drag take the smallest face and the largest diagonal cross-section with panels edge-on and face-on. A deployable marked to deploy at end of mission counts in the after-mission area only, which is how a drag sail or a boom released for disposal is modeled. Shadowing between body and deployables is ignored, so sums overstate the area a little. Cd 2.2 is the free-molecular value for a compact body; 2.0 to 2.6 is the credible range and enters the lifetime linearly.
+    **Drag area.** The body is a box of the form factor's outer dimensions. [Tumbling]({_G}tumbling) averages the projected area of a convex body to a quarter of its surface, a panel to half its one-sided area and a cylinder to π/4 of its broadside area; the fixed attitudes take the ram face plus each deployable at its flow angle; minimum and maximum drag take the smallest face and the largest diagonal cross-section with panels edge-on and face-on. A deployable marked to deploy at end of mission counts in the after-mission area only, which is how a drag sail or a boom released for disposal is modeled. Shadowing between body and deployables is ignored, so sums overstate the area a little. Cd 2.2 is the free-molecular value for a compact body; 2.0 to 2.6 is the credible range and enters the lifetime linearly.
 
-    **Local time drift.** For a Sun-synchronous orbit the J2 node rate matches the mean Sun only at the design altitude; as the orbit decays the [LTDN]({_G}ltdn) walks, at the rate the results state and along the curve in the Local Time Drift section. The power budget's eclipse fraction and the optical payload's illumination follow it.
+    **Local time drift.** For a [Sun-synchronous]({_G}sso) orbit the J2 node rate matches the mean Sun only at the design altitude; as the orbit decays the [LTDN]({_G}local-time-of-descending-node-ltdn) walks, at the rate the results state and along the curve in the Local Time Drift section. The power budget's eclipse fraction and the optical payload's illumination follow it.
 
-    **Disposal rules.** Time after end of mission is checked against 5 years (FCC order of 2022 in force for new licenses since 2024; ESA Zero Debris policy of 2023) and 25 years (IADC guidelines, ISO 24113). Which scenario a regulator asks for varies; the tool shows nominal and longest.
+    **Disposal rules.** Time after end of mission, the passive [deorbit]({_G}deorbit), is checked against 5 years ([FCC]({_G}fcc) order of 2022 in force for new licenses since 2024; ESA Zero Debris policy of 2023) and 25 years (IADC guidelines, ISO 24113). Which scenario a regulator asks for varies; the tool shows nominal and longest.
 
     **Limitations.** No eccentricity, no propulsion, no solar radiation pressure, no lunisolar terms; no re-entry date, survivability or casualty-risk prediction, for which DAS and DRAMA exist; a monthly solar series that cannot see storms; a density model whose own spread is 10 to 20 % at the same indices; a horizon of 30 years. The spread between scenarios is the answer this tool can give.
 
-    Linked terms go to the CubeSat Resources glossary, bac.page/glossary. The sibling tools are the link budget, the optical payload and the power budget; a profile saved from any of them loads here and this tool's results table is written for them. Source and issues: bac-utils."""
+    Linked terms go to the CubeSat Resources glossary, [bac.page/glossary](https://bac.page/glossary). The sibling tools are the [link budget](https://bac.page/molab-link-budget), the [optical payload](https://bac.page/molab-optical-payload) and the [power budget](https://bac.page/molab-power-budget); a profile saved from any of them loads here and this tool's results table is written for them. Source and issues: [bac-utils](https://github.com/buildacubesat/bac-utils)."""
     ACKNOWLEDGMENT_MD = "Atmosphere: NRLMSIS 2.1 (Emmert et al. 2021) through pymsis. Solar indices: CelesTrak SW-All (Kelso), NOAA SWPC Solar Cycle Progression. Cycle minima: SILSO. Built by Build a CubeSat; MIT license."
     mo.vstack([mo.md("## Assumptions"), mo.md(ASSUMPTIONS_MD), mo.md(ACKNOWLEDGMENT_MD)])
     return ACKNOWLEDGMENT_MD, ASSUMPTIONS_MD
@@ -2321,6 +2322,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.2.5 | 2026-10-09 | The LTDN glossary link pointed at `#ltdn`, which does not exist; it now points at `#local-time-of-descending-node-ltdn`. First-use links added for perigee, atmospheric drag, ballistic coefficient, re-entry, F10.7, Ap, the solar cycle, tumbling, Sun-synchronous orbits, deorbit and the FCC; the closing line links the glossary, the siblings and bac-utils as theirs do. The decay sentence says the semi-major axis shrinks rather than that it loses energy. The muted gray of chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.2.4 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.2.3 | 2026-10-06 | The "Solar Activity Assumed" chart drew nothing in the browser since 0.1.0: its data column was named `F10.7 (sfu)` and Vega-Lite reads the dot as nested field access. Column renamed; axis and tooltip still say F10.7. No change to the numbers. |
     | 0.2.2 | 2026-10-06 | Every chart title split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell) – the long ones were clipped at the chart width; the decay chart's title no longer repeats the legend. No change to the numbers. |
