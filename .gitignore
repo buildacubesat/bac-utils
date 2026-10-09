@@ -58,6 +58,9 @@ fp-info-cache
 ~*.lck
 *.lck
 
+# Scratch at the checkout root – agent tools create tmp/downloads/ in their working directory
+/tmp/
+
 # Editors and OS
 .vscode/
 .idea/

@@ -134,6 +134,18 @@ def test_stylesheets_have_focus_and_reduced_motion(sheet):
     assert "--warm-500" not in css
 
 
+@pytest.mark.parametrize("sheet", sorted(CSS.glob("*.css")), ids=lambda p: p.name)
+def test_every_stylesheet_is_dual_licensed(sheet):
+    assert _text(sheet).splitlines()[0] == "/* SPDX-License-Identifier: MIT OR CC-BY-SA-4.0 */"
+
+
+def test_license_file_carries_the_mit_text():
+    mit = _text(TOOL_DIR.parents[1] / "LICENSE").strip()
+    license_md = _text(TOOL_DIR / "LICENSE.md")
+    assert mit in license_md
+    assert "MIT or CC BY-SA 4.0" in license_md
+
+
 @needs_browser
 @pytest.mark.parametrize("scheme", ["light", "dark"])
 def test_every_text_meets_wcag_aa(scheme):

@@ -1,13 +1,15 @@
 # SPDX-License-Identifier: MIT
-"""bac-reference-gallery – the reference boards to PNG and PDF.
+"""bac-reference-gallery – the reference boards to PNG and PDF, or in a browser.
 
 Renders every board of the gallery (or the ones named with ``--only``) into
-``png/`` and ``pdf/`` below the output folder, plus one combined PDF when
-several boards were rendered. Renders are meant to be regenerated, so an
-existing file is overwritten and the ✓ line says so. ``--init`` checks the
+``png/`` and ``pdf/`` below the output folder, plus one combined PDF after a
+complete run of the whole gallery. Renders are meant to be regenerated, so an
+existing file is overwritten and the ✓ line says so. ``--serve`` shows the
+pages in a browser over http://127.0.0.1 until Ctrl-C. ``--init`` checks the
 pages and the browser and offers to download Playwright's Chromium.
 
-Exit codes: 0 every board rendered, 1 at least one failed or no browser,
+Exit codes: 0 every board rendered (or the server stopped with Ctrl-C), 1 at
+least one board failed, no browser was found or the server did not start,
 2 bad arguments.
 """
 
@@ -15,18 +17,20 @@ from __future__ import annotations
 
 import contextlib
 import sys
+import threading
 import traceback
+import webbrowser
 from pathlib import Path
 
 from bac_common import cli as bac_cli
 from bac_common import ui
 from bac_common.config import load_env
-from bac_common.errors import BacError, ConfigError, UsageError
+from bac_common.errors import BacError, ConfigError, ExternalToolError, UsageError
 
-from . import TOOL_NAME, __version__, browser, site
+from . import TOOL_NAME, __version__, browser, serve, site
 from .render import Renderer, merge_pdfs, short_error
 
-DESCRIPTION = "Render the BAC reference gallery's boards to PNG and PDF."
+DESCRIPTION = "Render the BAC reference gallery's boards to PNG and PDF, or serve them."
 FORMATS = ("png", "pdf", "both")
 THEMES = ("light", "dark")
 COMBINED = "bac-reference-exemplars"
@@ -44,16 +48,18 @@ def build_parser():
         examples=[
             f"{TOOL_NAME} --only ops-vs-mission --format png",
             f"{TOOL_NAME} --theme dark --out-dir ~/Desktop/gallery",
+            f"{TOOL_NAME} --serve",
         ],
         list_help="list the boards and exit",
         config=False,
     )
     p.usage = f"{TOOL_NAME} [options]"
     p.add_argument("--only", metavar="NAME", action="append", help="render this board only (repeatable)")
-    p.add_argument("--format", metavar="FMT", choices=FORMATS, default="both", help="png, pdf or both (default both)")
-    p.add_argument("--theme", metavar="MODE", choices=THEMES, default="light", help="light or dark (default light)")
+    p.add_argument("--format", metavar="FMT", choices=FORMATS, help="png, pdf or both (default both)")
+    p.add_argument("--theme", metavar="MODE", choices=THEMES, help="light or dark (default light)")
     p.add_argument("--out-dir", metavar="DIR", help="folder for png/ and pdf/ (default ./exports)")
     p.add_argument("--source", metavar="DIR", help="gallery folder (default: the installed pages)")
+    p.add_argument("--serve", action="store_true", help="show the pages in a browser (local HTTP server)")
     return p
 
 
@@ -91,12 +97,30 @@ def _main(argv: list[str], debug: bool) -> int:
             site.find_site(source)  # a wrong --source is a usage error, before any panel
         return run_init(source)
 
+    if args.serve and not args.list:
+        given = [
+            flag
+            for flag, value in (
+                ("--only", args.only),
+                ("--format", args.format),
+                ("--theme", args.theme),
+                ("--out-dir", args.out_dir),
+            )
+            if value
+        ]
+        if given:
+            raise UsageError(f"--serve takes no render options: {', '.join(given)}", "Render without --serve.")
+
     folder = site.find_site(source)
     every = site.boards(folder)
     if args.list:
         for board in every:
             print(board.name)
         return 0
+    if args.serve:
+        return run_serve(folder, args.dry_run)
+    fmt = args.format or "both"
+    theme = args.theme or "light"
     chosen = site.select(every, args.only)
     if not chosen:
         raise ConfigError("The gallery has no boards.", f"{folder / 'examples'} holds no .html page.")
@@ -105,8 +129,8 @@ def _main(argv: list[str], debug: bool) -> int:
         raise UsageError(f"--out-dir {args.out_dir} is not a folder.")
     whole_gallery = len(chosen) == len(every)
 
-    what = {"png": "PNG", "pdf": "PDF", "both": "PNG and PDF"}[args.format]
-    ui.opening(TOOL_NAME, __version__, f"Render {len(chosen)} board(s) as {what}, {args.theme} mode.")
+    what = {"png": "PNG", "pdf": "PDF", "both": "PNG and PDF"}[fmt]
+    ui.opening(TOOL_NAME, __version__, f"Render {len(chosen)} board(s) as {what}, {theme} mode.")
 
     rendered = failed = written = 0
     pdfs: list[Path] = []
@@ -118,19 +142,19 @@ def _main(argv: list[str], debug: bool) -> int:
                 browser_text = f"unavailable – {exc.message}"
             ui.fields([("Pages", folder), ("Output", out_dir), ("Browser", browser_text)])
             for board in chosen:
-                ui.step(f"{ui.path(board.name)} → {_kinds(outputs(board, out_dir, args.format, args.theme))}")
+                ui.step(f"{ui.path(board.name)} → {_kinds(outputs(board, out_dir, fmt, theme))}")
                 rendered += 1
-            if args.format != "png" and whole_gallery and len(chosen) > 1:
-                ui.step(f"combined → {ui.esc(_rel(combined_path(out_dir, args.theme), out_dir))}")
+            if fmt != "png" and whole_gallery and len(chosen) > 1:
+                ui.step(f"combined → {ui.esc(_rel(combined_path(out_dir, theme), out_dir))}")
             return 0
         found = browser.require(browser.find(), TOOL_NAME)
         ui.fields([("Pages", folder), ("Output", out_dir), ("Browser", browser.describe(found))])
         with contextlib.ExitStack() as stack:
             with ui.spinner("Starting Chromium"):
-                renderer = stack.enter_context(Renderer(found, args.theme))
+                renderer = stack.enter_context(Renderer(found, theme))
             fonts_reported = False
             for board in chosen:
-                png, pdf = outputs(board, out_dir, args.format, args.theme)
+                png, pdf = outputs(board, out_dir, fmt, theme)
                 targets = [p for p in (png, pdf) if p is not None]
                 existed = any(p.exists() for p in targets)
                 try:
@@ -159,7 +183,7 @@ def _main(argv: list[str], debug: bool) -> int:
         elif len(pdfs) > 1 and failed:
             ui.warn(f"Combined PDF not written: {failed} board(s) failed.")
         elif len(pdfs) > 1:
-            target = combined_path(out_dir, args.theme)
+            target = combined_path(out_dir, theme)
             existed = target.exists()
             merge_pdfs(pdfs, target)
             over = " [dim](overwritten)[/dim]" if existed else ""
@@ -176,6 +200,59 @@ def _main(argv: list[str], debug: bool) -> int:
             dry_run=args.dry_run,
         )
     return 1 if failed else 0
+
+
+def run_serve(folder: Path, dry_run: bool) -> int:
+    """Serve the gallery folder on 127.0.0.1 and open it in the default browser; Ctrl-C stops.
+
+    The server answers before the browser is asked to open the page: some
+    browser commands (a ``BROWSER`` setting, a text browser without a display)
+    return only once they exit, so they must find the server running.
+    """
+    ui.opening(TOOL_NAME, __version__, "Show the gallery in a browser, served from this computer.")
+    server: serve.GalleryServer | None = None
+    thread: threading.Thread | None = None
+    planned = f"http://{serve.HOST}:{serve.PORT}/ (a free port if that one is taken)"
+    try:
+        if dry_run:
+            ui.fields([("Pages", folder), ("Address", planned)])
+            return 0
+        try:
+            server = serve.make_server(folder)
+        except OSError as exc:
+            raise ExternalToolError("The local web server did not start.", str(exc)) from exc
+        ui.fields([("Pages", folder), ("Address", server.url)])
+        thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.5}, daemon=True)
+        thread.start()
+        try:
+            if _open_browser(server.url):
+                ui.step("Opening it in the default browser.")
+            else:
+                ui.warn("No browser could be started – open the address yourself.")
+            ui.dim("Serving until Ctrl-C.")
+            while thread.is_alive():
+                thread.join(0.5)
+        except KeyboardInterrupt:
+            ui.console.print()  # the ^C keeps its own line
+    finally:
+        if thread is not None and server is not None:
+            server.shutdown()
+            thread.join(5)
+        if server is not None:
+            server.server_close()
+        ui.summary(
+            [("Address", server.url if server else planned), ("Requests", server.requests if server else 0)],
+            dry_run=dry_run,
+        )
+    return 0
+
+
+def _open_browser(url: str) -> bool:
+    """Ask the system for its browser; a broken browser setting is reported, not fatal."""
+    try:
+        return bool(webbrowser.open(url))
+    except Exception:  # noqa: BLE001 – webbrowser raises whatever the launcher raised
+        return False
 
 
 def run_init(source: Path | None) -> int:

@@ -1,10 +1,12 @@
+/* SPDX-License-Identifier: MIT OR CC-BY-SA-4.0 */
 /* tokens.css – Build a CubeSat design tokens as CSS custom properties.
 
    The executable copy of the BAC Identity Guide v0.8 (§3 typography, §4 colour,
    §5 form, §7 Mission surfaces) and the motion tokens of the BAC Interface
    Design Guide v0.1 (§4.1). The guides are authoritative; this file follows
-   them. Other copies of these values – the marimo style cell, the Rich colours
-   in bac-common, the bac-suite index page – take them from here.
+   them. The bac-suite index page serves a copy of this file (a test keeps the
+   two identical); the marimo style cells and the Rich colours in bac-common
+   repeat the values they need, because their platforms cannot link a file.
 
    Two semantic tokens differ from Identity Guide §4.4 so small text meets
    WCAG AA (decided 2026-10-08, guide change drafted): --text-muted and --link.

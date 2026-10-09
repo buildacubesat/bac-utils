@@ -1,6 +1,6 @@
 [project]
 name = "bac-reference-gallery"
-version = "0.3.0"
+version = "0.4.0"
 description = "The Build a CubeSat reference gallery: design exemplars for the BAC guides, the shared tokens.css, and a PNG/PDF renderer."
 readme = "README.md"
 license = { text = "MIT" }
