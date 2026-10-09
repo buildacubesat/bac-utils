@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from pathlib import Path
 
 import pytest
 from bac_suite import __version__
-from bac_suite.app import Tool, create_app, discover_tools, index_html
+from bac_suite.app import TOKENS_CSS, Tool, create_app, discover_tools, index_html
 
 
 def test_tool_from_entry_validates_the_route():
@@ -29,7 +30,10 @@ def test_index_html_links_every_tool_and_escapes():
     assert '<a class="tool" href="/pricing">Pricing</a>' in html
     assert 'href="/a?x=1&amp;y=2">A &lt;b&gt;</a>' in html
     assert f"bac-suite v{__version__}" in html
-    assert "light-dark(" in html and "prefers-reduced-motion" in html and "\u2014" not in html
+    assert '<link rel="stylesheet" href="/tokens.css">' in html
+    assert "prefers-reduced-motion" in html and "\u2014" not in html
+    assert not re.search(r"#[0-9A-Fa-f]{3,8}\b", html), "colours come from tokens.css"
+    assert "fonts.googleapis.com" not in html  # tokens.css imports the fonts
     assert "No engines installed" in index_html([])
 
 
@@ -60,3 +64,22 @@ def test_create_app_serves_the_index_and_delegates_the_rest():
     assert dict(sent[0]["headers"])[b"content-type"].startswith(b"text/html")
     _call(app, "/pricing")
     assert seen == ["/pricing"]
+
+
+def test_tokens_css_is_the_gallery_file():
+    gallery = Path(__file__).resolve().parents[3] / "tools" / "bac-reference-gallery" / "css" / "tokens.css"
+    assert TOKENS_CSS.read_bytes() == gallery.read_bytes()
+
+
+def test_create_app_serves_the_stylesheet():
+    app = create_app([], build=lambda t: None)
+    sent = _call(app, "/tokens.css")
+    assert sent[0]["status"] == 200
+    assert dict(sent[0]["headers"])[b"content-type"] == b"text/css; charset=utf-8"
+    assert sent[1]["body"] == TOKENS_CSS.read_bytes()
+
+
+def test_every_token_the_index_uses_is_defined():
+    used = set(re.findall(r"var\((--[\w-]+)\)", index_html([])))
+    defined = set(re.findall(r"(--[\w-]+)\s*:", TOKENS_CSS.read_text(encoding="utf-8")))
+    assert used and used <= defined, used - defined

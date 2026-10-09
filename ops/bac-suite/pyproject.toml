@@ -1,6 +1,6 @@
 [project]
 name = "bac-suite"
-version = "0.2.0"
+version = "0.2.1"
 description = "Build a CubeSat business operations suite shell: one web app serving every installed engine's notebook over the shared database."
 readme = "README.md"
 license = { text = "MIT" }

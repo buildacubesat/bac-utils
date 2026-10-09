@@ -38,30 +38,28 @@ def discover_tools() -> list[Tool]:
     return tools
 
 
-# Token values copied from the BAC Identity Guide; the shared tokens.css (reference gallery) is authoritative.
+# The shared stylesheet: a copy of tools/bac-reference-gallery/css/tokens.css, kept identical by a test.
+TOKENS_CSS = Path(__file__).resolve().parent / "static" / "tokens.css"
+
 _INDEX_TEMPLATE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>Build a CubeSat – Operations</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,600;6..12,800" rel="stylesheet">
+<link rel="stylesheet" href="/tokens.css">
 <style>
-:root {{ color-scheme: light dark;
-  --text: light-dark(#3F3F3F, #efefed); --bg: light-dark(#efefed, #201e1c);
-  --muted: light-dark(#6A6A66, #A3A29C); --card: light-dark(#F6F6F4, #2a2826);
-  --line: light-dark(#CFCFCA, #4A4844); --yellow: #F7D400; --focus: #4A8FD9; }}
-body {{ font-family: 'IBM Plex Mono', ui-monospace, monospace; background: var(--bg); color: var(--text);
+body {{ font-family: var(--font-body); background: var(--bg); color: var(--text);
   max-width: 640px; margin: 12vh auto; padding: 0 24px; line-height: 1.6; }}
-h1 {{ font-family: 'Nunito Sans', system-ui, sans-serif; font-weight: 800; font-size: 1.4rem; }}
-h1 b {{ background: var(--yellow); color: #2A2600; padding: 0 .3em; border-radius: 3px; }}
-p {{ color: var(--muted); font-size: .9rem; }}
-a.tool {{ display: block; background: var(--card); border: 1px solid var(--line); border-radius: 6px;
-  padding: 14px 18px; margin: 10px 0; color: var(--text); text-decoration: none; font-weight: 500;
-  transition: border-color 120ms cubic-bezier(.2, 0, .1, 1); }}
-a.tool:hover {{ border-color: var(--yellow); }}
-a.tool:focus-visible {{ outline: 3px solid var(--focus); outline-offset: 2px; }}
+h1 {{ font-family: var(--font-display); font-weight: var(--fw-bold); font-size: 1.4rem; color: var(--text-strong); }}
+h1 b {{ background: var(--bac-yellow); color: var(--warm-950); padding: 0 .3em; border-radius: 3px; }}
+p {{ color: var(--text-muted); font-size: .9rem; }}
+a.tool {{ display: block; background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 18px; margin: 10px 0; color: var(--text); text-decoration: none;
+  font-weight: 500; transition: border-color var(--dur-fast) var(--ease-standard); }}
+a.tool:hover {{ border-color: var(--bac-yellow); }}
+a.tool:focus-visible {{ outline: 3px solid var(--focus-ring); outline-offset: 2px; }}
 @media (prefers-reduced-motion: reduce) {{ a.tool {{ transition: none; }} }}
-footer {{ font-size: .8rem; color: var(--muted); margin-top: 32px; }}
+footer {{ font-size: .8rem; color: var(--text-muted); margin-top: 32px; }}
 </style></head><body>
 <h1><b>Build a CubeSat</b> · Operations</h1>
 <p>Orchestrated mode: every engine reads the same store. Each one also runs standalone through its own command.</p>
@@ -78,24 +76,27 @@ def index_html(tools: list[Tool]) -> str:
 
 
 def create_app(tools: list[Tool], build: Callable[[list[Tool]], Any] | None = None) -> Callable:
-    """The ASGI app: ``/`` serves the index, every other path goes to marimo's app.
+    """The ASGI app: ``/`` serves the index and ``/tokens.css`` its stylesheet; every other path goes to marimo.
 
     ``build`` turns the tools into marimo's ASGI app and is replaceable so the
     index can be tested without marimo serving anything.
     """
-    body = index_html(tools).encode("utf-8")
+    pages = {
+        "": (b"text/html; charset=utf-8", index_html(tools).encode("utf-8")),
+        "/": (b"text/html; charset=utf-8", index_html(tools).encode("utf-8")),
+        "/tokens.css": (b"text/css; charset=utf-8", TOKENS_CSS.read_bytes()),
+    }
     inner = (build or _marimo_app)(tools)
 
     async def app(scope: dict, receive: Callable, send: Callable) -> None:
-        if scope["type"] == "http" and scope.get("path") in ("", "/"):
+        page = pages.get(scope.get("path")) if scope["type"] == "http" else None
+        if page is not None:
+            kind, body = page
             await send(
                 {
                     "type": "http.response.start",
                     "status": 200,
-                    "headers": [
-                        (b"content-type", b"text/html; charset=utf-8"),
-                        (b"content-length", str(len(body)).encode()),
-                    ],
+                    "headers": [(b"content-type", kind), (b"content-length", str(len(body)).encode())],
                 }
             )
             await send({"type": "http.response.body", "body": body})

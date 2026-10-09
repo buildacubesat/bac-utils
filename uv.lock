@@ -208,7 +208,7 @@ provides-extras = ["simulation", "report"]
 
 [[package]]
 name = "bac-antenna-visualizer"
-version = "0.3.4"
+version = "0.3.5"
 source = { virtual = "notebooks/bac-antenna-visualizer" }
 dependencies = [
     { name = "altair" },
@@ -583,7 +583,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-link-budget"
-version = "0.7.3"
+version = "0.7.4"
 source = { virtual = "notebooks/bac-link-budget" }
 dependencies = [
     { name = "altair" },
@@ -655,7 +655,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-optical-payload"
-version = "0.7.3"
+version = "0.7.4"
 source = { virtual = "notebooks/bac-optical-payload" }
 dependencies = [
     { name = "altair" },
@@ -677,7 +677,7 @@ requires-dist = [
 
 [[package]]
 name = "bac-orbital-lifetime"
-version = "0.2.4"
+version = "0.2.5"
 source = { virtual = "notebooks/bac-orbital-lifetime" }
 dependencies = [
     { name = "altair" },
@@ -704,7 +704,7 @@ requires-dist = [
 
 [[package]]
 name = "bac-power-budget"
-version = "0.5.3"
+version = "0.5.4"
 source = { virtual = "notebooks/bac-power-budget" }
 dependencies = [
     { name = "altair" },
@@ -726,7 +726,7 @@ requires-dist = [
 
 [[package]]
 name = "bac-pricing"
-version = "1.4.0"
+version = "1.4.1"
 source = { editable = "ops/bac-pricing" }
 dependencies = [
     { name = "altair" },
@@ -761,7 +761,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-reference-gallery"
-version = "0.3.0"
+version = "0.4.0"
 source = { editable = "tools/bac-reference-gallery" }
 dependencies = [
     { name = "bac-common" },
@@ -817,7 +817,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-suite"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "ops/bac-suite" }
 dependencies = [
     { name = "bac-common" },

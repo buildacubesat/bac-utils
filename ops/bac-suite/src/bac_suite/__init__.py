@@ -8,4 +8,4 @@ It holds no logic of its own; engines register their notebook under the
 installed.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
