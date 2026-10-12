@@ -28,6 +28,7 @@ members = [
     "bac-kicad-generate-artifacts",
     "bac-kicad-hlabels",
     "bac-kicad-libcheck",
+    "bac-kicad-maintain",
     "bac-kicad-schfields",
     "bac-kicad-symfields",
     "bac-link-budget",
@@ -524,6 +525,33 @@ requires-dist = [
     { name = "bac-common", editable = "lib/bac-common" },
     { name = "bac-kicad-common", editable = "lib/bac-kicad-common" },
     { name = "rich", specifier = ">=13.7" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-kicad-maintain"
+version = "1.2.0"
+source = { editable = "tools/bac-kicad-maintain" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "bac-kicad-common" },
+    { name = "rich" },
+    { name = "typer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "bac-kicad-common", editable = "lib/bac-kicad-common" },
+    { name = "rich", specifier = ">=13.7" },
+    { name = "typer", specifier = ">=0.12" },
 ]
 
 [package.metadata.requires-dev]
