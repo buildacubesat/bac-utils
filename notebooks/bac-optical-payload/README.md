@@ -1,8 +1,8 @@
-# bac-optical-payload v0.7.4
+# bac-optical-payload v0.7.5
 
 Build a CubeSat – a first-order model of what a camera on a small satellite produces, as a marimo notebook with two modes. **Earth observation**: sensor, lens and orbit in; ground sample distance, swath and field of view, Rayleigh spot and sampling factor Q, motion and attitude smear, rolling-shutter skew, the footprint envelope and geolocation uncertainty, frame sizes raw, compressed and as a thumbnail, days to downlink, and access and illumination over a target with the access edges solved between samples. **Boom**: the same camera on a deployable boom looking back at the spacecraft – fill fraction, corners in frame, side view, a sweep of fill against boom length, and a depth-of-field check. A camera dropdown sets sensor and lens from a product (Raspberry Pi cameras, CHC5 modules, action cameras, DJI O4 air units, a phone).
 
-Published at [bac.page/molab-optical-payload](https://bac.page/molab-optical-payload). Its siblings are the [Link Budget](../bac-link-budget/) and [Power Budget](../bac-power-budget/) notebooks, with which it exchanges mission profiles.
+Use it at [bac.page/molab-optical-pld-app](https://bac.page/molab-optical-pld-app) (app mode, ready to use) or open it as a notebook at [bac.page/molab-optical-pld](https://bac.page/molab-optical-pld); both run this file from the repository. Its siblings are the [Link Budget](../bac-link-budget/) and [Power Budget](../bac-power-budget/) notebooks, with which it exchanges mission profiles.
 
 ## 1. Run
 
@@ -11,7 +11,7 @@ uvx marimo edit --sandbox notebooks/bac-optical-payload/bac_optical_payload.py
 uv run --no-sync marimo edit notebooks/bac-optical-payload/bac_optical_payload.py
 ```
 
-The file runs on [molab](https://molab.marimo.io) unchanged; the bac.page link points at that copy, which is this file to the byte apart from the SPDX line at the top. The map's tiles and coastline need the browser online.
+The file runs on [molab](https://molab.marimo.io) unchanged. The two bac.page links open this file from the repository's `main` branch – the app link on marimo.app in read mode with the code hidden, the notebook link in molab's editor – so a merged change is live at once and there is no copy to keep in step. The map's tiles and coastline need the browser online.
 
 ## 2. Profiles
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.7.5 | 2026-10-12 | Two bac.page links in the intro: `bac.page/molab-optical-pld-app` opens the notebook in app mode, ready to use, `bac.page/molab-optical-pld` as a notebook on molab; both run the repository file. Sibling links point at the app links, the closing section carries both. This tool's short link is `molab-optical-pld` (was `molab-optical-payload`); the export footer follows. Numbers unchanged. |
 | 0.7.4 | 2026-10-09 | Glossary links added on first use (pixel pitch, image circle, geolocation accuracy, access, depth of field); the Q thresholds named as Holst's resolution reading, with Q = 2 for Nyquist sampling beside them; the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark); numbers unchanged. |
 | 0.7.3 | 2026-10-06 | bac.page links point at the molab short links. |
 | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped split into a short title and a subtitle (`chart_title`); numbers unchanged. |

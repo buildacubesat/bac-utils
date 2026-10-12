@@ -48,13 +48,16 @@ def _(mo):
     beside itself and otherwise fetches the Build a CubeSat S-band packs from the
     bac-utils repository; a path, a URL or an upload under Other Packs works too.
 
-    This is the demo snapshot of the visualizer, published at
-    [bac.page/molab-antenna-viz-demo](https://bac.page/molab-antenna-viz-demo); the full tool runs locally from
+    This is the demo snapshot of the visualizer: use it at
+    [bac.page/molab-antenna-viz-app](https://bac.page/molab-antenna-viz-app) (app mode,
+    ready to use) or open it as a notebook, code and all, at
+    [bac.page/molab-antenna-viz](https://bac.page/molab-antenna-viz); both run this
+    file from the repository. The full tool runs locally from
     [bac-utils](https://github.com/buildacubesat/bac-utils)
-    (`notebooks/bac-antenna-visualizer`); its siblings are the [Link Budget](https://bac.page/molab-link-budget),
-    [Optical Payload](https://bac.page/molab-optical-payload),
-    [Power Budget](https://bac.page/molab-power-budget) and
-    [Orbital Lifetime](https://bac.page/molab-orbital-lifetime) tools. All of them
+    (`notebooks/bac-antenna-visualizer`); its siblings are the [Link Budget](https://bac.page/molab-link-budget-app),
+    [Optical Payload](https://bac.page/molab-optical-pld-app),
+    [Power Budget](https://bac.page/molab-power-budget-app) and
+    [Orbital Lifetime](https://bac.page/molab-orbital-lifetime-app) tools. All of them
     belong to the [Build a CubeSat](https://buildacubesat.space) project.
     """),
             mo.callout(
@@ -160,8 +163,8 @@ def _():
 def _(Path, mo):
     # Constants: the snapshot, where packs are looked for, what a pack contains, and the glossary.
 
-    TOOL_VERSION = "0.3.5"  # the visualizer version this demo is a snapshot of
-    SNAPSHOT_DATE = "2026-10-09"
+    TOOL_VERSION = "0.3.6"  # the visualizer version this demo is a snapshot of
+    SNAPSHOT_DATE = "2026-10-12"
     DEMO_PACKS = ("s-band-cross-patch-2200", "s-band-cross-patch-2400")  # the packs it was frozen and tested with
     # Where the packs are fetched from when none sit beside the file: the demo's own
     # packs/ folder in the public repository (raw.githubusercontent.com allows browser fetches).
@@ -1921,6 +1924,12 @@ def _(mo):
     the model and the copper agree.
 
     Linked terms go to the [CubeSat Resources glossary](https://cubesat-resources.space/references/glossary/).
+    The sibling tools are the Link Budget ([app](https://bac.page/molab-link-budget-app),
+    [notebook](https://bac.page/molab-link-budget)), the Optical Payload
+    ([app](https://bac.page/molab-optical-pld-app), [notebook](https://bac.page/molab-optical-pld)),
+    the Power Budget ([app](https://bac.page/molab-power-budget-app),
+    [notebook](https://bac.page/molab-power-budget)) and the Orbital Lifetime
+    ([app](https://bac.page/molab-orbital-lifetime-app), [notebook](https://bac.page/molab-orbital-lifetime)).
     Source and issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
     """
     mo.md(ASSUMPTIONS_MD)
@@ -1951,6 +1960,7 @@ def _(SNAPSHOT_DATE, TOOL_VERSION, mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.3.6 | 2026-10-12 | Two bac.page links per tool in the intro: `bac.page/molab-antenna-viz-app` opens the notebook in app mode, ready to use, and `bac.page/molab-antenna-viz` opens it as a notebook on molab, code and all; both run this file from the repository's `main`, so there is no copy to keep in step. Sibling links point at the app links; the closing section carries both for each sibling. The demo's own short link is `molab-antenna-viz` (was `molab-antenna-viz-demo`), the optical payload's `molab-optical-pld`. Demo re-snapshotted from 0.3.6. No change to the numbers. |
     | 0.3.5 | 2026-10-09 | The beamwidth glossary link pointed at `#beamwidth`, which does not exist; it now points at `#beamwidth-hpbw`. The FDTD link sits on the method instead of on openEMS, and Reflection and Coupling links S-parameters. The muted gray of chart subtitles, rules, axis lines, ticks and the Smith chart's grid and labels takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No other change to what it shows. |
     | 0.3.4 | 2026-10-06 | The sibling links point at the molab short links; the demo's own link (bac.page/molab-antenna-viz-demo) named in the intro. No other change. |
     | 0.3.3 | 2026-10-06 | Two chart titles that were clipped at the chart width split into a short title and a subtitle (`chart_title` in the chart-conventions cell, shared with the siblings). No change to what it shows otherwise. |

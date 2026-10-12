@@ -36,9 +36,12 @@ def _(mo):
     plus the Raspberry Pi cameras and a few consumer cameras for scale; a
     sensor or lens not in the libraries goes in through the Custom fields.
 
-    This tool is published at [bac.page/molab-optical-payload](https://bac.page/molab-optical-payload);
-    its siblings are the [Link Budget](https://bac.page/molab-link-budget)
-    and [Power Budget](https://bac.page/molab-power-budget) tools. All three
+    Use this tool at [bac.page/molab-optical-pld-app](https://bac.page/molab-optical-pld-app)
+    (app mode, ready to use) or open it as a notebook, code and all, at
+    [bac.page/molab-optical-pld](https://bac.page/molab-optical-pld); both run
+    this file from the repository. Its siblings are the
+    [Link Budget](https://bac.page/molab-link-budget-app) and
+    [Power Budget](https://bac.page/molab-power-budget-app) tools. All three
     belong to the [Build a CubeSat](https://buildacubesat.space) project and
     their source is in [bac-utils](https://github.com/buildacubesat/bac-utils).
     """),
@@ -119,7 +122,7 @@ def _():
 def _(np):
     # Constants, reference data and the formulas everything uses.
 
-    TOOL_VERSION = "0.7.4"
+    TOOL_VERSION = "0.7.5"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -1932,7 +1935,7 @@ def _(
                         "That is usually margin rather than bit rate: a faster waveform needs more signal, so it "
                         "closes for a shorter part of each pass. The fix is on the ground – a better front end, "
                         "tighter tracking, a bigger antenna, or coherent demodulation – and the "
-                        "[link budget](https://bac.page/molab-link-budget) is where those are traded."
+                        "[link budget](https://bac.page/molab-link-budget-app) is where those are traded."
                     ),
                     kind="info",
                     title="High Rate Below Low Rate",
@@ -3440,7 +3443,7 @@ def _(
     _head = [
         f"# BAC Optical Payload – {ui_mode.value} mode",
         "",
-        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Optical Payload {TOOL_VERSION}, bac.page/molab-optical-payload."
+        f"Generated {_now:%Y-%m-%d %H:%M} UTC (Unix {int(_now.timestamp())}) with BAC Optical Payload {TOOL_VERSION}, bac.page/molab-optical-pld."
         + (f" Profile: {profile_name}." if profile_name else "")
         + " Every value below is a planning input or a result derived from one; nothing here is measured.",
         "",
@@ -3770,10 +3773,11 @@ def _(mo):
     it does not state law.
 
     Linked terms go to the CubeSat Resources glossary, [bac.page/glossary](https://bac.page/glossary).
-    The sibling tools are the [Link Budget](https://bac.page/molab-link-budget)
-    and the [Power Budget](https://bac.page/molab-power-budget); a profile saved
-    from either loads here, and this tool's profile loads there. Source and
-    issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
+    The sibling tools are the Link Budget ([app](https://bac.page/molab-link-budget-app),
+    [notebook](https://bac.page/molab-link-budget)) and the Power Budget
+    ([app](https://bac.page/molab-power-budget-app), [notebook](https://bac.page/molab-power-budget));
+    a profile saved from either loads here, and this tool's profile loads there.
+    Source and issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
     """
 
     ACKNOWLEDGMENT_MD = """
@@ -3800,6 +3804,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.5 | 2026-10-12 | Two bac.page links per tool in the intro: `bac.page/molab-optical-pld-app` opens the notebook in app mode, ready to use, and `bac.page/molab-optical-pld` opens it as a notebook on molab, code and all; both run this file from the repository's `main`, so there is no copy to keep in step. Sibling links point at the app links; the closing section carries both for each sibling. This tool's short link is `molab-optical-pld` (was `molab-optical-payload`); the export footer follows. No change to the numbers. |
     | 0.7.4 | 2026-10-09 | Glossary links added on first use for pixel pitch, image circle, geolocation accuracy, access and depth of field. The Q thresholds in the assumptions are named as the resolution reading (Holst, now credited in the acknowledgment) and joined by the sampling one, Q = 2 for Nyquist, to match the glossary's diffraction-limit entry. The muted gray of chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.7.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped at the chart width are split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell). No change to the numbers. |

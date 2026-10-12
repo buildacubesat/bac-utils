@@ -1,8 +1,8 @@
-# bac-power-budget v0.5.4
+# bac-power-budget v0.5.5
 
 Build a CubeSat – a first-order energy balance on one timeline, as a marimo notebook. The optical payload's propagator (two-body plus J2, RAAN from the LTDN, Almanac Sun, 10 s steps) is extended with the link budget's station test and a per-face illumination model, so one run gives, per sample, sunlit or in shadow, over the station, over the target and whether the target is lit. Generation comes from the cells on each face under one of three attitude models, consumption from an editable table of average watts per mode, the beacon from cadence arithmetic, and the two integrate into a battery state of charge with a safe-mode fallback. Payload activations come from one of nine trigger modes with gates and caps. Six cards answer what duty cycle the radio and the camera can have before the battery goes negative.
 
-Published at [bac.page/molab-power-budget](https://bac.page/molab-power-budget). Its siblings are the [Link Budget](../bac-link-budget/) and [Optical Payload](../bac-optical-payload/) notebooks, with which it exchanges mission profiles.
+Use it at [bac.page/molab-power-budget-app](https://bac.page/molab-power-budget-app) (app mode, ready to use) or open it as a notebook at [bac.page/molab-power-budget](https://bac.page/molab-power-budget); both run this file from the repository. Its siblings are the [Link Budget](../bac-link-budget/) and [Optical Payload](../bac-optical-payload/) notebooks, with which it exchanges mission profiles.
 
 ## 1. Run
 
@@ -11,7 +11,7 @@ uvx marimo edit --sandbox notebooks/bac-power-budget/bac_power_budget.py
 uv run --no-sync marimo edit notebooks/bac-power-budget/bac_power_budget.py
 ```
 
-The file runs on [molab](https://molab.marimo.io) unchanged; the bac.page link points at that copy, which is this file to the byte apart from the SPDX line at the top.
+The file runs on [molab](https://molab.marimo.io) unchanged. The two bac.page links open this file from the repository's `main` branch – the app link on marimo.app in read mode with the code hidden, the notebook link in molab's editor – so a merged change is live at once and there is no copy to keep in step.
 
 ## 2. Profiles
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.5.5 | 2026-10-12 | Two bac.page links in the intro: `bac.page/molab-power-budget-app` opens the notebook in app mode, ready to use, `bac.page/molab-power-budget` as a notebook on molab; both run the repository file. Sibling links point at the app links, the closing section carries both. Numbers unchanged. |
 | 0.5.4 | 2026-10-09 | Power rails link to a power-rail glossary entry instead of the deployer-rail one; first-use links added (solar strings, tumbling, nadir, degraded mode, time on air, orbit-average power, load shedding, eFuses); the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark); numbers unchanged. |
 | 0.5.3 | 2026-10-06 | bac.page links point at the molab short links. |
 | 0.5.2 | 2026-10-06 | The shared `chart_title` helper added to the chart-conventions cell; numbers unchanged. |

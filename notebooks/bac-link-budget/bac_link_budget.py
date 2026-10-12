@@ -32,9 +32,12 @@ def _(mo):
     data that comes down per pass and per day, and which line of the budget
     costs the margin.
 
-    This tool is published at [bac.page/molab-link-budget](https://bac.page/molab-link-budget);
-    its siblings are the [Optical Payload](https://bac.page/molab-optical-payload)
-    and [Power Budget](https://bac.page/molab-power-budget) tools. All three
+    Use this tool at [bac.page/molab-link-budget-app](https://bac.page/molab-link-budget-app)
+    (app mode, ready to use) or open it as a notebook, code and all, at
+    [bac.page/molab-link-budget](https://bac.page/molab-link-budget); both run
+    this file from the repository. Its siblings are the
+    [Optical Payload](https://bac.page/molab-optical-pld-app) and
+    [Power Budget](https://bac.page/molab-power-budget-app) tools. All three
     belong to the [Build a CubeSat](https://buildacubesat.space) project and
     their source is in [bac-utils](https://github.com/buildacubesat/bac-utils).
     """),
@@ -115,7 +118,7 @@ def _():
 def _(np):
     # Constants, reference data and the small set of formulas everything uses.
 
-    TOOL_VERSION = "0.7.4"
+    TOOL_VERSION = "0.7.5"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -3777,10 +3780,11 @@ def _(mo):
     are independent in the FER view; fades and interference correlate them.
 
     Linked terms go to the CubeSat Resources glossary, [bac.page/glossary](https://bac.page/glossary).
-    The sibling tools are the [Optical Payload](https://bac.page/molab-optical-payload)
-    and the [Power Budget](https://bac.page/molab-power-budget); a profile saved
-    from either loads here, and this tool's profile loads there. Source and
-    issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
+    The sibling tools are the Optical Payload ([app](https://bac.page/molab-optical-pld-app),
+    [notebook](https://bac.page/molab-optical-pld)) and the Power Budget
+    ([app](https://bac.page/molab-power-budget-app), [notebook](https://bac.page/molab-power-budget));
+    a profile saved from either loads here, and this tool's profile loads there.
+    Source and issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
 
     ## Validation
 
@@ -3815,6 +3819,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.5 | 2026-10-12 | Two bac.page links per tool in the intro: `bac.page/molab-link-budget-app` opens the notebook in app mode, ready to use, and `bac.page/molab-link-budget` opens it as a notebook on molab, code and all; both run this file from the repository's `main`, so there is no copy to keep in step. Sibling links point at the app links; the closing section carries both for each sibling. The optical payload's short link is `molab-optical-pld` now. No change to the numbers. |
     | 0.7.4 | 2026-10-09 | Glossary links added on first use for J2, beamwidth, rotator, tumbling, noise figure, frame error rate, code rate, framing overhead, SNR, coherent detection, modulation index, duplex, time on air and radiation pattern; the noise and coded-entry sentences say what the receiver and the code rate contribute. The muted gray of chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.7.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped at the chart width are split into a short title and a subtitle with the reading note (`chart_title` in the chart-conventions cell). No change to the numbers. |

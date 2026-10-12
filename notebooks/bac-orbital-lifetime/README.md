@@ -1,8 +1,8 @@
-# bac-orbital-lifetime v0.2.5
+# bac-orbital-lifetime v0.2.6
 
 Build a CubeSat – the order-of-magnitude lifetime of a CubeSat in a circular low Earth orbit, as a marimo notebook. The orbit decays under drag at −√(μa)·ρ·F/B until 120 km; the density is NRLMSIS 2.1 averaged along the orbit and embedded as a table, and the solar activity that drives it comes from the observed F10.7 and Ap record, the NOAA SWPC Cycle 25 prediction with its 75 % band, and a climatology of past cycles for whatever lies past the forecast. Ten scenarios run through the same spacecraft – NOAA nominal, low and high, six replays of past cycles, one constant-flux case – and the band they span is the answer; callouts judge it against the mission and the 5-year and 25-year disposal rules. Size, mass, deployables (which may deploy at end of mission, as a drag sail would) and an attitude switch at end of mission set the ballistic coefficient; a launch-date sweep shows where in the solar cycle a mission starts.
 
-Published at [bac.page/molab-orbital-lifetime](https://bac.page/molab-orbital-lifetime). It is the fourth sibling of the [Link Budget](../bac-link-budget/), [Optical Payload](../bac-optical-payload/) and [Power Budget](../bac-power-budget/) notebooks and reads the orbit from their profiles.
+Use it at [bac.page/molab-orbital-lifetime-app](https://bac.page/molab-orbital-lifetime-app) (app mode, ready to use) or open it as a notebook at [bac.page/molab-orbital-lifetime](https://bac.page/molab-orbital-lifetime); both run this file from the repository. It is the fourth sibling of the [Link Budget](../bac-link-budget/), [Optical Payload](../bac-optical-payload/) and [Power Budget](../bac-power-budget/) notebooks and reads the orbit from their profiles.
 
 ## 1. Run
 
@@ -11,7 +11,7 @@ uvx marimo edit --sandbox notebooks/bac-orbital-lifetime/bac_orbital_lifetime.py
 uv run --no-sync marimo edit notebooks/bac-orbital-lifetime/bac_orbital_lifetime.py
 ```
 
-The file is about 175 kB because the density table and the solar snapshot are embedded as a few long data lines; the code itself is about 2'300 lines after the repository's formatter. It runs on [molab](https://molab.marimo.io) unchanged. With the NOAA switch on it fetches the current prediction (`urllib` on CPython, `pyodide.http` in the browser); otherwise it uses the embedded snapshot and says so.
+The file is about 175 kB because the density table and the solar snapshot are embedded as a few long data lines; the code itself is about 2'300 lines after the repository's formatter. It runs on [molab](https://molab.marimo.io) unchanged; the two bac.page links open this file from the repository's `main` branch – the app link on marimo.app in read mode with the code hidden, the notebook link in molab's editor – so a merged change is live at once and there is no copy to keep in step. With the NOAA switch on it fetches the current prediction (`urllib` on CPython, `pyodide.http` in the browser); otherwise it uses the embedded snapshot and says so.
 
 ## 2. Data tables and their builders
 
@@ -43,6 +43,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.2.6 | 2026-10-12 | Two bac.page links in the intro: `bac.page/molab-orbital-lifetime-app` opens the notebook in app mode, ready to use, `bac.page/molab-orbital-lifetime` as a notebook on molab; both run the repository file. Sibling links point at the app links, the closing section carries both. Numbers unchanged. |
 | 0.2.5 | 2026-10-09 | The LTDN glossary link fixed (`#ltdn` does not exist); first-use links added for the drag, solar and disposal terms; closing line linked as in the siblings; the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark); numbers unchanged. |
 | 0.2.4 | 2026-10-06 | bac.page links point at the molab short links. |
 | 0.2.3 | 2026-10-06 | The "Solar Activity Assumed" chart was empty in the browser (a dot in the data column name, which Vega-Lite reads as nested access); fixed, numbers unchanged. |

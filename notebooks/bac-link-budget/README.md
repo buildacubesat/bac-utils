@@ -1,8 +1,8 @@
-# bac-link-budget v0.7.4
+# bac-link-budget v0.7.5
 
 Build a CubeSat – a first-order link budget between a satellite in low Earth orbit and one ground station, as a marimo notebook. For every mode in an editable table it gives the margin against elevation in both directions, the usable data per pass and per day at the target margin, and the line-item budget of the featured mode in the AMSAT/IARU layout; pass statistics come from a two-body propagation over a rotating spherical Earth, averaged over eight orbit phases. General purpose with the BAC demo mission as the shipped default; LoRa rows use the SX1276 packet airtime, duplex is a hardware setting, and a station map shows the visibility circle and one day of ground track.
 
-Published at [bac.page/molab-link-budget](https://bac.page/molab-link-budget). Its siblings are the [Optical Payload](../bac-optical-payload/) and [Power Budget](../bac-power-budget/) notebooks, with which it exchanges mission profiles; the [Orbital Lifetime](../bac-orbital-lifetime/) notebook reads its orbit.
+Use it at [bac.page/molab-link-budget-app](https://bac.page/molab-link-budget-app) (app mode, ready to use) or open it as a notebook at [bac.page/molab-link-budget](https://bac.page/molab-link-budget); both run this file from the repository. Its siblings are the [Optical Payload](../bac-optical-payload/) and [Power Budget](../bac-power-budget/) notebooks, with which it exchanges mission profiles; the [Orbital Lifetime](../bac-orbital-lifetime/) notebook reads its orbit.
 
 ## 1. Run
 
@@ -11,7 +11,7 @@ uvx marimo edit --sandbox notebooks/bac-link-budget/bac_link_budget.py     # its
 uv run --no-sync marimo edit notebooks/bac-link-budget/bac_link_budget.py   # the bac-utils workspace environment
 ```
 
-The file runs on [molab](https://molab.marimo.io) unchanged; the bac.page link points at that copy, which is this file to the byte apart from the SPDX line at the top.
+The file runs on [molab](https://molab.marimo.io) unchanged. The two bac.page links open this file from the repository's `main` branch – the app link on marimo.app in read mode with the code hidden, the notebook link in molab's editor – so a merged change is live at once and there is no copy to keep in step.
 
 ## 2. Profiles
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.7.5 | 2026-10-12 | Two bac.page links in the intro: `bac.page/molab-link-budget-app` opens the notebook in app mode, ready to use, `bac.page/molab-link-budget` as a notebook on molab; both run the repository file. Sibling links point at the app links, the closing section carries both. Numbers unchanged. |
 | 0.7.4 | 2026-10-09 | Glossary links added on first use (J2, beamwidth, rotator, tumbling, noise figure, frame error rate, code rate, framing overhead, SNR, coherent detection, modulation index, duplex, time on air, radiation pattern); the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark); numbers unchanged. |
 | 0.7.3 | 2026-10-06 | bac.page links point at the molab short links. |
 | 0.7.2 | 2026-10-06 | Chart titles that Altair clipped split into a short title and a subtitle (`chart_title`); numbers unchanged. |

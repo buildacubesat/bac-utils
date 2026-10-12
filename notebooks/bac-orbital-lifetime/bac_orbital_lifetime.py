@@ -26,7 +26,7 @@ def _(mo):
 
     Compare the lifetime band against the planned mission and the disposal rules (5 years after end of mission for the FCC and ESA, 25 years for the IADC and ISO 24113), the altitude at end of mission that the siblings can evaluate at, and how much a deployable, a lighter build or a lower orbit moves the band.
 
-    This tool lives at [bac.page/molab-orbital-lifetime](https://bac.page/molab-orbital-lifetime). Its siblings are the [link budget](https://bac.page/molab-link-budget), the [optical payload](https://bac.page/molab-optical-payload) and the [power budget](https://bac.page/molab-power-budget). The project is [buildacubesat.space](https://buildacubesat.space); source and issues are in [bac-utils](https://github.com/buildacubesat/bac-utils).
+    Use this tool at [bac.page/molab-orbital-lifetime-app](https://bac.page/molab-orbital-lifetime-app) (app mode, ready to use) or open it as a notebook, code and all, at [bac.page/molab-orbital-lifetime](https://bac.page/molab-orbital-lifetime); both run this file from the repository. Its siblings are the [link budget](https://bac.page/molab-link-budget-app), the [optical payload](https://bac.page/molab-optical-pld-app) and the [power budget](https://bac.page/molab-power-budget-app). The project is [buildacubesat.space](https://buildacubesat.space); source and issues are in [bac-utils](https://github.com/buildacubesat/bac-utils).
     """
     )
     _warn = mo.callout(
@@ -118,7 +118,7 @@ def _(
     math,
     np,
 ):
-    TOOL_VERSION = "0.2.5"
+    TOOL_VERSION = "0.2.6"
     TOOL_SLUG = "molab-orbital-lifetime"
 
     MU = 3.986004418e14  # m^3/s^2
@@ -2309,7 +2309,7 @@ def _(mo):
 
     **Limitations.** No eccentricity, no propulsion, no solar radiation pressure, no lunisolar terms; no re-entry date, survivability or casualty-risk prediction, for which DAS and DRAMA exist; a monthly solar series that cannot see storms; a density model whose own spread is 10 to 20 % at the same indices; a horizon of 30 years. The spread between scenarios is the answer this tool can give.
 
-    Linked terms go to the CubeSat Resources glossary, [bac.page/glossary](https://bac.page/glossary). The sibling tools are the [link budget](https://bac.page/molab-link-budget), the [optical payload](https://bac.page/molab-optical-payload) and the [power budget](https://bac.page/molab-power-budget); a profile saved from any of them loads here and this tool's results table is written for them. Source and issues: [bac-utils](https://github.com/buildacubesat/bac-utils)."""
+    Linked terms go to the CubeSat Resources glossary, [bac.page/glossary](https://bac.page/glossary). The sibling tools are the link budget ([app](https://bac.page/molab-link-budget-app), [notebook](https://bac.page/molab-link-budget)), the optical payload ([app](https://bac.page/molab-optical-pld-app), [notebook](https://bac.page/molab-optical-pld)) and the power budget ([app](https://bac.page/molab-power-budget-app), [notebook](https://bac.page/molab-power-budget)); a profile saved from any of them loads here and this tool's results table is written for them. Source and issues: [bac-utils](https://github.com/buildacubesat/bac-utils)."""
     ACKNOWLEDGMENT_MD = "Atmosphere: NRLMSIS 2.1 (Emmert et al. 2021) through pymsis. Solar indices: CelesTrak SW-All (Kelso), NOAA SWPC Solar Cycle Progression. Cycle minima: SILSO. Built by Build a CubeSat; MIT license."
     mo.vstack([mo.md("## Assumptions"), mo.md(ASSUMPTIONS_MD), mo.md(ACKNOWLEDGMENT_MD)])
     return ACKNOWLEDGMENT_MD, ASSUMPTIONS_MD
@@ -2322,6 +2322,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.2.6 | 2026-10-12 | Two bac.page links per tool in the intro: `bac.page/molab-orbital-lifetime-app` opens the notebook in app mode, ready to use, and `bac.page/molab-orbital-lifetime` opens it as a notebook on molab, code and all; both run this file from the repository's `main`, so there is no copy to keep in step. Sibling links point at the app links; the closing section carries both for each sibling. The optical payload's short link is `molab-optical-pld` now. No change to the numbers. |
     | 0.2.5 | 2026-10-09 | The LTDN glossary link pointed at `#ltdn`, which does not exist; it now points at `#local-time-of-descending-node-ltdn`. First-use links added for perigee, atmospheric drag, ballistic coefficient, re-entry, F10.7, Ap, the solar cycle, tumbling, Sun-synchronous orbits, deorbit and the FCC; the closing line links the glossary, the siblings and bac-utils as theirs do. The decay sentence says the semi-major axis shrinks rather than that it loses energy. The muted gray of chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.2.4 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.2.3 | 2026-10-06 | The "Solar Activity Assumed" chart drew nothing in the browser since 0.1.0: its data column was named `F10.7 (sfu)` and Vega-Lite reads the dot as nested field access. Column renamed; axis and tooltip still say F10.7. No change to the numbers. |

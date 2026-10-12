@@ -31,9 +31,12 @@ def _(mo):
     Compare the requested margin with the result after safe-mode load shedding.
     Pass and activation allowances are independent daily energy limits.
 
-    This tool is published at [bac.page/molab-power-budget](https://bac.page/molab-power-budget);
-    its siblings are the [Link Budget](https://bac.page/molab-link-budget)
-    and [Optical Payload](https://bac.page/molab-optical-payload) tools. All three
+    Use this tool at [bac.page/molab-power-budget-app](https://bac.page/molab-power-budget-app)
+    (app mode, ready to use) or open it as a notebook, code and all, at
+    [bac.page/molab-power-budget](https://bac.page/molab-power-budget); both run
+    this file from the repository. Its siblings are the
+    [Link Budget](https://bac.page/molab-link-budget-app) and
+    [Optical Payload](https://bac.page/molab-optical-pld-app) tools. All three
     belong to the [Build a CubeSat](https://buildacubesat.space) project and
     their source is in [bac-utils](https://github.com/buildacubesat/bac-utils).
     """),
@@ -112,7 +115,7 @@ def _():
 
 @app.cell
 def _():
-    TOOL_VERSION = "0.5.4"
+    TOOL_VERSION = "0.5.5"
     R_EARTH_KM = 6371.0
     SOLAR_CONST_W_M2 = 1361.0  # AM0, mean Earth distance
 
@@ -3650,10 +3653,11 @@ def _(mo):
     and the optical payload's access count is a check, not the schedule.
 
     Linked terms go to the CubeSat Resources glossary, [bac.page/glossary](https://bac.page/glossary).
-    The sibling tools are the [Link Budget](https://bac.page/molab-link-budget)
-    and the [Optical Payload](https://bac.page/molab-optical-payload); a profile
-    saved from either loads here, and this tool's profile loads there. Source
-    and issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
+    The sibling tools are the Link Budget ([app](https://bac.page/molab-link-budget-app),
+    [notebook](https://bac.page/molab-link-budget)) and the Optical Payload
+    ([app](https://bac.page/molab-optical-pld-app), [notebook](https://bac.page/molab-optical-pld));
+    a profile saved from either loads here, and this tool's profile loads there.
+    Source and issues: [bac-utils](https://github.com/buildacubesat/bac-utils).
     """
     ACKNOWLEDGMENT_MD = """
     ## Acknowledgment
@@ -3678,6 +3682,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.5.5 | 2026-10-12 | Two bac.page links per tool in the intro: `bac.page/molab-power-budget-app` opens the notebook in app mode, ready to use, and `bac.page/molab-power-budget` opens it as a notebook on molab, code and all; both run this file from the repository's `main`, so there is no copy to keep in step. Sibling links point at the app links; the closing section carries both for each sibling. The optical payload's short link is `molab-optical-pld` now. No change to the numbers. |
     | 0.5.4 | 2026-10-09 | Glossary links: the power rails link to a power-rail entry instead of the deployer-rail one; first-use links added for solar strings, tumbling, nadir, degraded mode, time on air, orbit-average power, load shedding and eFuses. The muted gray of chart subtitles, rules, axis lines and ticks and the eclipse band takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.5.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
     | 0.5.2 | 2026-10-06 | The `chart_title` helper of the chart-conventions cell, shared with the siblings; its two chart titles fit and keep their one line. No change to the numbers. |
