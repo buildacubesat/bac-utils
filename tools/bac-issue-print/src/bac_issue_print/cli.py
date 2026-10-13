@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: MIT
-"""bac-issue-print – print a Codeberg issue with all its comments as Markdown.
+"""bac-issue-print – print a Codeberg issue or pull request with its whole timeline as Markdown.
 
-The Markdown goes to stdout, so it pipes into a file, a pager or an LLM
-session. Everything else – the spinner while fetching, errors – goes to
-stderr. Repository keys map to repositories through
+Comments, reviews with their line comments, pushes, references from other
+issues, title changes and review requests, in order; ``--comments-only``
+prints the plain comments alone, the 0.1 shape. The Markdown goes to
+stdout, so it pipes into a file, a pager or an LLM session. Everything
+else – the spinner while fetching, errors – goes to stderr. Repository keys map to repositories through
 ``~/.config/bac/bac-issue-print.toml``; without the file, the Build a
 CubeSat defaults apply, so the tool works before ``--init`` has run.
 
@@ -22,8 +24,9 @@ from bac_common.config import default_config_path, load_env, load_toml, write_co
 from bac_common.errors import ConfigError, UsageError
 
 from . import __version__
-from .api import fetch_json, get_comments, get_issue
-from .render import render
+from .api import fetch_json, get_comments, get_issue, get_pull, get_review_comments, get_reviews, get_timeline
+from .render import render, render_comments
+from .timeline import build_entries
 
 TOOL = "bac-issue-print"
 TOKEN_ENV = "CODEBERG_TOKEN"
@@ -55,9 +58,10 @@ def _main(argv: list[str], debug: bool) -> int:
     parser = bac_cli.make_parser(
         TOOL,
         __version__,
-        "Print a Codeberg issue with all its comments as Markdown.",
+        "Print a Codeberg issue or pull request with its timeline as Markdown.",
         examples=[
             "bac-issue-print hardware 42 > issue-42.md",
+            "bac-issue-print software 154 --comments-only",
             "bac-issue-print someone/their-repo 7 --env-file ~/.config/bac/.env",
         ],
         list_help="print the repository keys and exit",
@@ -65,6 +69,7 @@ def _main(argv: list[str], debug: bool) -> int:
     )
     parser.add_argument("repo", nargs="?", metavar="REPO", help="repository key (see -l) or owner/repo")
     parser.add_argument("number", nargs="?", metavar="NUMBER", help="issue number")
+    parser.add_argument("--comments-only", action="store_true", help="plain comments only, no reviews or events")
     args = parser.parse_args(argv)
 
     if args.init:
@@ -85,13 +90,32 @@ def _main(argv: list[str], debug: bool) -> int:
     number = _issue_number(args.number)
     token = os.getenv(TOKEN_ENV) or None
 
-    base = f"{host.rstrip('/')}/api/v1/repos/{slug}/issues/{number}"
+    api = f"{host.rstrip('/')}/api/v1/repos/{slug}"
+    base = f"{api}/issues/{number}"
     fetch = lambda url: fetch_json(url, token)  # noqa: E731 – binds the token for api.get_*
     with ui.err_console.status(f"[dim]Fetching {slug} #{number}[/]", spinner="dots"):
         issue = get_issue(fetch, base)
-        comments = get_comments(fetch, base)
+        if args.comments_only:
+            sys.stdout.write(render_comments(issue, get_comments(fetch, base), slug))
+            return 0
+        timeline = get_timeline(fetch, base)
+        pull = reviews = review_comments = None
+        if isinstance(issue.get("pull_request"), dict):
+            pulls_base = f"{api}/pulls/{number}"
+            pull = get_pull(fetch, pulls_base)
+            reviews = {r["id"]: r for r in get_reviews(fetch, pulls_base) if isinstance(r.get("id"), int)}
+            review_comments = {
+                rid: get_review_comments(fetch, pulls_base, rid)
+                for rid, r in reviews.items()
+                if r.get("comments_count")
+            }
+    entries, skipped = build_entries(timeline, reviews, review_comments)
+    if skipped:
+        ui.err_console.print(
+            f"  [dim]{skipped} timeline entr{'y' if skipped == 1 else 'ies'} the server could not serialise, skipped[/]"
+        )
 
-    sys.stdout.write(render(issue, comments, slug))
+    sys.stdout.write(render(issue, entries, slug, pull))
     return 0
 
 

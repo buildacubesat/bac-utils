@@ -11,6 +11,8 @@ max_hits = 40
   "tools/bac-convention-check/src/bac_convention_check/rules/*.toml",
   "tools/bac-convention-check/README.md",
   "tools/bac-convention-check/tests/**",
+  # Codeberg API responses recorded as test fixtures: other people's text, typography and all.
+  "tools/bac-issue-print/tests/fixtures/*.json",
 ]
 # The Codeberg owner slug is an identifier in this README, not a display name.
 B2 = ["tools/bac-issue-print/README.md"]

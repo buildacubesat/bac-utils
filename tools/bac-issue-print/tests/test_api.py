@@ -13,6 +13,10 @@ from bac_common.errors import ExternalToolError
 
 
 class _Response(io.BytesIO):
+    def __init__(self, body: bytes, headers: dict | None = None) -> None:
+        super().__init__(body)
+        self.headers = headers or {}
+
     def __enter__(self):
         return self
 
@@ -30,10 +34,10 @@ def test_fetch_json_sends_token_and_decodes(monkeypatch):
         return _Response(json.dumps({"ok": True}).encode())
 
     monkeypatch.setattr(urllib.request, "urlopen", urlopen)
-    assert api.fetch_json("https://x.y/api/v1/z", "tok") == {"ok": True}
+    assert api.fetch_json("https://x.y/api/v1/z", "tok") == ({"ok": True}, {})
     assert seen == {"url": "https://x.y/api/v1/z", "auth": "token tok", "accept": "application/json"}
 
-    assert api.fetch_json("https://x.y/api/v1/z") == {"ok": True}
+    assert api.fetch_json("https://x.y/api/v1/z")[0] == {"ok": True}
     assert seen["auth"] is None
 
 
@@ -76,18 +80,51 @@ def test_get_comments_is_one_request_without_paging():
 
     def fetch(url):
         calls.append(url)
-        return [{"body": "a"}, {"body": "b"}, "not a comment"]
+        return [{"body": "a"}, {"body": "b"}, "not a comment"], {}
 
     got = api.get_comments(fetch, "https://x.y/issues/1")
     assert got == [{"body": "a"}, {"body": "b"}]
     assert calls == ["https://x.y/issues/1/comments"]
-    assert api.get_comments(lambda url: [], "https://x.y/issues/1") == []
+    assert api.get_comments(lambda url: ([], {}), "https://x.y/issues/1") == []
+
+
+def test_timeline_follows_the_link_header_and_keeps_nulls():
+    pages = {
+        "https://x.y/issues/1/timeline?limit=50": (
+            [{"id": 1}, None],
+            {"Link": '<https://x.y/issues/1/timeline?limit=50&page=2>; rel="next", <https://x.y/x>; rel="last"'},
+        ),
+        "https://x.y/issues/1/timeline?limit=50&page=2": (
+            [{"id": 2}],
+            {"link": '<https://x.y/issues/1/timeline?limit=50&page=1>; rel="prev"'},
+        ),
+    }
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        return pages[url]
+
+    assert api.get_timeline(fetch, "https://x.y/issues/1") == [{"id": 1}, None, {"id": 2}]
+    assert calls == list(pages)
+    assert api.next_link({"Link": '<https://a/b?page=2>; rel="next"'}) == "https://a/b?page=2"
+    assert api.next_link({}) is None
+
+
+def test_a_link_loop_ends():
+    def fetch(url):
+        return [{"id": 1}], {"link": f'<{url}>; rel="next"'}
+
+    assert len(api.get_reviews(fetch, "https://x.y/pulls/1")) == 1
 
 
 def test_unexpected_shapes():
     with pytest.raises(ExternalToolError, match="Unexpected response") as info:
-        api.get_issue(lambda url: [], "https://x.y/issues/1")
+        api.get_issue(lambda url: ([], {}), "https://x.y/issues/1")
     assert info.value.detail == "Expected an issue object."
     with pytest.raises(ExternalToolError, match="Unexpected response") as info:
-        api.get_comments(lambda url: {}, "https://x.y/issues/1")
+        api.get_comments(lambda url: ({}, {}), "https://x.y/issues/1")
     assert info.value.detail == "Expected a list."
+    with pytest.raises(ExternalToolError, match="Unexpected response") as info:
+        api.get_pull(lambda url: ([], {}), "https://x.y/pulls/1")
+    assert info.value.detail == "Expected a pull request object."
