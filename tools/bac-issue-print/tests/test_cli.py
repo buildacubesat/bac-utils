@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from bac_issue_print import __version__, cli
-from bac_issue_print.api import PAGE_SIZE
 from issue_testkit import comment
 
 from bac_common.testing import assert_standard_flags, invoke
@@ -30,29 +29,15 @@ def test_prints_markdown(server):
     assert r.stdout.count("\n# ") == 0 and r.stdout.startswith("# ")  # exactly one H1
     assert "—" not in r.stdout  # convention-check: allow A1 – the em dash is what the shell script printed
     assert server.urls[0] == "https://codeberg.org/api/v1/repos/buildacubesat-project/bac-hardware/issues/42"
-    assert server.urls[1].endswith("/issues/42/comments?page=1&limit=50")
-    assert server.tokens == [None, None, None]  # issue, first page, the empty page that ends the walk
+    assert server.urls[1].endswith("/issues/42/comments")  # no page or limit: the endpoint has neither
+    assert server.tokens == [None, None]  # the issue, the comments – two requests, whatever the thread's length
 
 
-def test_paginates_comments(server):
-    server.comments = [comment(n) for n in range(PAGE_SIZE * 2 + 3)]
+def test_long_thread_is_two_requests(server):
+    server.comments = [comment(n) for n in range(103)]
     r = invoke(cli._main, ["docs", "#7"])
     assert r.exit_code == 0, r.output
-    assert r.stdout.count("\n### ") == PAGE_SIZE * 2 + 3
-    assert [u.split("?")[1] for u in server.urls[1:]] == [f"page={n}&limit=50" for n in (1, 2, 3, 4)]
-
-    server.urls.clear()
-    server.comments = [comment(n) for n in range(PAGE_SIZE * 2)]  # exact multiple: one extra, empty page
-    r = invoke(cli._main, ["docs", "7"])
-    assert r.stdout.count("\n### ") == PAGE_SIZE * 2 and len(server.urls) == 1 + 3
-
-
-def test_paginates_on_a_server_with_a_smaller_cap(server):
-    server.comments = [comment(n) for n in range(45)]
-    server.cap = 20  # the server ignores limit=50 and pages by 20
-    r = invoke(cli._main, ["docs", "7"])
-    assert r.exit_code == 0, r.output
-    assert r.stdout.count("\n### ") == 45 and len(server.urls) == 1 + 3 + 1
+    assert r.stdout.count("\n### ") == 103 and len(server.urls) == 2
 
 
 def test_null_body_and_no_comments(server):

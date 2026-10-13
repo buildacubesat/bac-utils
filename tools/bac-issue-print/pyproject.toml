@@ -1,6 +1,6 @@
 [project]
 name = "bac-issue-print"
-version = "0.1.0"
+version = "0.1.1"
 description = "Print a Codeberg (Forgejo/Gitea) issue with all its comments as Markdown."
 readme = "README.md"
 license = { text = "MIT" }

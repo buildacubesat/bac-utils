@@ -2,12 +2,12 @@
 """The two Forgejo/Gitea API calls the tool makes, on urllib.
 
 ``GET /api/v1/repos/{owner}/{repo}/issues/{n}`` and
-``GET /api/v1/repos/{owner}/{repo}/issues/{n}/comments``. Comments are
-paginated (``page``, ``limit``); the server caps ``limit`` – at 50 on
-Codeberg, lower elsewhere – so the tool asks for 50 and keeps going until a
-page comes back empty, which costs one extra request and never truncates
-a thread on a server with a smaller cap. An optional
-token is sent as ``Authorization: token …`` so private repositories work.
+``GET /api/v1/repos/{owner}/{repo}/issues/{n}/comments``. The comments
+endpoint returns the whole thread in one response and takes no ``page``
+or ``limit`` (its only query parameters are ``since`` and ``before``);
+0.1.0 walked pages until an empty one and never met one, because every
+page came back full. An optional token is sent as
+``Authorization: token …`` so private repositories work.
 """
 
 from __future__ import annotations
@@ -22,9 +22,8 @@ from typing import Any
 
 from bac_common.errors import ExternalToolError
 
-__all__ = ["Fetch", "fetch_json", "get_issue", "get_comments", "PAGE_SIZE"]
+__all__ = ["Fetch", "fetch_json", "get_issue", "get_comments"]
 
-PAGE_SIZE = 50
 TIMEOUT_S = 30
 USER_AGENT = "bac-issue-print (+https://github.com/buildacubesat/bac-utils)"
 
@@ -65,19 +64,12 @@ def get_issue(fetch: Fetch, base: str) -> dict[str, Any]:
     return data
 
 
-def get_comments(fetch: Fetch, base: str, page_size: int = PAGE_SIZE) -> list[dict[str, Any]]:
-    """Every comment on the issue, walking the pages until one comes back empty."""
-    comments: list[dict[str, Any]] = []
-    page = 1
-    while True:
-        query = urllib.parse.urlencode({"page": page, "limit": page_size})
-        data = fetch(f"{base}/comments?{query}")
-        if not isinstance(data, list):
-            raise ExternalToolError(f"Unexpected response for {_short(base)}/comments", "Expected a list.")
-        if not data:
-            return comments
-        comments.extend(c for c in data if isinstance(c, dict))
-        page += 1
+def get_comments(fetch: Fetch, base: str) -> list[dict[str, Any]]:
+    """Every comment on the issue: one request, the endpoint is not paginated."""
+    data = fetch(f"{base}/comments")
+    if not isinstance(data, list):
+        raise ExternalToolError(f"Unexpected response for {_short(base)}/comments", "Expected a list.")
+    return [c for c in data if isinstance(c, dict)]
 
 
 def _short(url: str) -> str:

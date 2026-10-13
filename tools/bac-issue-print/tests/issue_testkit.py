@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 from bac_common.errors import ExternalToolError
 
@@ -31,7 +31,6 @@ class FakeServer:
         self.issue: dict = dict(ISSUE)
         self.comments: list[dict] = [comment(1), comment(2)]
         self.status: int | None = None
-        self.cap: int | None = None  # a server-side page-size cap below what the client asks for
         self.urls: list[str] = []
         self.tokens: list[str | None] = []
 
@@ -42,9 +41,6 @@ class FakeServer:
             raise ExternalToolError(f"HTTP {self.status} from codeberg.org", f"GET {url.split('?', 1)[0]} – hint")
         parsed = urlparse(url)
         if parsed.path.endswith("/comments"):
-            q = parse_qs(parsed.query)
-            page, limit = int(q["page"][0]), int(q["limit"][0])
-            if self.cap:
-                limit = min(limit, self.cap)
-            return self.comments[(page - 1) * limit : page * limit]
+            # Forgejo returns the whole thread whatever the query says; 0.1.0 relied on paging and hung.
+            return list(self.comments)
         return self.issue

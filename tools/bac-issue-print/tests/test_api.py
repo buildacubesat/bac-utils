@@ -70,17 +70,17 @@ def test_fetch_json_network_and_body_errors(monkeypatch):
         api.fetch_json("https://x.y/z")
 
 
-def test_get_comments_stops_on_empty_page():
-    pages = {1: [{"body": "a"}] * 3, 2: [{"body": "b"}] * 2}
+def test_get_comments_is_one_request_without_paging():
+    """The endpoint ignores page and limit and returns the whole thread; a page walk never ends."""
     calls = []
 
     def fetch(url):
         calls.append(url)
-        page = int(url.rsplit("page=", 1)[1].split("&")[0])
-        return pages.get(page, [])
+        return [{"body": "a"}, {"body": "b"}, "not a comment"]
 
-    got = api.get_comments(fetch, "https://x.y/issues/1", page_size=3)
-    assert len(got) == 5 and len(calls) == 3
+    got = api.get_comments(fetch, "https://x.y/issues/1")
+    assert got == [{"body": "a"}, {"body": "b"}]
+    assert calls == ["https://x.y/issues/1/comments"]
     assert api.get_comments(lambda url: [], "https://x.y/issues/1") == []
 
 
