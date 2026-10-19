@@ -1,0 +1,47 @@
+# bac-kicad-stitch.toml
+# Build a CubeSat – bac-kicad-stitch configuration. Every value is optional; these
+# are the BAC board conventions. A command-line flag overrides its value
+# for one run.
+
+[via]
+net = "GND"
+size = 0.6
+drill = 0.3
+
+[rules]
+# Copper clearance to other nets, hole-to-hole clearance, and the copper
+# to board-edge clearance, as in the project's design rules.
+clearance = 0.2
+hole_to_hole = 0.25
+edge_clearance = 0.5
+# Extra distance kept beyond every clearance so a via never sits exactly on
+# a DRC limit.
+margin = 0.05
+
+[placement]
+# The target pitch in mm: every point of the ground copper ends up within
+# this distance of a ground via. Set max_frequency_hz instead to derive it
+# as wavelength / fraction in the board's dielectric (epsilon_r from the
+# stackup unless set here).
+pitch = 10.0
+# max_frequency_hz = 1e9
+fraction = 20
+# epsilon_r = 4.4
+# A via must sit in the ground fill of at least this many copper layers.
+min_layers = 2
+# Other nets' zone fills refill around a new via, so they are no obstacle
+# unless keep_zones is true (then planes are not perforated).
+keep_zones = false
+# Courtyards: "allow", "avoid", or "avoid-fine-pitch" – stay out of the
+# courtyards of footprints with at least fine_pitch_pads pads whose pad
+# pitch is below fine_pitch mm.
+courtyards = "avoid-fine-pitch"
+fine_pitch = 0.65
+fine_pitch_pads = 6
+# A row of vias along the board edge, at edge_fence_pitch (default: half
+# the pitch).
+edge_fence = false
+# edge_fence_pitch = 2.5
+# Candidate grid step in mm. Finer finds more spots under tight copper and
+# takes longer.
+step = 0.1

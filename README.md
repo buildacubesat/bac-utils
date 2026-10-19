@@ -26,6 +26,7 @@ This table is the record of what exists, what is being worked on and what is pla
 | [`bac-kicad-libcheck`](tools/bac-kicad-libcheck/) | CLI | KiCad | Verifies a library project: every symbol and footprint placed once, 3D models resolvable, in sync per KiCad's ERC/DRC | available | v0.2.0 |
 | [`bac-kicad-maintain`](tools/bac-kicad-maintain/) | CLI | KiCad | Project files on the conventions: text and courtyard sizes on boards, via resizing, schematic label sizes, library nickname renames, size statistics | available | v1.2.0 |
 | [`bac-kicad-schfields`](tools/bac-kicad-schfields/) | CLI | KiCad | Bulk-edits symbol fields and flags across a schematic hierarchy from TOML rules | available | v0.2.0 |
+| [`bac-kicad-stitch`](tools/bac-kicad-stitch/) | CLI | KiCad | Ground stitching vias where a board's ground copper is too far from one: coverage by pitch or frequency, every spot checked against copper, holes, edge and courtyards on all layers, vias added by span in a `bac-stitch` group, preview SVG, DRC afterwards | available | v0.1.0 |
 | [`bac-kicad-symfields`](tools/bac-kicad-symfields/) | CLI | KiCad | Fills fields, lints and fixes text sizes and footprint references in symbol and footprint libraries, preserving file formatting | available | v0.3.0 |
 | [`bac-markdown-to-youtube`](tools/bac-markdown-to-youtube/) | CLI | content | Converts Markdown to YouTube description markup | available | v0.2.0 |
 | [`bac-media-convert`](tools/bac-media-convert/) | CLI | media | Batch conversions: square WebP for the store, constant-frame-rate MP4 from variable-rate WebM | available | v0.1.1 |
@@ -102,6 +103,7 @@ Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool n
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.16.0 | 2026-10-19 | `bac-kicad-stitch` v0.1.0: ground stitching vias from the filled ground zones – the pitch given or derived from a frequency, coverage instead of a via count, every candidate checked on all copper layers, farthest-point placement, the vias in a `bac-stitch` group that `remove` takes out again, a preview SVG, `kicad-cli pcb drc` after writing. |
 | 0.15.2 | 2026-10-13 | `bac-issue-print` v0.2.0: the timeline instead of the plain comments – reviews with their line comments, pushes, references, title changes and the rest of what the issue page shows; `--comments-only` for the old output. |
 | 0.15.1 | 2026-10-13 | `bac-issue-print` v0.1.1: the comments come in one request – the Forgejo endpoint is not paginated and 0.1.0's page walk never ended. |
 | 0.15.0 | 2026-10-12 | `bac-kicad-maintain` v1.2.0, the last batch-1 tool: text, courtyard and via sizes on boards, label sizes on schematics, `stats` and `rename-library`, folded in on `bac-common` and `bac-kicad-common` with `.bak` backups, a confirmation before writing and edits that follow KiCad's line layout; boards and schematics only, footprint libraries stay with `bac-kicad-symfields fix`. |

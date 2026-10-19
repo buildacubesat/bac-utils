@@ -30,6 +30,7 @@ members = [
     "bac-kicad-libcheck",
     "bac-kicad-maintain",
     "bac-kicad-schfields",
+    "bac-kicad-stitch",
     "bac-kicad-symfields",
     "bac-link-budget",
     "bac-markdown-to-youtube",
@@ -577,6 +578,41 @@ requires-dist = [
     { name = "bac-common", editable = "lib/bac-common" },
     { name = "bac-kicad-common", editable = "lib/bac-kicad-common" },
     { name = "rich", specifier = ">=13.7" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-kicad-stitch"
+version = "0.1.0"
+source = { editable = "tools/bac-kicad-stitch" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "bac-kicad-common" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "rich" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "shapely" },
+    { name = "typer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "bac-kicad-common", editable = "lib/bac-kicad-common" },
+    { name = "numpy", specifier = ">=1.26" },
+    { name = "rich", specifier = ">=13.7" },
+    { name = "scipy", specifier = ">=1.11" },
+    { name = "shapely", specifier = ">=2.0" },
+    { name = "typer", specifier = ">=0.12" },
 ]
 
 [package.metadata.requires-dev]
