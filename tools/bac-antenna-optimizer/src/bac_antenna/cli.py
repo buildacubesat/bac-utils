@@ -1,4 +1,11 @@
 # SPDX-License-Identifier: MIT
+"""Command line: ``bac-antenna`` and its subcommands.
+
+The parser and the error boundary come from ``bac_common.cli``; the
+subcommands print their own plain tables, as the sweep and report pipelines
+have since 0.1.0. ``-l`` lists the ranked candidates of a run directory.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -8,19 +15,36 @@ import signal
 import sys
 from pathlib import Path
 
+from bac_common import cli as bac_cli
+from bac_common.errors import UsageError
+
 from . import __version__
 from .config import load_config
 from .core import MockBackend, optimise
 
+TOOL = "bac-antenna"
+DESCRIPTION = "CubeSat antennas around openEMS: optimize, simulate, sweep, pack, report."
+EXAMPLES = (
+    f"{TOOL} check -c config/cross_2200_dual_v2.toml",
+    f"{TOOL} simulate -c dipole.toml -p dipole.json --backend coarse",
+    f"{TOOL} report rf/antenna/s-band-cross-patch/antenna.toml",
+)
+
 
 def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="bac-antenna", description="Optimise a camera-through S-band patch antenna")
-    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
-    parser.add_argument(
-        "-l", "--list", action="store_true", help="list ranked candidates in an existing output directory"
+    parser = bac_cli.make_parser(
+        TOOL,
+        __version__,
+        DESCRIPTION,
+        examples=EXAMPLES,
+        list_help="list ranked candidates in an existing output directory",
+        init=False,
+        dry_run=False,
+        env_file=False,
+        config=False,
     )
-    parser.add_argument("--output", type=Path, default=None, help="output directory")
-    sub = parser.add_subparsers(dest="command")
+    parser.add_argument("--output", type=Path, default=None, help="output directory (default: runs/)")
+    sub = parser.add_subparsers(dest="command", metavar="COMMAND")
     opt = sub.add_parser("optimize", help="run the adaptive optimiser")
     opt.add_argument("-c", "--config", type=Path, required=True)
     opt.add_argument("--backend", choices=("mock", "cavity", "coarse", "openems"), default="cavity")
@@ -34,7 +58,7 @@ def _parser() -> argparse.ArgumentParser:
         metavar="SECTION.KEY=VALUE",
         help="override a config value, e.g. --set feed.mode='\"dual\"' (repeatable)",
     )
-    sim = sub.add_parser("simulate", help="evaluate one design (a parameters.json) with one backend")
+    sim = sub.add_parser("simulate", help="evaluate one design (parameters.json) with one backend")
     sim.add_argument("-c", "--config", type=Path, required=True)
     sim.add_argument("-p", "--params", type=Path, required=True, help="JSON file with the topology parameters")
     sim.add_argument("--backend", choices=("cavity", "coarse", "openems"), default="openems")
@@ -57,12 +81,15 @@ def _parser() -> argparse.ArgumentParser:
     )
     sw.add_argument("--output", dest="command_output", type=Path)
     sw.add_argument("--set", dest="overrides", action="append", default=[], metavar="SECTION.KEY=VALUE")
-    chk = sub.add_parser("check", help="tune a nominal design with the cavity model and print its mode spectrum")
+    chk = sub.add_parser("check", help="tune a nominal design (cavity model), print its modes")
     chk.add_argument("-c", "--config", type=Path, required=True)
     chk.add_argument("--set", dest="overrides", action="append", default=[], metavar="SECTION.KEY=VALUE")
     mg = sub.add_parser(
         "migrate",
-        help="rewrite 0.5 configs and plans to the 0.6 layout ([antenna] type, [geometry.*], geometry.* overrides)",
+        help="rewrite 0.5 configs and plans to the 0.6 layout",
+        description=(
+            "Rewrite 0.5 configs and plans to the 0.6 layout: [antenna] type, [geometry.*], geometry.* overrides."
+        ),
     )
     mg.add_argument(
         "paths",
@@ -70,7 +97,11 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="config .toml files and/or plan .toml files (plans are detected by their [[case]] tables)",
     )
-    pk = sub.add_parser("pack", help="build a sensitivity pack for the antenna visualizer from design/sensitivity.toml")
+    pk = sub.add_parser(
+        "pack",
+        help="build a sensitivity pack for the antenna visualizer",
+        description="Build a sensitivity pack for the antenna visualizer from design/sensitivity.toml.",
+    )
     pk.add_argument("axes", type=Path, help="the sensitivity TOML (axes, nominal case, run directories)")
     pk.add_argument(
         "--zip",
@@ -79,7 +110,9 @@ def _parser() -> argparse.ArgumentParser:
     )
     pk.add_argument("--public", type=Path, help="also copy the pack folder into this directory")
     rp = sub.add_parser(
-        "report", help="regenerate an antenna folder (drawings, charts, boards, docs) from its antenna.toml"
+        "report",
+        help="regenerate an antenna folder from its antenna.toml",
+        description="Regenerate an antenna folder (drawings, charts, boards, docs) from its antenna.toml.",
     )
     rp.add_argument("manifest", type=Path)
     rp.add_argument("--skip", default="", help="comma-separated: drawings,charts,boards,docs")
@@ -92,8 +125,7 @@ def _parser() -> argparse.ArgumentParser:
 def _list_results(output: Path) -> int:
     summary = output / "summary.csv"
     if not summary.exists():
-        print(f"No summary found at {summary}", file=sys.stderr)
-        return 2
+        raise UsageError(f"No summary found at {summary}", "Pass the run directory with --output.")
     with summary.open(newline="") as handle:
         rows = list(csv.DictReader(handle))
     bands = sorted({k.rsplit("_s11_worst_db", 1)[0] for k in rows[0] if k.endswith("_s11_worst_db")}) if rows else []
@@ -269,8 +301,14 @@ def _simulate(args, output: Path) -> int:
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:
-    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+def main() -> None:
+    """``[project.scripts]`` target: the shared error boundary around :func:`_main`."""
+    bac_cli.run(_main)
+
+
+def _main(argv: list[str], debug: bool) -> int:
+    if hasattr(signal, "SIGPIPE"):
+        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
     args = _parser().parse_args(argv)
     output = (getattr(args, "command_output", None) or args.output or Path("runs")).resolve()
     if args.list:
@@ -307,7 +345,7 @@ def main(argv: list[str] | None = None) -> int:
             reprocess=args.reprocess,
         )
     if args.command != "optimize":
-        _parser().print_help()
+        _parser().print_help(sys.stderr)
         return 2
     config = load_config(args.config, args.overrides)
     if args.backend == "mock":

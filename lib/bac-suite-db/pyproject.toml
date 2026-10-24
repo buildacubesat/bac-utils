@@ -1,6 +1,6 @@
 [project]
 name = "bac-suite-db"
-version = "0.1.0"
+version = "0.1.1"
 description = "Shared PostgreSQL layer of the Build a CubeSat business operations suite: schema, connection and config, SKU validation, the bac-db CLI."
 readme = "README.md"
 license = { text = "MIT" }

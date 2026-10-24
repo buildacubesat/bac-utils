@@ -1,6 +1,6 @@
 [project]
 name = "bac-csr-ingest"
-version = "0.4.0"
+version = "0.4.1"
 description = "Ingest documents and links into the CubeSat Resources site and keep resources.yml in sync with its CSR-RESOURCES blocks."
 readme = "README.md"
 license = { text = "MIT" }

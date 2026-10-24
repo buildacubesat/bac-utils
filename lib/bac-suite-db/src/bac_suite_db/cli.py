@@ -259,6 +259,14 @@ def import_(
         counts = engine.plan(source)  # raises on bad data before anything is touched
     for kind, n in counts.items():
         ui.ok(f"{kind}: {n}")
+    if not settings.uses_db:
+        # The engines read the data directory directly on this backend: the
+        # validation above is all an import can do, and it is worth doing.
+        ui.warn("Backend is `files`: the engine reads the data directory directly, so there is nothing to load.")
+        if source.resolve() != settings.data_dir.expanduser().resolve():
+            ui.dim(f"to use these files, copy them into {settings.data_dir}")
+        ui.summary([(k, v) for k, v in counts.items()], dry_run=dry_run)
+        return
     appended = [t for t in engine.tables if t not in engine.replaced]
     if dry_run:
         ui.step(f"would replace {', '.join(ui.path(t) for t in engine.replaced)} and upsert the shared tables")

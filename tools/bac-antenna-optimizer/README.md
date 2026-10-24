@@ -26,10 +26,10 @@ uv sync --extra simulation --extra report
 export CSXCAD_INSTALL_PATH=<openEMS install> OPENEMS_INSTALL_PATH=<openEMS install>
 uv pip install <openEMS-Project>/CSXCAD/python <openEMS-Project>/openEMS/python
 uv run python -c "import openEMS, CSXCAD; print('ok')"
-uv run python -m unittest discover -s tests     # no openEMS needed for the tests
+uv run pytest                                   # no openEMS needed for the tests
 ```
 
-From then on use `uv run` or `uv sync --inexact`; a plain `uv sync` removes the openEMS bindings.
+From then on use `uv run` or `uv sync --inexact`; a plain `uv sync` removes the openEMS bindings. The tool depends on `bac-common` from this repository (the command-line layer: the standard flags, the error boundary), which the workspace resolves by itself; outside the workspace, install it from the checkout.
 
 ## Quick start
 
@@ -140,6 +140,7 @@ The engineering log in `HANDOFF.md` dates every version from 0.1.0 (2026-09-20) 
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.7.5 | 2026-10-24 | The command line on `bac-common`: `-v` prints `bac-antenna v0.7.5`, a hidden `--debug` shows tracebacks, errors print as `ERROR …` on stderr without a traceback, Ctrl-C exits 1 with `Interrupted.`, no command is a usage error (2), and `--help` fits 24 lines and ends with examples (`COMMAND` in the usage line, shorter one-line summaries; the long ones moved into each subcommand's own `--help`). `-l` without a `summary.csv` is `ERROR No summary found …`, exit 2 as before. The subcommands, their options and their output are unchanged; no change to any model, mesh or result. |
 | 0.7.4 | 2026-10-02 | Brought onto the bac-utils conventions: SPDX headers, ruff, en dash in the generated tables, tests collectable by the workspace pytest, hatchling. One fix: `report/drawings.py` used an f-string form that only Python 3.12 parses, so the report pipeline failed to import on 3.11. No change to any model, mesh or result. |
 | 0.7.3 | 2026-09-28 | Idempotent regenerate: deterministic KiCad UUIDs and SVG ids, no drawing rasters, the missing-runs guard (`--allow-missing`). The version pinned by the S-band cross patch in bac-hardware (tag `bac-antenna-optimizer-v0.7.3`). |
 | 0.7.2 | 2026-09-28 | Lossless WebP for raster images, `pack --zip`, provenance fields in `pack.json`, pack discovery inside a bac-hardware checkout. |

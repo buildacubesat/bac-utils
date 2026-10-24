@@ -1,4 +1,4 @@
-# bac-csr-ingest v0.4.0
+# bac-csr-ingest v0.4.1
 
 Build a CubeSat – ingestion and index maintenance for the [CubeSat Resources](https://cubesat-resources.space) site. It classifies documents and links with an LLM, uploads files to Google Cloud Storage, indexes them in `data/resources.yml`, writes them into the site's `CSR-RESOURCES` blocks, and commits. It is also the reference implementation for the BAC CLI conventions; `bac-common` was lifted from it.
 
@@ -87,6 +87,7 @@ The tool assumes an MkDocs site with `CSR-RESOURCES` marker pairs and a YAML ind
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.4.1 | 2026-10-24 | The Typer app runs through `bac_common.cli.run_typer`: a usage error exits 2 with Click's message and no traceback, Ctrl-C prints `Interrupted.` and exits 1 (it exited through Click before, `Aborted!`), and every other exit path is the shared boundary's. No change to the commands. |
 | 0.4.0 | 2026-09-02 | Renamed from `csr-ingest` to `bac-csr-ingest` and moved into the bac-utils monorepo on `bac-common`. Classifier output is sanitised and shape-checked (HTML and control characters stripped, kebab-case block ids, paths confined to `docs/`, parent pages must exist), also on interactive edits. Uploads use a generation guard: identical content is reused, different content gets a hash-suffixed name; content type is set. Ingest applies uploads before markdown edits and prints its summary on failure. `--prune` asks for confirmation (`--yes`). Options such as `--hint` may precede the inputs. `# csr-list` header honoured in `.txt`, `.md` and extension-less files. `init` writes `.env` with owner-only permissions and asks for the API key. Docling is an optional `extract` extra. `cli.py` split into `plan.py` and `review.py`; dead helpers removed; Ctrl-C exits 1. |
 | 0.3.1 | 2026-08-27 | Cross-listing via `block_ids`; parser accepts URLs with parentheses and a description on the following line; report layout for 80 columns. |
 | 0.3.0 | 2026-08-27 | `sync-blocks`, `check-blocks`, guarded `render_blocks`, ingest pre-flight, Typer CLI with the standard flags, TOML config, BAC terminal profile, list files with hints. |

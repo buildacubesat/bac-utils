@@ -1,4 +1,4 @@
-# bac-suite-db v0.1.0
+# bac-suite-db v0.1.1
 
 Build a CubeSat – the PostgreSQL layer the business operations suite shares: the `bac.items` and `bac.catalog` tables every engine keys on, the bootstrap configuration (backend, data directory, connection string), the SKU scheme as a parser, an in-memory stand-in connection for tests, and the `bac-db` command that creates the schema and moves an engine's data between its files and the database.
 
@@ -38,7 +38,7 @@ bac-db [--config PATH] [--env-file PATH] [-l] [--init] COMMAND
   export ENGINE DIR        write the engine's tables as its data files
 ```
 
-`import` validates every file, the catalog included, before it opens a connection (bad data never reaches the database), then names the tables it is about to replace with their row counts and asks `[y/N]`; `--dry-run` reports the same without touching anything. Shared rows are upserted, never deleted: an item row is replaced column by column from the importing engine's file (the file is the register's source), a catalog row keeps its stored value in every column the file leaves empty, so a shipping weight entered elsewhere survives a pricing re-import. `export` refuses a folder that already holds the engine's files unless `--force` is given. `-l` lists the installed engines.
+`import` validates every file, the catalog included, before it opens a connection (bad data never reaches the database), then names the tables it is about to replace with their row counts and asks `[y/N]`; `--dry-run` reports the same without touching anything. Shared rows are upserted, never deleted: an item row is replaced column by column from the importing engine's file (the file is the register's source), a catalog row keeps its stored value in every column the file leaves empty, so a shipping weight entered elsewhere survives a pricing re-import. `export` refuses a folder that already holds the engine's files unless `--force` is given. On the `files` backend `import` stops after the validation and says so: the engines read the data directory directly, so there is nothing to load (0.1.1 – 0.1.0 went on to ask for a database). `-l` lists the installed engines.
 
 Exit codes: 0 done (a declined confirmation included), 1 a runtime error (no database, bad data), 2 bad arguments.
 
@@ -80,4 +80,5 @@ The unit tests run on `FakeConn`. The live tests (in the pricing engine) run onl
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.1.1 | 2026-10-24 | `bac-db import` on the `files` backend validates the files and stops with a note instead of validating and then failing for want of a database; a folder other than the data directory gets a line saying where the engine reads. |
 | 0.1.0 | 2026-10-07 | Lifted from bac-pricing 1.3.0's `bac_store.py` as the suite's shared layer: the `bac` schema and the engine registry (entry points), `bac-db` as a Typer tool on `bac-common` with `--init`, `migrate`, `status`, `import` (validated first, confirmed, `--dry-run` names the deletes) and `export`; the DSN moves to `.env` as `BAC_DB_DSN` and is shown redacted everywhere; the catalog seed moves out of the code into the data (`bac-catalog.csv`); the SKU scheme as a parser with the optional variant; `FakeConn` for tests. 87 tests. |

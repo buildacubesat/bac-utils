@@ -86,8 +86,7 @@ def _main(argv: list[str], debug: bool) -> int:
     # Docling's OCR backend logs at INFO by default; keep the step log clean.
     logging.getLogger("RapidOCR").setLevel(logging.WARNING)
     logging.getLogger("rapidocr").setLevel(logging.WARNING)
-    app(args=normalize_argv(argv), prog_name=TOOL)
-    return 0
+    return bac_cli.run_typer(app, normalize_argv(argv), TOOL)
 
 
 def normalize_argv(argv: list[str]) -> list[str]:

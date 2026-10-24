@@ -33,7 +33,7 @@ def boundary(site: Path, monkeypatch, *args: str):
 
 def test_version_and_help(monkeypatch, tmp_path):
     v = invoke(cli._main, ["-v"])
-    assert v.exit_code == 0 and v.stdout.strip() == "bac-csr-ingest v0.4.0"
+    assert v.exit_code == 0 and v.stdout.strip() == "bac-csr-ingest v0.4.1"
     h = invoke(cli._main, ["--help"])
     assert h.exit_code == 0
     assert "Build a CubeSat" in h.stdout
@@ -63,6 +63,20 @@ def test_argv_normalisation():
     assert n(["--version"]) == ["--version"]
     assert n(["-l"]) == ["-l"]
     assert n([]) == []
+
+
+def test_click_exit_paths_go_through_the_boundary(monkeypatch, tmp_path):
+    # an unknown option is Click's usage error: message, exit 2, no traceback
+    r = invoke(cli._main, ["sync-blocks", "--no-such-flag"])
+    assert r.exit_code == 2 and "No such option" in r.stderr and "Traceback" not in r.stderr
+    # Ctrl-C inside a command (Click turns it into Abort) is reported by the boundary, exit 1
+
+    def interrupted(*a, **k):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(cli, "load_config", interrupted)
+    r = invoke(cli._main, ["check-blocks"])
+    assert r.exit_code == 1 and "Interrupted." in r.stdout
 
 
 # -- check / sync ------------------------------------------------------------

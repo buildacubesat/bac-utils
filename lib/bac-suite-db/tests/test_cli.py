@@ -149,6 +149,20 @@ def test_import_asks_before_replacing_rows(
     assert r.exit_code == 0 and len(fake_conn.tables["stub.rows"]) == 5
 
 
+def test_import_on_the_files_backend_validates_and_stops(files_config, tmp_path, only_the_stub_engine):
+    # the engines read the data directory directly: validating is the whole import, exit 0, no database
+    write_stub_data(tmp_path / "data", rows=3)
+    r = invoke(main, ["--config", str(files_config), "import", "stub"])
+    assert r.exit_code == 0, r.output
+    assert "rows: 3" in r.stdout and "Backend is `files`" in r.stdout and "nothing to load" in r.stdout
+    assert "copy them" not in r.stdout and "ERROR" not in r.stderr
+    assert [c[0] for c in only_the_stub_engine.calls] == ["plan"]
+    # another folder is validated too, with a note on where the engine actually reads
+    other = write_stub_data(tmp_path / "other", rows=1).parent
+    r = invoke(main, ["--config", str(files_config), "import", "stub", str(other)])
+    assert r.exit_code == 0 and "rows: 1" in r.stdout and f"copy them into {tmp_path / 'data'}" in r.stdout
+
+
 def test_import_explicit_dir(suite_config, tmp_path, fake_conn, monkeypatch):
     monkeypatch.setenv("BAC_DB_DSN", "postgresql://bac@h/bac")
     schema.migrate(fake_conn, schema.discover_engines())

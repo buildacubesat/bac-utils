@@ -54,7 +54,7 @@ def build_parser():
         DESCRIPTION,
         examples=[
             f"{TOOL_NAME} ~/bac-hardware/inhibit/deployment-switch/kicad10",
-            f"{TOOL_NAME} --ibom --qr https://bac.page/dsw-v1 dsw/kicad10",
+            f"{TOOL_NAME} --ibom --qr '${{COMMENT4}}' dsw/kicad10",
         ],
         env_file=False,
     )
