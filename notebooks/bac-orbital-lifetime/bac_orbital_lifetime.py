@@ -72,10 +72,6 @@ def _(mo):
 
     .marimo-callout { border-radius: 6px; }
 
-    /* Chart text follows the same variable, so axis labels and legends stay
-       legible even when the notebook theme and the chart palette disagree. */
-    .vega-embed text { fill: var(--text); }
-
     /* marimo styles markdown headings through --heading-font with a selector
        more specific than the rule above, which would leave them in its serif. */
     :root { --heading-font: 'Nunito Sans', system-ui, sans-serif; }
@@ -118,7 +114,7 @@ def _(
     math,
     np,
 ):
-    TOOL_VERSION = "0.2.6"
+    TOOL_VERSION = "0.2.7"
     TOOL_SLUG = "molab-orbital-lifetime"
 
     MU = 3.986004418e14  # m^3/s^2
@@ -1402,28 +1398,29 @@ def _(alt, mo):
     # The scenario map below is this tool's own: NOAA nominal, its low and high
     # band and the constant case take the first four series colors in that order;
     # the analog cycles are thin muted lines, the constant case is dashed.
+    # mo.app_meta().theme is marimo's setting, "light" when it is "system", so the
+    # kernel cannot know the surface. Chart text, axis lines and ticks carry no
+    # color here: marimo hands vega-embed its dark theme on a dark surface and
+    # Vega's defaults apply on a light one. The palette is one set, the lighter
+    # nebula tints that read on a dark surface too. IS_DARK stays for what has no
+    # theme default and therefore follows the explicit setting only: MUTED on
+    # reference rules and their labels, and whatever this notebook keys to it.
     IS_DARK = mo.app_meta().theme == "dark"
     MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
-    TEXT = "#efefed" if IS_DARK else "#3F3F3F"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
-    PALETTE = (
-        ["#087C9B", "#625DC6", "#C88732", "#6F6497", "#84C45A"]
-        if IS_DARK
-        else ["#087C9B", "#3B35B8", "#C88732", "#21105F", "#84C45A"]
-    )
+    PALETTE = ["#087C9B", "#625DC6", "#C88732", "#6F6497", "#84C45A"]
 
     def style_chart(chart):
         return (
             chart.configure(font=FONT, background="transparent")
-            .configure_axis(grid=False, labelColor=TEXT, titleColor=TEXT, domainColor=MUTED, tickColor=MUTED)
-            .configure_legend(labelColor=TEXT, titleColor=TEXT)
-            .configure_title(color=TEXT, anchor="start", fontWeight="normal")
+            .configure_axis(grid=False)
+            .configure_title(anchor="start", fontWeight="normal")
             .configure_view(strokeWidth=0)
         )
 
     def chart_title(text, *notes):
         """A short title with the reading notes as subtitle lines – Altair never wraps a title, so a long one is clipped."""
-        return alt.Title(text, subtitle=list(notes), subtitleColor=MUTED, subtitleFontSize=11) if notes else text
+        return alt.Title(text, subtitle=list(notes), subtitleFontSize=11) if notes else text
 
     def rule_y(value, dashed=True):
         return (
@@ -2322,6 +2319,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.2.7 | 2026-10-24 | Chart text, axis lines and ticks no longer carry explicit colors: marimo hands the chart its dark theme on a dark surface – also under the "system" setting, which `mo.app_meta().theme` reports as light – and Vega's defaults apply on a light one; the series palette is one set, the lighter nebula tints that read on a dark surface too (the light set's deep indigo and purple are gone), and subtitles take the title's color. The style cell's `.vega-embed text` rule is gone: the charts render on canvas inside a shadow root, which no notebook stylesheet reaches. No change to the numbers. |
     | 0.2.6 | 2026-10-12 | Two bac.page links per tool in the intro: `bac.page/molab-orbital-lifetime-app` opens the notebook in app mode, ready to use, and `bac.page/molab-orbital-lifetime` opens it as a notebook on molab, code and all; both run this file from the repository's `main`, so there is no copy to keep in step. Sibling links point at the app links; the closing section carries both for each sibling. The optical payload's short link is `molab-optical-pld` now. No change to the numbers. |
     | 0.2.5 | 2026-10-09 | The LTDN glossary link pointed at `#ltdn`, which does not exist; it now points at `#local-time-of-descending-node-ltdn`. First-use links added for perigee, atmospheric drag, ballistic coefficient, re-entry, F10.7, Ap, the solar cycle, tumbling, Sun-synchronous orbits, deorbit and the FCC; the closing line links the glossary, the siblings and bac-utils as theirs do. The decay sentence says the semi-major axis shrinks rather than that it loses energy. The muted gray of chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.2.4 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |

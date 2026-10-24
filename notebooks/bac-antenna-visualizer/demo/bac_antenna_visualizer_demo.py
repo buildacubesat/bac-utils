@@ -128,10 +128,6 @@ def _(mo):
 
     .marimo-callout { border-radius: 6px; }
 
-    /* Chart text follows the same variable, so axis labels and legends stay
-       legible even when the notebook theme and the chart palette disagree. */
-    .vega-embed text { fill: var(--text); }
-
     /* marimo styles markdown headings through --heading-font with a selector
        more specific than the rule above, which would leave them in its serif. */
     :root { --heading-font: 'Nunito Sans', system-ui, sans-serif; }
@@ -163,8 +159,8 @@ def _():
 def _(Path, mo):
     # Constants: the snapshot, where packs are looked for, what a pack contains, and the glossary.
 
-    TOOL_VERSION = "0.3.6"  # the visualizer version this demo is a snapshot of
-    SNAPSHOT_DATE = "2026-10-12"
+    TOOL_VERSION = "0.3.7"  # the visualizer version this demo is a snapshot of
+    SNAPSHOT_DATE = "2026-10-24"
     DEMO_PACKS = ("s-band-cross-patch-2200", "s-band-cross-patch-2400")  # the packs it was frozen and tested with
     # Where the packs are fetched from when none sit beside the file: the demo's own
     # packs/ folder in the public repository (raw.githubusercontent.com allows browser fetches).
@@ -714,18 +710,20 @@ def _(AXES, BAND, CASES, axis_cases, np, pd):
 def _(alt, mo):
     # Chart conventions from the Interface Design Guide §8: series in the nebula
     # order, shape markers so color is never the only channel, dashed for targets,
-    # dotted for reference lines. On a dark surface the two dark series use lighter
-    # derived tints to keep 3:1 graphical contrast.
+    # dotted for reference lines.
 
+    # mo.app_meta().theme is marimo's setting, "light" when it is "system", so the
+    # kernel cannot know the surface. Chart text, axis lines and ticks carry no
+    # color here: marimo hands vega-embed its dark theme on a dark surface and
+    # Vega's defaults apply on a light one. The palette is one set, the lighter
+    # nebula tints that read on a dark surface too. IS_DARK stays for what has no
+    # theme default and therefore follows the explicit setting only: MUTED on
+    # reference rules and their labels, and whatever this notebook keys to it.
     IS_DARK = mo.app_meta().theme == "dark"
     MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
     TEXT = "#efefed" if IS_DARK else "#3F3F3F"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
-    PALETTE = (
-        ["#087C9B", "#625DC6", "#C88732", "#6F6497", "#84C45A"]
-        if IS_DARK
-        else ["#087C9B", "#3B35B8", "#C88732", "#21105F", "#84C45A"]
-    )
+    PALETTE = ["#087C9B", "#625DC6", "#C88732", "#6F6497", "#84C45A"]
     _BASE = PALETTE
     _SHAPES = ["circle", "square", "triangle-up", "diamond", "cross"]
 
@@ -760,15 +758,14 @@ def _(alt, mo):
     def style_chart(chart):
         return (
             chart.configure(font=FONT, background="transparent")
-            .configure_axis(grid=False, labelColor=TEXT, titleColor=TEXT, domainColor=MUTED, tickColor=MUTED)
-            .configure_legend(labelColor=TEXT, titleColor=TEXT)
-            .configure_title(color=TEXT, anchor="start", fontWeight="normal")
+            .configure_axis(grid=False)
+            .configure_title(anchor="start", fontWeight="normal")
             .configure_view(strokeWidth=0)
         )
 
     def chart_title(text, *notes):
         """A short title with the reading notes as subtitle lines – Altair never wraps a title, so a long one is clipped."""
-        return alt.Title(text, subtitle=list(notes), subtitleColor=MUTED, subtitleFontSize=11) if notes else text
+        return alt.Title(text, subtitle=list(notes), subtitleFontSize=11) if notes else text
 
     def plotly_layout(fig, title, height=520):
         fig.update_layout(
@@ -792,7 +789,7 @@ def _(alt, mo):
     def band_strip(lo, hi):
         return (
             alt.Chart(alt.Data(values=[{"x0": lo, "x1": hi}]))
-            .mark_rect(color="#3E3718" if IS_DARK else "#F1E7AB")
+            .mark_rect(color="#F7D400", opacity=0.18)  # the yellow as a tint, readable on either surface
             .encode(
                 x=alt.X("x0:Q", scale=alt.Scale(zero=False)), x2="x1:Q"
             )  # a rect's axis would include zero by default
@@ -1960,6 +1957,7 @@ def _(SNAPSHOT_DATE, TOOL_VERSION, mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.3.7 | 2026-10-24 | Chart text, axis lines and ticks no longer carry explicit colors: marimo hands the chart its dark theme on a dark surface – also under the "system" setting, which `mo.app_meta().theme` reports as light – and Vega's defaults apply on a light one; the series palette is one set, the lighter nebula tints that read on a dark surface too (the light set's deep indigo and purple are gone), and subtitles take the title's color. The style cell's `.vega-embed text` rule is gone: the charts render on canvas inside a shadow root, which no notebook stylesheet reaches. No change to the numbers. The band strip behind the S-parameter curves is the yellow at 18 % opacity on either surface (it was a solid pale or dark tint by `IS_DARK`); the two plotly figures (3D pattern, fields) keep `TEXT` and follow the explicit setting only. Demo re-snapshotted from 0.3.7. |
     | 0.3.6 | 2026-10-12 | Two bac.page links per tool in the intro: `bac.page/molab-antenna-viz-app` opens the notebook in app mode, ready to use, and `bac.page/molab-antenna-viz` opens it as a notebook on molab, code and all; both run this file from the repository's `main`, so there is no copy to keep in step. Sibling links point at the app links; the closing section carries both for each sibling. The demo's own short link is `molab-antenna-viz` (was `molab-antenna-viz-demo`), the optical payload's `molab-optical-pld`. Demo re-snapshotted from 0.3.6. No change to the numbers. |
     | 0.3.5 | 2026-10-09 | The beamwidth glossary link pointed at `#beamwidth`, which does not exist; it now points at `#beamwidth-hpbw`. The FDTD link sits on the method instead of on openEMS, and Reflection and Coupling links S-parameters. The muted gray of chart subtitles, rules, axis lines, ticks and the Smith chart's grid and labels takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No other change to what it shows. |
     | 0.3.4 | 2026-10-06 | The sibling links point at the molab short links; the demo's own link (bac.page/molab-antenna-viz-demo) named in the intro. No other change. |

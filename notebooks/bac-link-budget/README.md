@@ -1,4 +1,4 @@
-# bac-link-budget v0.7.5
+# bac-link-budget v0.7.6
 
 Build a CubeSat – a first-order link budget between a satellite in low Earth orbit and one ground station, as a marimo notebook. For every mode in an editable table it gives the margin against elevation in both directions, the usable data per pass and per day at the target margin, and the line-item budget of the featured mode in the AMSAT/IARU layout; pass statistics come from a two-body propagation over a rotating spherical Earth, averaged over eight orbit phases. General purpose with the BAC demo mission as the shipped default; LoRa rows use the SX1276 packet airtime, duplex is a hardware setting, and a station map shows the visibility circle and one day of ground track.
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.7.6 | 2026-10-24 | Chart text and axes defer to marimo's vega theme (right on a dark surface under the "system" setting too), one series palette on both surfaces, the dead `.vega-embed text` rule gone. No change to the numbers. |
 | 0.7.5 | 2026-10-12 | Two bac.page links in the intro: `bac.page/molab-link-budget-app` opens the notebook in app mode, ready to use, `bac.page/molab-link-budget` as a notebook on molab; both run the repository file. Sibling links point at the app links, the closing section carries both. Numbers unchanged. |
 | 0.7.4 | 2026-10-09 | Glossary links added on first use (J2, beamwidth, rotator, tumbling, noise figure, frame error rate, code rate, framing overhead, SNR, coherent detection, modulation index, duplex, time on air, radiation pattern); the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark); numbers unchanged. |
 | 0.7.3 | 2026-10-06 | bac.page links point at the molab short links. |

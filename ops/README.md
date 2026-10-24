@@ -5,7 +5,7 @@ Build a CubeSat – the tools that turn hardware into shipped product: what a ba
 | Directory | What it is | Version |
 | :-- | :-- | :-- |
 | [`../lib/bac-suite-db`](../lib/bac-suite-db/) | The shared layer: `bac.items`, `bac.catalog`, config, SKU scheme, `bac-db` | v0.1.1 |
-| [`bac-pricing`](bac-pricing/) | Pricing engine: BOM cost rollup and price derivation, notebook, the `pricing` schema | v1.4.1 |
+| [`bac-pricing`](bac-pricing/) | Pricing engine: BOM cost rollup and price derivation, notebook, the `pricing` schema | v1.4.2 |
 | [`bac-suite`](bac-suite/) | The orchestrated shell, `bac-suite` | v0.2.1 |
 
 Inventory and spending, quality control and fulfilment follow as engines of their own, each registering its tables and its notebook through the two entry-point groups `bac_suite.engines` and `bac_suite.apps`.
@@ -29,6 +29,7 @@ Two network calls happen at run time: the notebooks load their fonts from Google
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.16.2 | 2026-10-24 | `bac-pricing` v1.4.2: the notebook's chart text and axes defer to marimo's vega theme, one series palette on both surfaces. |
 | 0.16.1 | 2026-10-24 | `bac-suite-db` v0.1.1: `bac-db import` on the `files` backend validates and stops with a note instead of asking for a database. |
 | 0.14.0 | 2026-10-09 | `bac-pricing` v1.4.1 (the notebook's muted grey on the AA values of the shared tokens) and `bac-suite` v0.2.1 (the index page on `tokens.css`). |
 | 0.10.0 | 2026-10-07 | Written with the suite's arrival in bac-utils (root 0.10.0): the shared layer, the pricing engine and the shell. |

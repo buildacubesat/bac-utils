@@ -1,4 +1,4 @@
-# bac-power-budget v0.5.5
+# bac-power-budget v0.5.6
 
 Build a CubeSat – a first-order energy balance on one timeline, as a marimo notebook. The optical payload's propagator (two-body plus J2, RAAN from the LTDN, Almanac Sun, 10 s steps) is extended with the link budget's station test and a per-face illumination model, so one run gives, per sample, sunlit or in shadow, over the station, over the target and whether the target is lit. Generation comes from the cells on each face under one of three attitude models, consumption from an editable table of average watts per mode, the beacon from cadence arithmetic, and the two integrate into a battery state of charge with a safe-mode fallback. Payload activations come from one of nine trigger modes with gates and caps. Six cards answer what duty cycle the radio and the camera can have before the battery goes negative.
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.5.6 | 2026-10-24 | Chart text and axes defer to marimo's vega theme (right on a dark surface under the "system" setting too), one series palette on both surfaces, the dead `.vega-embed text` rule gone. No change to the numbers. |
 | 0.5.5 | 2026-10-12 | Two bac.page links in the intro: `bac.page/molab-power-budget-app` opens the notebook in app mode, ready to use, `bac.page/molab-power-budget` as a notebook on molab; both run the repository file. Sibling links point at the app links, the closing section carries both. Numbers unchanged. |
 | 0.5.4 | 2026-10-09 | Power rails link to a power-rail glossary entry instead of the deployer-rail one; first-use links added (solar strings, tumbling, nadir, degraded mode, time on air, orbit-average power, load shedding, eFuses); the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark); numbers unchanged. |
 | 0.5.3 | 2026-10-06 | bac.page links point at the molab short links. |

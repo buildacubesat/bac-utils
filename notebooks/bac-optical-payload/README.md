@@ -1,4 +1,4 @@
-# bac-optical-payload v0.7.5
+# bac-optical-payload v0.7.6
 
 Build a CubeSat – a first-order model of what a camera on a small satellite produces, as a marimo notebook with two modes. **Earth observation**: sensor, lens and orbit in; ground sample distance, swath and field of view, Rayleigh spot and sampling factor Q, motion and attitude smear, rolling-shutter skew, the footprint envelope and geolocation uncertainty, frame sizes raw, compressed and as a thumbnail, days to downlink, and access and illumination over a target with the access edges solved between samples. **Boom**: the same camera on a deployable boom looking back at the spacecraft – fill fraction, corners in frame, side view, a sweep of fill against boom length, and a depth-of-field check. A camera dropdown sets sensor and lens from a product (Raspberry Pi cameras, CHC5 modules, action cameras, DJI O4 air units, a phone).
 
@@ -35,6 +35,7 @@ The notebook's revision-history cell has the full text of every row.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.7.6 | 2026-10-24 | Chart text and axes defer to marimo's vega theme (right on a dark surface under the "system" setting too), one series palette on both surfaces, the dead `.vega-embed text` rule gone. No change to the numbers. |
 | 0.7.5 | 2026-10-12 | Two bac.page links in the intro: `bac.page/molab-optical-pld-app` opens the notebook in app mode, ready to use, `bac.page/molab-optical-pld` as a notebook on molab; both run the repository file. Sibling links point at the app links, the closing section carries both. This tool's short link is `molab-optical-pld` (was `molab-optical-payload`); the export footer follows. Numbers unchanged. |
 | 0.7.4 | 2026-10-09 | Glossary links added on first use (pixel pitch, image circle, geolocation accuracy, access, depth of field); the Q thresholds named as Holst's resolution reading, with Q = 2 for Nyquist sampling beside them; the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark); numbers unchanged. |
 | 0.7.3 | 2026-10-06 | bac.page links point at the molab short links. |

@@ -90,6 +90,7 @@ The notebook's own revision history (its last cell) has the detail per version.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.3.7 | 2026-10-24 | Chart text and axes defer to marimo's vega theme (right on a dark surface under the "system" setting too), one series palette on both surfaces, the dead `.vega-embed text` rule gone. No change to the numbers. Demo re-snapshotted from 0.3.7. |
 | 0.3.6 | 2026-10-12 | Two bac.page links in the intro of the notebook and the demo: `bac.page/molab-antenna-viz-app` opens the demo in app mode, ready to use, `bac.page/molab-antenna-viz` as a notebook on molab (the old `molab-antenna-viz-demo` link is gone); both run the repository file. Sibling links point at the app links, the closing section carries both. Demo re-snapshotted from 0.3.6. |
 | 0.3.5 | 2026-10-09 | The beamwidth glossary link fixed (`#beamwidth-hpbw`); FDTD linked on the method, S-parameters in Reflection and Coupling; the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark). Demo re-snapshotted from 0.3.5. |
 | 0.3.4 | 2026-10-06 | Sibling links point at the molab short links; the demo was published at `bac.page/molab-antenna-viz-demo` (a link that went in 0.3.6; the demo's link is `bac.page/molab-antenna-viz-app`). |

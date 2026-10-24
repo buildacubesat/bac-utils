@@ -89,10 +89,6 @@ def _(mo):
 
     .marimo-callout { border-radius: 6px; }
 
-    /* Chart text follows the same variable, so axis labels and legends stay
-       legible even when the notebook theme and the chart palette disagree. */
-    .vega-embed text { fill: var(--text); }
-
     /* marimo styles markdown headings through --heading-font with a selector
        more specific than the rule above, which would leave them in its serif. */
     :root { --heading-font: 'Nunito Sans', system-ui, sans-serif; }
@@ -118,7 +114,7 @@ def _():
 def _(np):
     # Constants, reference data and the small set of formulas everything uses.
 
-    TOOL_VERSION = "0.7.5"
+    TOOL_VERSION = "0.7.6"
 
     R_EARTH_KM = 6371.0
     MU_KM3_S2 = 398600.4418
@@ -2136,19 +2132,21 @@ def _(
 def _(alt, mo, modes):
     # Chart conventions from the Interface Design Guide §8: series in the nebula
     # order, shape markers so color is never the only channel, dashed for
-    # targets, dotted for reference lines. On a dark surface the two dark series
-    # use lighter derived tints to keep 3:1 graphical contrast. Beyond five
-    # series the palette repeats in progressively lighter tints.
+    # targets, dotted for reference lines. Beyond five series the palette repeats
+    # in progressively lighter tints.
 
+    # mo.app_meta().theme is marimo's setting, "light" when it is "system", so the
+    # kernel cannot know the surface. Chart text, axis lines and ticks carry no
+    # color here: marimo hands vega-embed its dark theme on a dark surface and
+    # Vega's defaults apply on a light one. The palette is one set, the lighter
+    # nebula tints that read on a dark surface too. IS_DARK stays for what has no
+    # theme default and therefore follows the explicit setting only: MUTED on
+    # reference rules and their labels, and whatever this notebook keys to it.
     IS_DARK = mo.app_meta().theme == "dark"
     MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
     TEXT = "#efefed" if IS_DARK else "#3F3F3F"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
-    PALETTE = (
-        ["#087C9B", "#625DC6", "#C88732", "#6F6497", "#84C45A"]
-        if IS_DARK
-        else ["#087C9B", "#3B35B8", "#C88732", "#21105F", "#84C45A"]
-    )
+    PALETTE = ["#087C9B", "#625DC6", "#C88732", "#6F6497", "#84C45A"]
     _BASE = PALETTE
     _SHAPES = ["circle", "square", "triangle-up", "diamond", "cross"]
 
@@ -2237,21 +2235,14 @@ def _(alt, mo, modes):
     def style_chart(chart):
         return (
             chart.configure(font=FONT, background="transparent")
-            .configure_axis(
-                grid=False,
-                labelColor=TEXT,
-                titleColor=TEXT,
-                domainColor=MUTED,
-                tickColor=MUTED,
-            )
-            .configure_legend(labelColor=TEXT, titleColor=TEXT)
-            .configure_title(color=TEXT, anchor="start", fontWeight="normal")
+            .configure_axis(grid=False)
+            .configure_title(anchor="start", fontWeight="normal")
             .configure_view(strokeWidth=0)
         )
 
     def chart_title(text, *notes):
         """A short title with the reading notes as subtitle lines – Altair never wraps a title, so a long one is clipped."""
-        return alt.Title(text, subtitle=list(notes), subtitleColor=MUTED, subtitleFontSize=11) if notes else text
+        return alt.Title(text, subtitle=list(notes), subtitleFontSize=11) if notes else text
 
     return (
         IS_DARK,
@@ -3819,6 +3810,7 @@ def _(mo):
 
     | Version | Date | Change |
     |---|---|---|
+    | 0.7.6 | 2026-10-24 | Chart text, axis lines and ticks no longer carry explicit colors: marimo hands the chart its dark theme on a dark surface – also under the "system" setting, which `mo.app_meta().theme` reports as light – and Vega's defaults apply on a light one; the series palette is one set, the lighter nebula tints that read on a dark surface too (the light set's deep indigo and purple are gone), and subtitles take the title's color. The style cell's `.vega-embed text` rule is gone: the charts render on canvas inside a shadow root, which no notebook stylesheet reaches. No change to the numbers. |
     | 0.7.5 | 2026-10-12 | Two bac.page links per tool in the intro: `bac.page/molab-link-budget-app` opens the notebook in app mode, ready to use, and `bac.page/molab-link-budget` opens it as a notebook on molab, code and all; both run this file from the repository's `main`, so there is no copy to keep in step. Sibling links point at the app links; the closing section carries both for each sibling. The optical payload's short link is `molab-optical-pld` now. No change to the numbers. |
     | 0.7.4 | 2026-10-09 | Glossary links added on first use for J2, beamwidth, rotator, tumbling, noise figure, frame error rate, code rate, framing overhead, SNR, coherent detection, modulation index, duplex, time on air and radiation pattern; the noise and coded-entry sentences say what the receiver and the code rate contribute. The muted gray of chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the numbers. |
     | 0.7.3 | 2026-10-06 | The bac.page links point at the molab short links (`bac.page/molab-<tool>`); no other change. |
