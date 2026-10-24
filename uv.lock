@@ -176,9 +176,10 @@ wheels = [
 
 [[package]]
 name = "bac-antenna-optimizer"
-version = "0.7.4"
+version = "0.7.5"
 source = { editable = "tools/bac-antenna-optimizer" }
 dependencies = [
+    { name = "bac-common" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
@@ -198,6 +199,7 @@ simulation = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
     { name = "cairosvg", marker = "extra == 'report'", specifier = ">=2.7" },
     { name = "h5py", marker = "extra == 'report'", specifier = ">=3.10" },
     { name = "h5py", marker = "extra == 'simulation'", specifier = ">=3.10" },
@@ -339,7 +341,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-convention-check"
-version = "0.2.1"
+version = "0.2.2"
 source = { editable = "tools/bac-convention-check" }
 dependencies = [
     { name = "bac-common" },
@@ -362,7 +364,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-csr-ingest"
-version = "0.4.0"
+version = "0.4.1"
 source = { editable = "tools/bac-csr-ingest" }
 dependencies = [
     { name = "anthropic" },
@@ -458,7 +460,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-kicad-generate-artifacts"
-version = "0.6.1"
+version = "0.6.2"
 source = { editable = "tools/bac-kicad-generate-artifacts" }
 dependencies = [
     { name = "bac-common" },
@@ -912,7 +914,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-suite-db"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "lib/bac-suite-db" }
 dependencies = [
     { name = "bac-common" },

@@ -92,7 +92,7 @@ The notebook's own revision history (its last cell) has the detail per version.
 | :-- | :-- | :-- |
 | 0.3.6 | 2026-10-12 | Two bac.page links in the intro of the notebook and the demo: `bac.page/molab-antenna-viz-app` opens the demo in app mode, ready to use, `bac.page/molab-antenna-viz` as a notebook on molab (the old `molab-antenna-viz-demo` link is gone); both run the repository file. Sibling links point at the app links, the closing section carries both. Demo re-snapshotted from 0.3.6. |
 | 0.3.5 | 2026-10-09 | The beamwidth glossary link fixed (`#beamwidth-hpbw`); FDTD linked on the method, S-parameters in Reflection and Coupling; the muted gray on the AA values of the shared tokens (#6C6B67 light, #A3A29C dark). Demo re-snapshotted from 0.3.5. |
-| 0.3.4 | 2026-10-06 | Sibling links point at the molab short links; the demo is published at [bac.page/molab-antenna-viz-demo](https://bac.page/molab-antenna-viz-demo). |
+| 0.3.4 | 2026-10-06 | Sibling links point at the molab short links; the demo was published at `bac.page/molab-antenna-viz-demo` (a link that went in 0.3.6; the demo's link is `bac.page/molab-antenna-viz-app`). |
 | 0.3.3 | 2026-10-06 | Two clipped chart titles split into title and subtitle (`chart_title`); nothing else changes. Demo re-snapshotted from 0.3.3: it fetches its packs from `demo/packs/` on GitHub when none are beside it, which is what a molab mirror needs. |
 | 0.3.2 | 2026-10-06 | Demo snapshot for molab added under `demo/` with tests (§6); README headings numbered. No change to the notebook. |
 | 0.3.2 | 2026-10-02 | Moved from `tools/` to the `notebooks/` group with its four siblings; the paths it names follow. No change to what it shows. |

@@ -1,0 +1,45 @@
+name: Blender
+
+# The Blender extension's tests run inside a headless Blender – the bpy wheel,
+# about 300 MB and Python 3.11 only – so they get a workflow of their own that
+# runs when the extension changes, and on request.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "blender/**"
+      - ".github/workflows/blender.yml"
+  pull_request:
+    paths:
+      - "blender/**"
+      - ".github/workflows/blender.yml"
+  workflow_dispatch:
+
+jobs:
+  bpy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Install ffmpeg (the tests make their clips with it)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      # bpy 4.5 pins numpy below 2, which the workspace lock does not, so the
+      # wheel gets an environment of its own: pytest, bac-common (the root
+      # conftest imports it) and the wheel; the extension itself imports
+      # nothing from the workspace.
+      - name: Install the bpy wheel
+        run: |
+          uv venv .venv-bpy --python 3.11
+          uv pip install --python .venv-bpy "bpy>=4.5,<4.6" "pytest>=8.0" ./lib/bac-common
+
+      - name: Blender tests
+        run: .venv-bpy/bin/python -m pytest blender

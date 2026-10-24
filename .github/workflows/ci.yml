@@ -26,17 +26,23 @@ jobs:
       - name: Sync workspace
         run: uv sync --all-packages --python ${{ matrix.python-version }}
 
+      # The reference gallery's eight browser tests render the boards in a
+      # headless Chromium and skip without one; Playwright's is the one the
+      # tool itself offers through --init.
+      - name: Install Chromium for the gallery tests
+        run: uv run --no-sync playwright install --with-deps chromium
+
       - name: Lint
-        run: uv run ruff check .
+        run: uv run --no-sync ruff check .
 
       - name: Format check
-        run: uv run ruff format --check .
+        run: uv run --no-sync ruff format --check .
 
       - name: Notebook check
-        run: uv run marimo check notebooks/*/bac_*.py notebooks/*/demo/*.py ops/*/src/*/notebook.py
+        run: uv run --no-sync marimo check notebooks/*/bac_*.py notebooks/*/demo/*.py ops/*/src/*/notebook.py
 
       - name: Tests
-        run: uv run pytest
+        run: uv run --no-sync pytest
 
       - name: Conventions
-        run: uv run bac-convention-check . --format report
+        run: uv run --no-sync bac-convention-check . --format report

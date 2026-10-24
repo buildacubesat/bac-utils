@@ -96,6 +96,8 @@ uv run pytest tools/bac-reference-gallery
 uv run ruff check tools/bac-reference-gallery && uv run ruff format --check tools/bac-reference-gallery
 ```
 
+The eight browser tests need a Chromium (`bac-reference-gallery --init`, or `BAC_CHROMIUM_PATH`) and skip without one; the repository's CI installs Playwright's Chromium, so they run on every push there.
+
 `test_cli.py` drives the command with a fake renderer, `test_serve.py` the local server (the pages with their folder, nothing outside it, the loopback address, the fallback port, the command until Ctrl-C), `test_render.py` the renderer's shutdown and font gate with fake Playwright objects, `test_site.py` and `test_browser.py` the page and browser lookup. `test_pages.py` reads the HTML and CSS directly (language, table scopes, image text, no em dash, no volatile data on the product sheet, no inline hex in the dark-mode demo, the two dark blocks of `tokens.css` identical) and, in a headless Chromium, checks text contrast and layout (nothing spills out of a board or a card) on every page in both modes, the text colour of a pinned subtree, and a full render. The browser tests use the Chromium `BAC_CHROMIUM_PATH` names, else Playwright's, and are skipped when there is neither.
 
 ## 9. License

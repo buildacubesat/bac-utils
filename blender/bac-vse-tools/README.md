@@ -50,6 +50,8 @@ uv run pytest blender                    # the logic tests; the Blender ones ski
 .venv-bpy/bin/python -m pytest blender   # with bpy and ffmpeg: all of them
 ```
 
+The repository's CI runs the Blender tests in a job of their own (`.github/workflows/blender.yml`: Python 3.11, the `bpy` wheel, ffmpeg) when something under `blender/` changes, and on request.
+
 ## 7. Version history
 
 | Version | Date | Change |
