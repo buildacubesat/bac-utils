@@ -104,4 +104,4 @@ uv run --no-sync pytest tools/bac-kicad-stitch
 | Version | Date | Change |
 | :-- | :-- | :-- |
 | 0.1.1 | 2026-10-27 | The preview SVG marks gaps in the 1.0 alarm red `#E94538` (was `#CE6C63`). |
-| 0.1.0 | 2026-10-19 | First version: `report`, `stitch`, `remove`, `init`; coverage by pitch or frequency; farthest-point placement with gaps; the `bac-stitch` group; preview SVG; DRC through `kicad-cli` after writing. Tested by Mänu on the MCU MicroMod carrier board: the plan, the write, the group in KiCad. |
+| 0.1.0 | 2026-10-19 | First version: `report`, `stitch`, `remove`, `init`; coverage by pitch or frequency; farthest-point placement with gaps; the `bac-stitch` group; preview SVG; DRC through `kicad-cli` after writing. Tested by Manuel on the MCU MicroMod carrier board: the plan, the write, the group in KiCad. |

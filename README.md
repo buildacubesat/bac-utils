@@ -48,7 +48,7 @@ This table is the record of what exists, what is being worked on and what is pla
 | [`bac-suite`](ops/bac-suite/) | CLI | ops | The operations suite's orchestrated shell: one web app with every installed engine's notebook behind a common index | available | v0.2.2 |
 | [`bac-vse-tools`](blender/bac-vse-tools/) | Blender extension | video | One extension with three sub-panels in the VSE sidebar: bulk import of a folder of clips end to end, proxies built one strip at a time, meta strips separated with their trim kept | available | v1.0.0 |
 
-Related, maintained elsewhere: [`bac-page`](https://github.com/buildacubesat/bac-page/tree/main/cli), the CLI for the bac.page URL shortener, lives with the GitHub Pages repository it writes to (`buildacubesat/bac-page`; the old name `bac.page` redirects).
+The guides the tools follow – Identity, Interface Design, Project & Tooling and the Trademark Policy – live in [bac-design](https://github.com/buildacubesat/bac-design). Related, maintained elsewhere: [`bac-page`](https://github.com/buildacubesat/bac-page/tree/main/cli), the CLI for the bac.page URL shortener, lives with the GitHub Pages repository it writes to (`buildacubesat/bac-page`; the old name `bac.page` redirects).
 
 ## 2. Install
 
@@ -94,7 +94,7 @@ Every CLI tool built on `bac-common` prints `<tool> vX.Y.Z` for `-v/--version`, 
 
 Config lives at `~/.config/bac/<tool>.toml`; secrets in a `.env` file loaded with python-dotenv. Exit codes are 0 for success, 1 for a runtime error, 2 for bad arguments. Errors go to stderr; tracebacks appear only with `--debug`. Terminal output uses the BAC Interface Design Guide's terminal profile through `bac_common.ui`. Colours, type and form come from one place, `tools/bac-design-tokens/src/bac_design_tokens/tokens.json`: `bac-design-tokens` writes them into the gallery's and the suite's `tokens.css`, the Rich colours and the notebooks' style cells, and its tests fail when a copy is stale.
 
-Software in this repository is licensed MIT (see `LICENSE`); documentation CC BY-SA 4.0. The design tokens (`tokens.json`) and the reference gallery's stylesheets are both – MIT or CC BY-SA 4.0, at your option – so any software, BAC Ground included, can take the values. The Build a CubeSat name and logo are not covered by this repository's licences; see the BAC Trademark Policy. Software versions follow SemVer and display with a `v` prefix.
+Software in this repository is licensed MIT (see `LICENSE`); documentation CC BY-SA 4.0. The design tokens (`tokens.json`) and the reference gallery's stylesheets are both – MIT or CC BY-SA 4.0, at your option – so any software, BAC Ground included, can take the values. The Build a CubeSat name and logo are not covered by this repository's licences; see the [BAC Trademark Policy](https://github.com/buildacubesat/bac-design/blob/main/guides/bac-trademark-policy.md). Software versions follow SemVer and display with a `v` prefix.
 
 ## 6. Adapting for your own project
 

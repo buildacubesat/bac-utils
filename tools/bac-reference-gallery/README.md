@@ -102,7 +102,7 @@ The eight browser tests need a Chromium (`bac-reference-gallery --init`, or `BAC
 
 ## 9. License
 
-The renderer (`src/`, `pyproject.toml`, `tests/`) is MIT. The stylesheets in `css/` – `tokens.css` among them – are MIT or CC BY-SA 4.0, at your option, so software can take its values from them. The pages, SVG illustrations, this README and the rendered exports are documentation and are licensed CC BY-SA 4.0. The Build a CubeSat name and logo (`assets/bac-symbol.svg`, the official symbol v4r1) are not covered by these licences; see the BAC Trademark Policy. `LICENSE.md` has the table and the MIT text.
+The renderer (`src/`, `pyproject.toml`, `tests/`) is MIT. The stylesheets in `css/` – `tokens.css` among them – are MIT or CC BY-SA 4.0, at your option, so software can take its values from them. The pages, SVG illustrations, this README and the rendered exports are documentation and are licensed CC BY-SA 4.0. The Build a CubeSat name and logo (`assets/bac-symbol.svg`, the official symbol v4r1) are not covered by these licences; see the [BAC Trademark Policy](https://github.com/buildacubesat/bac-design/blob/main/guides/bac-trademark-policy.md). `LICENSE.md` has the table and the MIT text.
 
 ## 10. Version history
 

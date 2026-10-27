@@ -392,7 +392,7 @@ def _(textwrap):
     PROFILE_BAC = textwrap.dedent(
         """\
         # BAC Orbital Lifetime profile – Build a CubeSat demo mission
-        # Mass is two thirds of the CDS rev 14 maximum for a 1.5U (3 kg), Mänu's
+        # Mass is two thirds of the CDS rev 14 maximum for a 1.5U (3 kg), Manuel's
         # planning assumption of 2026-09-18 until the build is weighed. Deployables
         # and launch date are placeholders; the orbit is the standard planning orbit.
         name = "BAC demo mission, 500 km SSO"
