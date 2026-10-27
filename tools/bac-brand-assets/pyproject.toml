@@ -1,0 +1,32 @@
+[project]
+name = "bac-brand-assets"
+version = "0.1.0"
+description = "Writes the Build a CubeSat symbol, wordmark and logo SVGs into the bac-design checkout from exact geometry and the self-hosted Nunito."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "bac-common>=0.4.2",
+    "fonttools>=4.50",
+    "rich>=13.7",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+bac-brand-assets = "bac_brand_assets.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bac_brand_assets"]
+
+[tool.uv.sources]
+bac-common = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
