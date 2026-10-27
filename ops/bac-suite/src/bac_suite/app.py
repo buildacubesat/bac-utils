@@ -50,13 +50,15 @@ _INDEX_TEMPLATE = """<!doctype html>
 <style>
 body {{ font-family: var(--font-body); background: var(--bg); color: var(--text);
   max-width: 640px; margin: 12vh auto; padding: 0 24px; line-height: 1.6; }}
-h1 {{ font-family: var(--font-display); font-weight: var(--fw-bold); font-size: 1.4rem; color: var(--text-strong); }}
-h1 b {{ background: var(--bac-yellow); color: var(--warm-950); padding: 0 .3em; border-radius: 3px; }}
+h1 {{ font-family: var(--font-display); font-weight: var(--fw-heading); font-size: 1.4rem; color: var(--text-strong); }}
+h1 b {{ background: var(--bac-yellow); color: var(--text-on-accent); padding: 0 .3em;
+  border-radius: var(--radius-sm); }}
 p {{ color: var(--text-muted); font-size: .9rem; }}
 a.tool {{ display: block; background: var(--surface-card); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 14px 18px; margin: 10px 0; color: var(--text); text-decoration: none;
-  font-weight: 500; transition: border-color var(--dur-fast) var(--ease-standard); }}
-a.tool:hover {{ border-color: var(--bac-yellow); }}
+  border-radius: var(--radius-md); padding: 14px 18px; margin: 10px 0; color: var(--text); text-decoration: none;
+  font-weight: 500; transition: border-color var(--dur-fast) var(--ease-standard),
+  background-color var(--dur-fast) var(--ease-standard); }}
+a.tool:hover {{ border-color: var(--border-strong); background: var(--surface-hover); }}
 a.tool:focus-visible {{ outline: 3px solid var(--focus-ring); outline-offset: 2px; }}
 @media (prefers-reduced-motion: reduce) {{ a.tool {{ transition: none; }} }}
 footer {{ font-size: .8rem; color: var(--text-muted); margin-top: 32px; }}

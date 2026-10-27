@@ -15,7 +15,7 @@
   </div>
 
   <section style="display:grid;grid-template-columns:1fr 1fr;gap:22px;height:800px;">
-    <article style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:28px 30px;position:relative;overflow:hidden;">
+    <article style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:28px 30px;position:relative;overflow:hidden;">
       <div style="display:flex;justify-content:space-between;align-items:start;">
         <div><div class="eyebrow">OPS · TECHNICAL COMMUNICATION</div><h2 class="h2" style="margin-top:14px;">EPS integration test</h2><div class="small muted" style="margin-top:6px;">Power system · bench integration</div></div>
         <span class="pill yellow">! REVIEW REQUIRED</span>
@@ -34,19 +34,19 @@
       </tbody></table>
       <div class="section-label" style="margin-top:24px;">Interpretation</div>
       <p class="small" style="margin-top:11px;">The steady-state rails are within the example limits. Treat the transient as an engineering question, not a visual flourish: keep the caveat prominent and the rest of the page quiet.</p>
-      <div style="position:absolute;bottom:24px;left:30px;right:30px;border-top:1px solid var(--border);padding-top:11px;display:flex;justify-content:space-between;" class="micro muted"><span>Flat surfaces · monochrome hierarchy</span><span>Yellow = functional meaning</span></div>
+      <div style="position:absolute;bottom:24px;left:30px;right:30px;border-top:1px solid var(--border);padding-top:11px;display:flex;justify-content:space-between;" class="micro muted"><span>Flat surfaces · no shadows · monochrome hierarchy</span><span>Status = colour, shape and word</span></div>
     </article>
 
-    <article data-theme="light" class="mission-paper" style="border:1px solid rgba(36,27,63,.15);border-radius:14px;overflow:hidden;position:relative;">
-      <header class="mission-viewport" style="height:248px;border:0;border-radius:0 0 14px 14px;padding:27px 30px;">
+    <article data-theme="light" class="mission-paper" style="border:1px solid var(--mission-paper-well-border);border-radius:var(--radius-md);overflow:hidden;position:relative;">
+      <header class="mission-viewport" style="height:248px;border:0;border-radius:0 0 var(--radius-md) var(--radius-md);padding:27px 30px;">
         <img src="../assets/orbital-grid.svg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;">
         <div style="position:relative;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;">
-          <div><div class="eyebrow" style="color:var(--nebula-copper);">MISSION · PRESENTATION COMMUNICATION</div><h2 style="font:700 34px/1.05 var(--font-display);letter-spacing:-.025em;margin:15px 0 5px;">EPS integration test</h2><div class="small" style="color:var(--space-muted);">Power system · bench integration</div></div>
-          <span class="pill copper">PRELIMINARY</span>
+          <div><div class="eyebrow mission-rose">MISSION · PRESENTATION COMMUNICATION</div><h2 style="font:var(--fw-heading) 34px/1.05 var(--font-display);letter-spacing:var(--ls-tight);margin:15px 0 5px;">EPS integration test</h2><div class="small" style="color:var(--space-muted);">Power system · bench integration</div></div>
+          <span class="pill rose">PRELIMINARY</span>
         </div>
         <div style="position:absolute;z-index:2;bottom:24px;left:30px;right:30px;display:flex;gap:28px;align-items:end;">
-          <div><div class="micro" style="color:var(--space-muted);">RAIL A</div><div style="font:700 30px var(--font-display);">5.02 V</div></div>
-          <div><div class="micro" style="color:var(--space-muted);">RAIL B</div><div style="font:700 30px var(--font-display);">3.34 V</div></div>
+          <div><div class="micro mono" style="color:var(--space-muted);">RAIL A</div><div style="font:500 30px var(--font-mono);">5.02 V</div></div>
+          <div><div class="micro mono" style="color:var(--space-muted);">RAIL B</div><div style="font:500 30px var(--font-mono);">3.34 V</div></div>
           <div style="margin-left:auto"><span class="pill yellow">! REVIEW REQUIRED</span></div>
         </div>
       </header>
@@ -61,8 +61,8 @@
           </tbody></table>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
-          <div class="card sunken" style="padding:15px 16px;"><div class="eyebrow mission-cyan">What stays the same</div><div class="small" style="margin-top:8px;">Meaning, data, caveats, accessibility and technical precision.</div></div>
-          <div class="card sunken" style="padding:15px 16px;"><div class="eyebrow mission-copper">What changes</div><div class="small" style="margin-top:8px;">Atmosphere, decorative emphasis, hierarchy and presentation energy.</div></div>
+          <div class="card sunken" style="padding:15px 16px;"><div class="eyebrow mission-teal">What stays the same</div><div class="small" style="margin-top:8px;">Meaning, data, caveats, accessibility and technical precision.</div></div>
+          <div class="card sunken" style="padding:15px 16px;"><div class="eyebrow mission-rose">What changes</div><div class="small" style="margin-top:8px;">Atmosphere, decorative emphasis, hierarchy and presentation energy.</div></div>
         </div>
       </div>
     </article>

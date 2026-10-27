@@ -19,7 +19,7 @@ NOTEBOOKS = Path(__file__).resolve().parents[1]
 FILES = sorted(NOTEBOOKS.glob("bac-*/bac_*.py")) + sorted(NOTEBOOKS.glob("bac-*/demo/bac_*.py"))
 FILES.append(NOTEBOOKS.parents[0] / "ops" / "bac-pricing" / "src" / "bac_pricing" / "notebook.py")
 
-PALETTE = '["#087C9B", "#625DC6", "#C88732", "#6F6497", "#84C45A"]'
+PALETTE = '["#2E7ED8", "#7D7D7D", "#9D7800", "#0E903A", "#E4463E"]'  # chart-shared-1..5 in tokens.json
 FORBIDDEN = ("labelColor=", "titleColor=", "domainColor=", "tickColor=", "subtitleColor=", "configure_legend(")
 
 _STYLE = re.compile(r"<style>(.*?)</style>", re.S)

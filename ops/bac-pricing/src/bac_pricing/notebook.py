@@ -48,31 +48,38 @@ def _(mo):
     @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
+    /* Written by bac-design-tokens from tokens.json – change the tokens, not this cell. */
     :root {
       --text:       #3F3F3F;
-      --bg:         #efefed;
-      --text-muted: #6C6B67;
+      --bg:         #F9F9F9;
+      --text-muted: #6D6D6D;
     }
 
     /* Track marimo's own light/dark setting rather than the operating system.
        marimo sets color-scheme from that setting and light-dark() follows it. */
     :root {
-      --text: light-dark(#3F3F3F, #efefed);
-      --bg:   light-dark(#efefed, #201e1c);
-      --text-muted: light-dark(#6C6B67, #A3A29C);
+      --text: light-dark(#3F3F3F, #E5E5E5);
+      --bg:   light-dark(#F9F9F9, #1F1E1D);
+      --text-muted: light-dark(#6D6D6D, #A9A8A6);
     }
 
     h1, h2, h3, h4 {
       font-family: 'Nunito Sans', system-ui, sans-serif;
+      font-weight: 500;
       color: var(--text);
     }
 
     body, p, li, .prose {
-      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-family: 'Nunito Sans', system-ui, sans-serif;
       color: var(--text);
     }
 
-    .marimo-callout { border-radius: 6px; }
+    code, pre, kbd {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .marimo-callout { border-radius: 10px; }
 
     /* marimo styles markdown headings through --heading-font with a selector
        more specific than the rule above, which would leave them in its serif. */
@@ -119,7 +126,7 @@ def _():
 
 @app.cell
 def _(suite_config):
-    TOOL_VERSION = "1.4.2"
+    TOOL_VERSION = "1.4.3"
     SETTINGS = suite_config.load_settings()
 
     # Currency symbols for display. Unknown codes fall back to the code itself.
@@ -886,19 +893,19 @@ def _(alt, mo):
     # mo.app_meta().theme is marimo's setting, "light" when it is "system", so the
     # kernel cannot know the surface. Chart text, axis lines and ticks carry no
     # color here: marimo hands vega-embed its dark theme on a dark surface and
-    # Vega's defaults apply on a light one. The palette is one set, the lighter
-    # nebula tints that read on a dark surface too. IS_DARK stays for what has no
+    # Vega's defaults apply on a light one. The palette is one set, the shared
+    # chart colors of the design tokens, which read on a light and a dark surface. IS_DARK stays for what has no
     # theme default and therefore follows the explicit setting only: MUTED on
     # reference rules and their labels, and whatever this notebook keys to it.
     IS_DARK = mo.app_meta().theme == "dark"
-    MUTED = "#A3A29C" if IS_DARK else "#6C6B67"
+    MUTED = "#A9A8A6" if IS_DARK else "#6D6D6D"
     FONT = "IBM Plex Mono, ui-monospace, monospace"
-    PALETTE = ["#087C9B", "#625DC6", "#C88732", "#6F6497", "#84C45A"]
-    SEQUENTIAL = ["#DCEFF3", "#087C9B", "#21105F"]
+    PALETTE = ["#2E7ED8", "#7D7D7D", "#9D7800", "#0E903A", "#E4463E"]
+    SEQUENTIAL = ["#D6E6F8", "#2E7ED8", "#004C8B"]
 
     def _tint(color, amount=0.45):
         r, g, b = (int(color[i : i + 2], 16) for i in (1, 3, 5))
-        mix = (32, 30, 28) if IS_DARK else (255, 255, 255)
+        mix = (31, 30, 29) if IS_DARK else (255, 255, 255)
         return "#" + "".join(f"{round(c + (m - c) * amount):02X}" for c, m in zip((r, g, b), mix, strict=True))
 
     # Up to ten categories: the five palette colours, then their tints.
@@ -1388,6 +1395,7 @@ def _(TOOL_VERSION, mo):
 
     | Version | Date | Change |
     | :-- | :-- | :-- |
+    | 1.4.3 | 2026-10-27 | Design 1.0: the style cell and the chart constants are written by bac-design-tokens from the shared tokens – body text in Nunito Sans (IBM Plex Mono stays for code and chart figures), headings at 500, the BAC Ground console's surfaces (#F9F9F9 light, #1F1E1D dark) and muted gray (#6D6D6D light, #A9A8A6 dark); the series palette is the tokens' shared chart set (blue, gray, ochre, green, red), the sequential ramp runs light blue to info blue, and tints mix toward the new dark surface. No change to the prices. |
     | 1.4.2 | 2026-10-24 | Chart text, axis lines and ticks no longer carry explicit colors: marimo hands the chart its dark theme on a dark surface – also under the "system" setting, which `mo.app_meta().theme` reports as light – and Vega's defaults apply on a light one; the series palette is one set, the lighter nebula tints that read on a dark surface too (the light set's deep indigo and purple are gone), and subtitles take the title's color. The style cell's `.vega-embed text` rule is gone: the charts render on canvas inside a shadow root, which no notebook stylesheet reaches. No change to the prices. |
     | 1.4.1 | 2026-10-09 | The muted gray of secondary text, chart subtitles, rules, axis lines and ticks takes the AA values of the shared tokens (#6C6B67 light, #A3A29C dark) instead of #888884. No change to the prices. |
     | 1.4.0 | 2026-10-07 | Joins bac-utils on bac-common and bac-suite-db: settings from the suite config, one control panel, labels on every input, stat cards, the shared style and chart conventions, data checks as a callout, files-mode save and the base-currency switch moved into the store. |

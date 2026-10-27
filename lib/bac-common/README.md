@@ -1,4 +1,4 @@
-# bac-common v0.4.1
+# bac-common v0.4.2
 
 Build a CubeSat – the shared scaffold every BAC command-line tool is built on. It implements the parts of the BAC Project & Tooling Guide §3 and the BAC Interface Design Guide §10 that are the same for every tool, so a tool contains only its own logic.
 
@@ -75,6 +75,7 @@ Every message may contain Rich markup, so anything from outside the tool – fil
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.4.2 | 2026-10-27 | The terminal colours follow the 1.0 guides: success `#3FB950` and error `#E94538` (were `#84C45A` and `#CE6C63`); warning, progress fill and inline bars stay `#F7D400`. `ui.py`'s three colour lines are written by `bac-design-tokens` from `tokens.json` between marker comments. |
 | 0.4.1 | 2026-10-08 | `gsheets.credentials_source()` returns the key path together with where it came from, and a missing key file now says whether `BAC_GCP_CREDENTIALS` or the configured setting named it (`configured_as=`, for example `"[credentials] file"`); the variable wins by design, so a stale one in a `.env` above the working directory used to look like a broken config. `ui.py` names `tokens.css` as the source of its colour values. |
 | 0.4.0 | 2026-10-07 | `bac_common.gsheets`: the service-account Sheets reader lifted from `bac-update-content-plan` 0.3.0 and generalised, behind the optional `gsheets` extra so no other tool pays for the Google client libraries. Lazy imports, a testable `SheetsClient` wrapper, the key path from `BAC_GCP_CREDENTIALS` or config, ids accepted as URLs, API errors mapped to `ExternalToolError` with the next step (a 403 names the account to share with). |
 | 0.3.0 | 2026-10-06 | `bac_common.cad`: the STEP header helper `bac-kicad-generate-artifacts` uses to put the artifact name, author and organisation into the `FILE_NAME` entity in place of the exporter's placeholders; the FreeCAD artifacts tool will add 3MF. Header-only edit: the data section is copied through byte for byte; non-ASCII is written in Part 21's `\X2\…\X0\` form. |

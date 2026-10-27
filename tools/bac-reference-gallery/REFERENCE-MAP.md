@@ -7,8 +7,8 @@ This file is a maintenance aid, not a fourth design authority.
 | `identity-overview` | BAC Identity Guide | canonical palette, typography, form, imagery, voice, Ops/Mission |
 | `ops-vs-mission` | BAC Identity Guide | communication-mode choice, accent hierarchy, Mission surfaces, Ops restraint |
 | `document-family` | BAC Identity Guide | application across technical and presentation documents |
-| `interface-patterns` | BAC Interface Design Guide | semantic state, controls and form fields, tables, light/dark, terminal profile |
-| `data-visualisation` | BAC Interface Design Guide + Identity Guide | series identity, stroke encoding, accessibility, dark-surface contrast |
+| `interface-patterns` | BAC Interface Design Guide | the five states (colour, shape, word), pill controls and form fields, tables, light/dark with the neutral state accent, terminal profile |
+| `data-visualisation` | BAC Interface Design Guide + Identity Guide | ops series order, stroke encoding, accessibility, the nebula triad on a Mission chart |
 | `physical-interface` | BAC Interface Design Guide | LED semantics, silkscreen/position, shared-indicator accessibility |
 | `product-sheet` | BAC Identity Guide + Interface Design Guide | Mission collateral hierarchy, recessed viewport, paper wells, technical tables, restrained semantic status |
 
@@ -22,5 +22,6 @@ The map follows the gallery's version.
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.5.0 | 2026-10-27 | Rows for the 1.0 guides: the five states and the neutral dark-mode accent on interface-patterns, the ops series and the Mission triad on data-visualisation. |
 | 0.3.0 | 2026-10-08 | Boards named by their file names, as `-l` and `--only` use them; form fields added to the interface-patterns row. |
 | 0.2.0 | 2026-09-02 | As received in batch 1. |

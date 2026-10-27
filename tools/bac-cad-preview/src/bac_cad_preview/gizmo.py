@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFont
 
-AXIS_COLORS = {"X": "#CE6C63", "Y": "#84C45A", "Z": "#6C9BCE"}
+AXIS_COLORS = {"X": "#E94538", "Y": "#3FB950", "Z": "#4C9AFF"}
 AXIS_LABELS = {"X": "Xp", "Y": "Yp", "Z": "Zp"}  # BAC convention: Xp/Xm for the +X/-X directions
 LABEL_COLOR = "#8C8C8C"
 DOT_COLOR = "#6E6E6E"

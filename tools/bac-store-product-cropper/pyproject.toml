@@ -1,6 +1,6 @@
 [project]
 name = "bac-store-product-cropper"
-version = "0.2.0"
+version = "0.2.1"
 description = "Interactive crop of product photos for the store with size-targeted WebP export."
 readme = "README.md"
 license = { text = "MIT" }

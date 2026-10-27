@@ -1,6 +1,6 @@
 [project]
 name = "bac-kicad-stitch"
-version = "0.1.0"
+version = "0.1.1"
 description = "Ground stitching vias on a KiCad board: finds the gaps in via coverage and fills them where a via is DRC-clean, editing the file by span."
 readme = "README.md"
 license = { text = "MIT" }

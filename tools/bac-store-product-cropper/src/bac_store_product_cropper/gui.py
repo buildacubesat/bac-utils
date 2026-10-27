@@ -28,7 +28,7 @@ from .export import ExportOptions, Saved, save_crop
 __all__ = ["PREVIEW_PX", "Outcome", "Counts", "run"]
 
 PREVIEW_PX = 900
-BG, INK, MUTED = "#201E1C", "#EFEFED", "#A3A29C"
+BG, INK, MUTED = "#1F1E1D", "#E5E5E5", "#A9A8A6"
 HELP = "Scroll: zoom · Drag: pan · Enter/Space: save & next · S/→: skip · R: reset · Q/Esc: quit"
 
 Report = Callable[[str, Job, str], None]

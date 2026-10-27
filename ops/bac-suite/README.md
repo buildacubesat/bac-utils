@@ -1,4 +1,4 @@
-# bac-suite v0.2.1
+# bac-suite v0.2.2
 
 Build a CubeSat – the orchestrated run mode of the business operations suite: one web app with an index page and every installed engine's notebook behind its own route, all reading the same store. The shell holds no logic of its own; an engine registers its notebook under the `bac_suite.apps` entry-point group and appears on the index as soon as it is installed next to the shell. Today that is pricing at `/pricing`.
 
@@ -25,6 +25,7 @@ where `APP` is `{"label": "Pricing", "route": "/pricing", "notebook": <path>}`. 
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.2.2 | 2026-10-27 | The index page on the 1.0 tokens: `static/tokens.css` is written by `bac-design-tokens` (identical to the gallery's, as before); headings at the heading weight, the tool cards with 10 px corners and a border-and-surface hover instead of a yellow border, the wordmark highlight with `--text-on-accent`. |
 | 0.2.1 | 2026-10-09 | The index page links `/tokens.css`, a copy of the reference gallery's shared stylesheet served by the shell, instead of carrying its own colour values (its muted grey and focus blue differed from the tokens); the fonts come with the stylesheet. 14 tests. |
 | 0.2.0 | 2026-10-07 | Joins bac-utils as `ops/bac-suite` on `bac-common` and `bac-suite-db`: engines found through the `bac_suite.apps` entry-point group instead of a hard-coded table, the suite's shared `--init`, `--config`, `--env-file`, `--dry-run`, `-l`, `-v`, hidden `--debug`, the `--host` warning, the index page on the BAC tokens with escaped labels; the ASGI app is testable without uvicorn. 11 tests. |
 | 0.1.0 | 2026-07-06 | `bac_suite.py` in bac-pricing 1.3.0: marimo's ASGI app builder with pricing as the first entry, an index page. |

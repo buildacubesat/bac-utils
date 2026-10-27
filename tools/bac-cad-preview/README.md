@@ -1,4 +1,4 @@
-# bac-cad-preview v0.5.0
+# bac-cad-preview v0.5.1
 
 Build a CubeSat – renders STEP, STL and 3MF files to 720 × 720 px lossless WebP previews with a transparent background, framed exactly like the 3D render that `bac-kicad-generate-artifacts` makes from a KiCad board: same crop and padding, same output size, and the same camera when asked for the board view. A small X/Y/Z scale gizmo sits bottom left. The renderer is a numpy z-buffer rasterizer: no OpenGL, no display, no FreeCAD or KiCad installation needed.
 
@@ -85,6 +85,7 @@ MIT – see the BAC licensing conventions (software: MIT, hardware: CERN OHL-S 2
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.5.1 | 2026-10-27 | The axis gizmo takes the 1.0 palette: X `#E94538`, Y `#3FB950`, Z `#4C9AFF` (were `#CE6C63`, `#84C45A`, `#6C9BCE`). |
 | 0.5.0 | 2026-10-02 | Joins bac-utils on `bac-common` (`make_parser`, `run`, `ui`; the mirrored `ui.py` is gone). Faces are named with the project's axis letters `xp`, `xm`, `yp`, `ym`, `zp`, `zm`; the signed spellings and kicad-cli side names stay as aliases and the log prints the letter form. `-o/--out` becomes `--out-dir DIR` as in the other batch tools. Two inputs that would write the same preview are refused before any work, and so is an `--out-dir` that is not a directory. One bad file no longer ends the batch: every failure inside the render of a file prints its ✗ line and the run continues (0.4.1 caught only load and I/O errors). `samples/` becomes `examples/`; the font lookup for the gizmo runs once per size. Tests on `bac_common.testing`; 43 tests. |
 | 0.4.1 | 2026-10-01 | Gizmo letters sit a little further from the end bars. |
 | 0.4.0 | 2026-10-01 | Mesh files (STL, 3MF, OBJ, PLY) render in RBF red by default; STEP keeps the neutral grey for uncoloured faces; `--color` overrides both. |

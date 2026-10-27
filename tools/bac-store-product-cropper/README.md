@@ -1,4 +1,4 @@
-# bac-store-product-cropper v0.2.0
+# bac-store-product-cropper v0.2.1
 
 Build a CubeSat – a small Tk window for framing product photos by hand, one after the other, and exporting each crop as a WebP file that stays under a size target. Made for the store's product images: `bac-media-convert webp-square` does the mechanical centre crop; this tool is for the photos where the centre is not the subject.
 
@@ -52,5 +52,6 @@ Nothing here is specific to Build a CubeSat but the defaults. For reuse: `bac_st
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.2.1 | 2026-10-27 | The crop window takes the 1.0 dark surface: background `#1F1E1D`, text `#E5E5E5`, muted `#A9A8A6` (were `#201E1C`, `#EFEFED`, `#A3A29C`). |
 | 0.2.0 | 2026-10-07 | Repackaged as `bac-store-product-cropper` on `bac-common` and `bac-media-convert`: the four bugs in §4 fixed, an unwritable output folder reported as a failed file instead of a dead window, `-v`, `--dry-run`, hidden `--debug`, `--out-dir`, `--force`, files and folders as inputs, collision check and skip of existing outputs, Rich opening panel, ✓/✗ lines and summary, errors to stderr, the preview canvas with the crop's ratio, the export on `bac_media_convert.webp.export_webp`, `--method` dropped; the crop and export logic in importable modules with 37 tests (the window's key handling against a fake `tkinter`). |
 | 0.1.0 | – | `product_cropper.py`: the Tk cropper with size-targeted WebP export, no packaging. |

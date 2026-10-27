@@ -23,6 +23,7 @@ members = [
     "bac-common",
     "bac-convention-check",
     "bac-csr-ingest",
+    "bac-design-tokens",
     "bac-issue-print",
     "bac-kicad-common",
     "bac-kicad-generate-artifacts",
@@ -212,7 +213,7 @@ provides-extras = ["simulation", "report"]
 
 [[package]]
 name = "bac-antenna-visualizer"
-version = "0.3.7"
+version = "0.3.8"
 source = { virtual = "notebooks/bac-antenna-visualizer" }
 dependencies = [
     { name = "altair" },
@@ -241,7 +242,7 @@ requires-dist = [
 
 [[package]]
 name = "bac-cad-preview"
-version = "0.5.0"
+version = "0.5.1"
 source = { editable = "tools/bac-cad-preview" }
 dependencies = [
     { name = "bac-common" },
@@ -305,7 +306,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-common"
-version = "0.4.1"
+version = "0.4.2"
 source = { editable = "lib/bac-common" }
 dependencies = [
     { name = "python-dotenv" },
@@ -410,6 +411,29 @@ requires-dist = [
     { name = "typer", specifier = ">=0.12" },
 ]
 provides-extras = ["extract"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "bac-design-tokens"
+version = "0.1.0"
+source = { editable = "tools/bac-design-tokens" }
+dependencies = [
+    { name = "bac-common" },
+    { name = "rich" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bac-common", editable = "lib/bac-common" },
+    { name = "rich", specifier = ">=13.7" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8.0" }]
@@ -587,7 +611,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-kicad-stitch"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "tools/bac-kicad-stitch" }
 dependencies = [
     { name = "bac-common" },
@@ -649,7 +673,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-link-budget"
-version = "0.7.6"
+version = "0.7.7"
 source = { virtual = "notebooks/bac-link-budget" }
 dependencies = [
     { name = "altair" },
@@ -721,7 +745,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-optical-payload"
-version = "0.7.6"
+version = "0.7.7"
 source = { virtual = "notebooks/bac-optical-payload" }
 dependencies = [
     { name = "altair" },
@@ -743,7 +767,7 @@ requires-dist = [
 
 [[package]]
 name = "bac-orbital-lifetime"
-version = "0.2.7"
+version = "0.2.8"
 source = { virtual = "notebooks/bac-orbital-lifetime" }
 dependencies = [
     { name = "altair" },
@@ -770,7 +794,7 @@ requires-dist = [
 
 [[package]]
 name = "bac-power-budget"
-version = "0.5.6"
+version = "0.5.7"
 source = { virtual = "notebooks/bac-power-budget" }
 dependencies = [
     { name = "altair" },
@@ -792,7 +816,7 @@ requires-dist = [
 
 [[package]]
 name = "bac-pricing"
-version = "1.4.2"
+version = "1.4.3"
 source = { editable = "ops/bac-pricing" }
 dependencies = [
     { name = "altair" },
@@ -827,7 +851,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-reference-gallery"
-version = "0.4.0"
+version = "0.5.0"
 source = { editable = "tools/bac-reference-gallery" }
 dependencies = [
     { name = "bac-common" },
@@ -856,7 +880,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-store-product-cropper"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "tools/bac-store-product-cropper" }
 dependencies = [
     { name = "bac-common" },
@@ -883,7 +907,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-suite"
-version = "0.2.1"
+version = "0.2.2"
 source = { editable = "ops/bac-suite" }
 dependencies = [
     { name = "bac-common" },

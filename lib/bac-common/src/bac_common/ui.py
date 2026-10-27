@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MIT
 """Terminal presentation, following the BAC Interface Design Guide §10.
 
-Literal colour values here are copies of the canonical BAC tokens and are
-not authoritative; their executable source is the reference gallery's
-``css/tokens.css`` (tools/bac-reference-gallery). If they disagree with it
-or with the Identity Guide, update this file.
+The three colours are written by bac-design-tokens from the canonical
+``tokens.json`` (tools/bac-design-tokens); change the tokens and run the
+generator rather than editing them here. They are the status fills, tuned for
+dark terminals: the guide accepts that yellow is faint on a light theme.
 
 Markup: every function accepts Rich markup in its message. Values that come
 from outside the tool – file names, LLM output, user input – must pass
@@ -33,9 +33,11 @@ from rich.progress import (
 from rich.rule import Rule
 from rich.table import Table
 
-GREEN = "#84C45A"
-RED = "#CE6C63"
-YELLOW = "#F7D400"
+# bac-design-tokens: begin – written from tokens.json; change the tokens, not these lines
+GREEN = "#3FB950"  # --bac-green: success, pass
+RED = "#E94538"  # --bac-red: error, fail
+YELLOW = "#F7D400"  # --bac-yellow: warning, progress fill, inline bars
+# bac-design-tokens: end
 
 PROJECT = "Build a CubeSat"
 

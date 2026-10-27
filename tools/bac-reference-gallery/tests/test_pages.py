@@ -96,28 +96,31 @@ def test_tokens_light_and_both_dark_blocks_agree():
     # the two dark blocks must declare the same tokens with the same values
     assert {k: v.strip() for k, v in dark_media.items()} == {k: v.strip() for k, v in dark_attr.items()}
     assert set(dark_media) <= set(light), set(dark_media) - set(light)
-    assert light["--text-muted"] == "var(--warm-600)" and dark_media["--text-muted"] == "var(--warm-400)"
-    assert light["--link"] == "var(--bac-blue-press)"
+    assert light["--text-muted"] == "#6D6D6D" and dark_media["--text-muted"] == "#A9A8A6"
+    assert light["--link"] == "#0B5CAD" and dark_media["--link"] == "#4C9AFF"
+    assert light["--accent-state"] == "#F7D400" and dark_media["--accent-state"] == "#E5E5E5"
 
 
 def test_tokens_mirror_the_identity_guide_palette():
     canonical = _block(_text(CSS / "tokens.css"), "/* 1. Canonical tokens")
     expected = {
         "--bac-yellow": "#F7D400",
-        "--bac-blue": "#4277FD",
-        "--bac-green": "#84C45A",
-        "--bac-red": "#CE6C63",
-        "--nebula-cyan": "#087C9B",
-        "--nebula-blue": "#3B35B8",
-        "--nebula-copper": "#C88732",
-        "--nebula-violet": "#21105F",
-        "--nebula-ember": "#A94E52",
-        "--warm-50": "#EFEFED",
-        "--warm-500": "#888884",
-        "--warm-800": "#3F3F3F",
-        "--warm-950": "#201E1C",
+        "--bac-blue": "#004C8B",
+        "--bac-green": "#3FB950",
+        "--bac-red": "#E94538",
+        "--nebula-teal": "#0E9594",
+        "--nebula-violet": "#7A5AF8",
+        "--nebula-rose": "#C64677",
+        "--neutral-50": "#F9F9F9",
+        "--neutral-500": "#8A8A8A",
+        "--neutral-800": "#3F3F3F",
+        "--neutral-950": "#1F1F1F",
         "--space-ink": "#171320",
-        "--space-paper": "#F6F0E6",
+        "--space-paper": "#F4F1EA",
+        "--radius-sm": "6px",
+        "--radius-md": "10px",
+        "--radius-pill": "100px",
+        "--font-body": "'Nunito Sans', system-ui, sans-serif",
         "--dur-normal": "200ms",
         "--ease-standard": "cubic-bezier(0.2, 0, 0.1, 1)",
     }
@@ -131,7 +134,7 @@ def test_stylesheets_have_focus_and_reduced_motion(sheet):
     assert ":focus-visible" in css
     assert "prefers-reduced-motion" in css
     assert "@import url('./tokens.css')" in css
-    assert "--warm-500" not in css
+    assert "--neutral-500" not in css
 
 
 @pytest.mark.parametrize("sheet", sorted(CSS.glob("*.css")), ids=lambda p: p.name)
@@ -186,7 +189,7 @@ def test_nothing_spills_out_of_a_board_or_a_card(scheme):
 
 @needs_browser
 @pytest.mark.parametrize(
-    ("scheme", "pinned", "expected"), [("dark", "light", "rgb(63, 63, 63)"), ("light", "dark", "rgb(239, 239, 237)")]
+    ("scheme", "pinned", "expected"), [("dark", "light", "rgb(63, 63, 63)"), ("light", "dark", "rgb(229, 229, 229)")]
 )
 def test_a_pinned_subtree_takes_its_own_text_colour(tmp_path, scheme, pinned, expected):
     from playwright.sync_api import sync_playwright
@@ -234,6 +237,6 @@ def test_dark_mode_switches_ops_surfaces_but_not_the_product_sheet(monkeypatch, 
     suffix = {"light": "", "dark": "-dark"}
     board = {t: image.open(tmp_path / "png" / f"ops-vs-mission{suffix[t]}.png").convert("RGB") for t in suffix}
     sheet = {t: image.open(tmp_path / "png" / f"product-sheet{suffix[t]}.png").convert("RGB") for t in suffix}
-    assert board["light"].getpixel((5, 5)) == (0xEF, 0xEF, 0xED)  # --bg, light
-    assert board["dark"].getpixel((5, 5)) == (0x20, 0x1E, 0x1C)  # --bg, dark
+    assert board["light"].getpixel((5, 5)) == (0xF9, 0xF9, 0xF9)  # --bg, light
+    assert board["dark"].getpixel((5, 5)) == (0x1F, 0x1E, 0x1D)  # --bg, dark
     assert sheet["light"].getpixel((500, 1400)) == sheet["dark"].getpixel((500, 1400))  # pinned light

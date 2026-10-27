@@ -14,5 +14,6 @@ max_hits = 40
   # Codeberg API responses recorded as test fixtures: other people's text, typography and all.
   "tools/bac-issue-print/tests/fixtures/*.json",
 ]
-# The Codeberg owner slug is an identifier in this README, not a display name.
-B2 = ["tools/bac-issue-print/README.md"]
+# The Codeberg owner slug and the tokens' reverse-domain extension key are identifiers
+# in these READMEs, not display names.
+B2 = ["tools/bac-issue-print/README.md", "tools/bac-design-tokens/README.md"]

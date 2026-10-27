@@ -3,7 +3,10 @@
    Build a CubeSat – every colour goes through the tokens in tokens.css, so a
    board follows light and dark mode. Mission surfaces keep their own fixed
    colours: the dark viewport is dark in both modes, and paper areas carry
-   data-theme="light" in the markup. */
+   data-theme="light" in the markup. The component language is the BAC Ground
+   console's (Interface Design Guide 1.0 §6): pill controls with uppercase mono
+   labels, 6 and 10 px corners, no shadows – depth comes from background steps
+   and hairline borders. */
 @import url('./tokens.css');
 
 * { box-sizing: border-box; }
@@ -29,12 +32,13 @@ a:hover { text-decoration-thickness: 2px; }
   padding: 56px 64px;
 }
 
+/* Labels are mono, uppercase, tracked at the console's 0.03em. */
 .eyebrow {
-  font: 600 13px/1.1 var(--font-mono);
-  letter-spacing: .12em;
+  font: 500 13px/1.1 var(--font-mono);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
 }
-/* The kicker's accent is the yellow bar; yellow text would fail contrast on paper. */
+/* The kicker's accent is the small yellow bar; yellow text would fail contrast on paper. */
 .kicker { color: var(--text-strong); }
 .kicker::before {
   content: '';
@@ -44,29 +48,29 @@ a:hover { text-decoration-thickness: 2px; }
   margin-right: 10px;
   vertical-align: .2em;
   border-radius: 2px;
-  background: var(--bac-yellow);
+  background: var(--kicker);
 }
 .display {
   margin: 0;
-  font: 700 54px/1.02 var(--font-display);
-  letter-spacing: -.03em;
+  font: var(--fw-heading) 54px/1.02 var(--font-display);
+  letter-spacing: var(--ls-tight);
   color: var(--text-strong);
 }
 .h2 {
   margin: 0;
-  font: 700 30px/1.1 var(--font-display);
-  letter-spacing: -.02em;
+  font: var(--fw-heading) 30px/1.1 var(--font-display);
+  letter-spacing: var(--ls-tight);
   color: var(--text-strong);
 }
 .h3 {
   margin: 0;
-  font: 700 20px/1.2 var(--font-display);
-  letter-spacing: -.01em;
+  font: var(--fw-heading) 20px/1.2 var(--font-display);
   color: var(--text-strong);
 }
 .body { font: 400 14px/1.55 var(--font-body); }
 .small { font: 400 12px/1.45 var(--font-body); }
-.micro { font: 500 10px/1.35 var(--font-body); }
+.micro { font: 400 10.5px/1.4 var(--font-body); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .muted { color: var(--text-muted); }
 
 .rule { height: 1px; background: var(--border); width: 100%; }
@@ -76,14 +80,9 @@ a:hover { text-decoration-thickness: 2px; }
   background: var(--surface-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
 }
-/* Ops well: a recessed area inside a card. It takes --bg, not --surface-sunken:
-   muted text on --surface-sunken is 4.23:1 in light mode, below AA. */
-.card.well {
-  background: var(--bg);
-  box-shadow: none;
-}
+/* Ops well: a recessed area inside a card, one background step below it. */
+.card.well { background: var(--bg); }
 /* Mission paper well: only on space-paper, inside a data-theme="light" area. */
 .card.sunken {
   background: var(--mission-paper-well-bg);
@@ -93,11 +92,11 @@ a:hover { text-decoration-thickness: 2px; }
 .mission-viewport {
   color-scheme: dark;
   background:
-    radial-gradient(circle at 78% 26%, rgba(59, 53, 184, .28), transparent 22%),
-    radial-gradient(circle at 24% 72%, rgba(8, 124, 155, .22), transparent 26%),
+    radial-gradient(circle at 78% 26%, rgba(122, 90, 248, .26), transparent 22%),
+    radial-gradient(circle at 24% 72%, rgba(14, 149, 148, .22), transparent 26%),
     var(--mission-viewport-bg);
   border: 1px solid var(--mission-viewport-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-md);
   box-shadow: var(--mission-viewport-glow);
   color: var(--space-paper);
   position: relative;
@@ -116,51 +115,92 @@ a:hover { text-decoration-thickness: 2px; }
   background-position: 13px 11px, 57px 33px;
 }
 .mission-paper { background: var(--space-paper); color: var(--text); }
-.mission-cyan { color: var(--mission-cyan-ink); }
-.mission-copper { color: var(--mission-copper-ink); }
+/* Nebula text on paper takes the AA inks; on the dark viewport the on-dark shades. */
+.mission-teal { color: var(--mission-teal-ink); }
+.mission-violet { color: var(--mission-violet-ink); }
+.mission-rose { color: var(--mission-rose-ink); }
+.mission-viewport .mission-teal { color: var(--mission-teal-on-dark); }
+.mission-viewport .mission-violet { color: var(--mission-violet-on-dark); }
+.mission-viewport .mission-rose { color: var(--mission-rose-on-dark); }
+/* When the surfaces nest, the nearer one decides: paper inside a viewport takes the
+   paper inks, a viewport inside paper the on-dark shades. */
+.mission-viewport .mission-paper .mission-teal { color: var(--mission-teal-ink); }
+.mission-viewport .mission-paper .mission-violet { color: var(--mission-violet-ink); }
+.mission-viewport .mission-paper .mission-rose { color: var(--mission-rose-ink); }
+.mission-paper .mission-viewport .mission-teal { color: var(--mission-teal-on-dark); }
+.mission-paper .mission-viewport .mission-violet { color: var(--mission-violet-on-dark); }
+.mission-paper .mission-viewport .mission-rose { color: var(--mission-rose-on-dark); }
 
+/* Hero card (Interface Design Guide §6): one per view, info blue in both modes.
+   The red rule under the title is decorative, not an alarm. */
+.hero-card {
+  background: var(--hero-bg);
+  color: var(--hero-text);
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
+}
+.hero-card .eyebrow { color: var(--hero-text); }
+.hero-card .hero-title { font: var(--fw-heading) 26px/1.1 var(--font-display); text-transform: uppercase; letter-spacing: 0; }
+.hero-card .hero-rule { height: 2px; background: var(--hero-rule); margin: 12px 0 10px; }
+.hero-card .hero-figure { font: 500 44px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Chips: colour plus shape plus word. */
 .pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   min-height: 25px;
-  padding: 4px 9px;
-  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border-strong);
-  font: 600 10px/1 var(--font-mono);
-  letter-spacing: .07em;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
 }
-/* Solar Copper marks a Mission draft label (Identity Guide §4.5) – on the dark viewport only, never as a warning. */
-.pill.copper { border-color: var(--nebula-copper); color: var(--nebula-copper); }
+/* Plasma Rose marks a Mission draft label (Identity Guide §4.5) – decorative, never a warning. */
+.pill.rose { border-color: var(--mission-rose-on-dark); color: var(--mission-rose-on-dark); }
 .pill.yellow { background: var(--bac-yellow); border-color: var(--bac-yellow); color: var(--text-on-accent); }
-.pill.green { background: var(--bac-green-tint); border-color: rgba(132, 196, 90, .55); color: var(--bac-green-ink); }
-.pill.red { background: var(--bac-red-tint); border-color: rgba(206, 108, 99, .55); color: var(--bac-red-ink); }
-.pill.blue { background: var(--bac-blue-tint); border-color: rgba(66, 119, 253, .45); color: var(--bac-blue-ink); }
+.pill.green { background: var(--bac-green-tint); border-color: color-mix(in srgb, var(--bac-green) 45%, transparent); color: var(--bac-green-ink); }
+.pill.red { background: var(--bac-red-tint); border-color: color-mix(in srgb, var(--bac-red) 55%, transparent); color: var(--bac-red-ink); }
+.pill.blue { background: var(--bac-blue-tint); border-color: color-mix(in srgb, var(--bac-blue-ink) 45%, transparent); color: var(--bac-blue-ink); }
+.pill.planned { border-style: dashed; color: var(--text-muted); }
+/* The state accent marks the current selection: yellow in light, light grey in dark. */
+.pill.state { background: var(--accent-state); border-color: var(--accent-state); color: var(--accent-state-text); }
+/* State shapes (the five-state system): nominal circle, caution triangle, alarm square,
+   info diamond, no data / planned dashed hollow circle. Decorative – the word carries the state. */
+.shape { display: inline-block; flex: none; width: 8px; height: 8px; background: currentColor; }
+.shape.nominal { border-radius: 50%; }
+.shape.caution { width: 9px; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.shape.info { width: 7px; height: 7px; transform: rotate(45deg); }
+.shape.planned { background: transparent; border: 1px dashed currentColor; border-radius: 50%; }
 
+/* Buttons: pills with uppercase mono labels. The primary action is yellow in light
+   and grey in dark, where yellow means caution only. */
 .btn {
   display: inline-flex;
   height: 38px;
   align-items: center;
   justify-content: center;
-  padding: 0 16px;
-  border-radius: var(--radius-sm);
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border-strong);
-  font: 600 12px/1 var(--font-body);
+  font: 500 12px/1 var(--font-mono);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
   background: var(--surface-card);
   color: var(--text-strong);
   cursor: pointer;
 }
 .btn:hover { background: var(--surface-hover); }
 .btn:active { transform: translateY(1px); }
-.btn.primary { background: var(--bac-yellow); border-color: var(--bac-yellow); color: var(--text-on-accent); }
-.btn.primary:hover { background: var(--bac-yellow-press); border-color: var(--bac-yellow-press); }
+.btn.primary { background: var(--btn-primary-bg); border-color: var(--btn-primary-bg); color: var(--btn-primary-text); }
+.btn.primary:hover { background: var(--btn-primary-hover); border-color: var(--btn-primary-hover); }
 .btn.ghost { background: transparent; }
 .btn.ghost:hover { background: var(--surface-hover); }
 .btn.danger { border-color: var(--bac-red); color: var(--bac-red-ink); background: var(--bac-red-tint); }
 
 .field { display: grid; gap: 6px; }
-.field label { font: 500 10px/1.35 var(--font-body); letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); }
+.field label { font: 500 10px/1.35 var(--font-mono); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--text-muted); }
 .field .control { position: relative; }
 .input {
   width: 100%;
@@ -170,54 +210,55 @@ a:hover { text-decoration-thickness: 2px; }
   border-radius: var(--radius-sm);
   background: var(--surface-card);
   color: var(--text);
-  font: 400 12px var(--font-body);
+  font: 400 12px var(--font-mono);
 }
 .field .unit {
   position: absolute;
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  font: 400 12px var(--font-body);
+  font: 400 12px var(--font-mono);
   color: var(--text-muted);
   pointer-events: none;
 }
 
 .stat { padding: 18px; }
-.stat .label { font: 600 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
-.stat .value { margin-top: 8px; font: 700 31px/1 var(--font-display); letter-spacing: -.025em; color: var(--text-strong); }
-.stat .sub { margin-top: 6px; font: 400 10px var(--font-body); color: var(--text-muted); }
-.stat.current { border-color: var(--bac-yellow); }
+.stat .label { font: 500 10px var(--font-mono); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--text-muted); }
+.stat .value { margin-top: 8px; font: 500 30px/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--text-strong); }
+.stat .sub { margin-top: 6px; font: 400 10px var(--font-mono); color: var(--text-muted); }
+/* The current selection: the state accent, yellow in light and light grey in dark. */
+.stat.current { border-color: var(--accent-state); box-shadow: 0 0 0 1px var(--accent-state); }
 
-.callout { padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); font: 500 12px/1.45 var(--font-body); color: var(--text); }
-.callout.warning { background: var(--bac-yellow-tint); border-color: rgba(247, 212, 0, .65); }
-.callout.success { background: var(--bac-green-tint); border-color: rgba(132, 196, 90, .55); }
-.callout.error { background: var(--bac-red-tint); border-color: rgba(206, 108, 99, .55); }
-.callout.info { background: var(--bac-blue-tint); border-color: rgba(66, 119, 253, .45); }
+.callout { padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); font: 400 12px/1.45 var(--font-body); color: var(--text); }
+.callout.warning { background: var(--bac-yellow-tint); border-color: color-mix(in srgb, var(--bac-yellow) 65%, transparent); }
+.callout.success { background: var(--bac-green-tint); border-color: color-mix(in srgb, var(--bac-green) 55%, transparent); }
+.callout.error { background: var(--bac-red-tint); border-color: color-mix(in srgb, var(--bac-red) 55%, transparent); }
+.callout.info { background: var(--bac-blue-tint); border-color: color-mix(in srgb, var(--bac-blue-ink) 45%, transparent); }
 
-.data-table { width: 100%; border-collapse: collapse; font: 400 11px/1.35 var(--font-body); }
-.data-table th { text-align: left; font-weight: 700; padding: 8px 9px; border-bottom: 2px solid var(--text); color: var(--text-strong); }
+.data-table { width: 100%; border-collapse: collapse; font: 400 11.5px/1.35 var(--font-body); }
+.data-table th { text-align: left; font: 500 10px/1.35 var(--font-mono); letter-spacing: var(--ls-label); text-transform: uppercase; padding: 8px 9px; border-bottom: 2px solid var(--text); color: var(--text-muted); }
 .data-table td { padding: 8px 9px; border-bottom: 1px solid var(--border); }
-.data-table td.num, .data-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.data-table td.num, .data-table th.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
 .section-label {
   display: flex;
   align-items: center;
   gap: 12px;
-  font: 600 11px/1 var(--font-mono);
-  letter-spacing: .1em;
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--text-muted);
 }
 .section-label::after { content: ''; height: 1px; background: var(--border); flex: 1; }
 
-.note { font: 400 10px/1.45 var(--font-body); color: var(--text-muted); }
+.note { font: 400 10.5px/1.45 var(--font-body); color: var(--text-muted); }
 
 .page-chip {
   position: absolute;
   right: 34px;
   top: 28px;
-  font: 600 10px var(--font-mono);
-  letter-spacing: .08em;
+  font: 500 10px var(--font-mono);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -232,7 +273,7 @@ a:hover { text-decoration-thickness: 2px; }
   border-top: 1px solid var(--border);
   padding-top: 10px;
   font: 500 9px/1.3 var(--font-mono);
-  letter-spacing: .05em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -240,12 +281,14 @@ a:hover { text-decoration-thickness: 2px; }
 /* Inline charts: SVG presentation attributes cannot read custom properties, so strokes and fills go through classes. */
 .chart-grid { stroke: var(--border); }
 .chart-axis { stroke: var(--border-strong); }
-.chart-label { fill: var(--text-muted); }
+.chart-label { fill: var(--text-muted); font-family: var(--font-mono); }
 .chart-text { fill: var(--text); }
 .series-1 { stroke: var(--chart-1); }
 .series-2 { stroke: var(--chart-2); }
 .series-3 { stroke: var(--chart-3); }
 .series-4 { stroke: var(--chart-4); }
+.series-5 { stroke: var(--chart-5); }
+.series-6 { stroke: var(--chart-6); }
 
 @media (prefers-reduced-motion: no-preference) {
   .btn { transition: background-color var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); }

@@ -6,8 +6,8 @@
 <title>BAC identity overview</title>
 <link rel="stylesheet" href="../css/gallery.css">
 <style>
-  .swatch { border: 1px solid var(--border); border-radius: 8px 8px 3px 3px; height: 78px; }
-  .swatch.nebula { border-radius: 6px; height: 58px; }
+  .swatch { border: 1px solid var(--border); border-radius: var(--radius-md); height: 78px; }
+  .swatch.nebula { border-radius: var(--radius-sm); height: 58px; }
 </style>
 </head>
 <body>
@@ -16,13 +16,13 @@
   <section style="display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:start;">
     <div>
       <div class="eyebrow kicker">Identity quick reference</div>
-      <h1 class="display" style="margin-top:14px;max-width:760px;">Warm, structural,<br>engineering-grade.</h1>
+      <h1 class="display" style="margin-top:14px;max-width:760px;">Calm, structural,<br>engineering-grade.</h1>
       <p class="body muted" style="max-width:720px;margin-top:18px;">Build a CubeSat balances practical engineering with a restrained sense of exploration. The system is utilitarian without becoming corporate, futuristic without becoming fantasy.</p>
     </div>
     <div class="mission-viewport" style="height:220px;padding:26px 30px;display:flex;align-items:center;justify-content:space-between;">
       <div style="position:relative;z-index:2;">
-        <div class="eyebrow" style="color:var(--nebula-copper);">Build a CubeSat</div>
-        <div style="font:700 33px/1.05 var(--font-display);letter-spacing:-.02em;margin-top:10px;">Space is for everyone.</div>
+        <div style="display:flex;align-items:center;gap:14px;"><img src="../assets/bac-symbol.svg" alt="" style="height:44px;filter:invert(1) brightness(.96);"><div class="eyebrow mission-teal">Build a CubeSat</div></div>
+        <div style="font:var(--fw-heading) 33px/1.05 var(--font-display);letter-spacing:var(--ls-tight);margin-top:10px;">Space is for everyone.</div>
         <div class="small" style="color:var(--space-muted);margin-top:12px;max-width:320px;">Mission presentation may be expressive. Functional meaning remains precise.</div>
       </div>
       <img src="../assets/cubesat-wireframe.svg" alt="" style="height:190px;position:relative;z-index:1;opacity:.9;transform:translateX(12px);">
@@ -33,44 +33,45 @@
     <div>
       <div class="section-label">Colour system</div>
       <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:16px;">
-        <div><div class="swatch" style="background:var(--bac-yellow);"></div><div class="micro" style="margin-top:7px;">BAC YELLOW<br><span class="muted">#F7D400</span></div></div>
-        <div><div class="swatch" style="background:var(--bac-blue);"></div><div class="micro" style="margin-top:7px;">BAC BLUE<br><span class="muted">#4277FD</span></div></div>
-        <div><div class="swatch" style="background:var(--bac-green);"></div><div class="micro" style="margin-top:7px;">PASS<br><span class="muted">#84C45A</span></div></div>
-        <div><div class="swatch" style="background:var(--bac-red);"></div><div class="micro" style="margin-top:7px;">FAIL<br><span class="muted">#CE6C63</span></div></div>
-        <div><div class="swatch" style="background:var(--warm-800);"></div><div class="micro" style="margin-top:7px;">STRUCTURE<br><span class="muted">#3F3F3F</span></div></div>
-        <div><div class="swatch" style="background:var(--warm-50);"></div><div class="micro" style="margin-top:7px;">PAPER<br><span class="muted">#EFEFED</span></div></div>
+        <div><div class="swatch" style="background:var(--bac-yellow);"></div><div class="micro mono" style="margin-top:7px;">BAC YELLOW<br><span class="muted">#F7D400</span></div></div>
+        <div><div class="swatch" style="background:var(--bac-blue);"></div><div class="micro mono" style="margin-top:7px;">INFO<br><span class="muted">#004C8B</span></div></div>
+        <div><div class="swatch" style="background:var(--bac-green);"></div><div class="micro mono" style="margin-top:7px;">NOMINAL<br><span class="muted">#3FB950</span></div></div>
+        <div><div class="swatch" style="background:var(--bac-red);"></div><div class="micro mono" style="margin-top:7px;">ALARM<br><span class="muted">#E94538</span></div></div>
+        <div><div class="swatch" style="background:var(--neutral-800);"></div><div class="micro mono" style="margin-top:7px;">STRUCTURE<br><span class="muted">#3F3F3F</span></div></div>
+        <div><div class="swatch" style="background:var(--neutral-50);"></div><div class="micro mono" style="margin-top:7px;">SURFACE<br><span class="muted">#F9F9F9</span></div></div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px;">
-        <div><div class="swatch nebula" style="background:var(--nebula-cyan);"></div><div class="micro" style="margin-top:5px;">ORBITAL CYAN</div></div>
-        <div><div class="swatch nebula" style="background:var(--nebula-blue);"></div><div class="micro" style="margin-top:5px;">ION BLUE</div></div>
-        <div><div class="swatch nebula" style="background:var(--nebula-copper);"></div><div class="micro" style="margin-top:5px;">SOLAR COPPER</div></div>
-        <div><div class="swatch nebula" style="background:var(--nebula-violet);"></div><div class="micro" style="margin-top:5px;">DEEP FIELD VIOLET</div></div>
-        <div><div class="swatch nebula" style="background:var(--nebula-ember);"></div><div class="micro" style="margin-top:5px;">NEBULA EMBER</div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr) 2fr;gap:10px;margin-top:18px;">
+        <div><div class="swatch nebula" style="background:var(--nebula-teal);"></div><div class="micro mono" style="margin-top:5px;">ORBITAL TEAL <span class="muted">#0E9594</span></div></div>
+        <div><div class="swatch nebula" style="background:var(--nebula-violet);"></div><div class="micro mono" style="margin-top:5px;">ION VIOLET <span class="muted">#7A5AF8</span></div></div>
+        <div><div class="swatch nebula" style="background:var(--nebula-rose);"></div><div class="micro mono" style="margin-top:5px;">PLASMA ROSE <span class="muted">#C64677</span></div></div>
+        <div class="note" style="align-self:center;">The nebula triad is Mission and marketing only. Status colours keep one meaning each: nominal, caution, alarm, info.</div>
       </div>
     </div>
 
     <div>
       <div class="section-label">Typography &amp; voice</div>
       <div class="card" style="margin-top:16px;padding:20px 22px;">
-        <div style="font:700 31px/1 var(--font-logo);color:var(--text-strong);">Build a CubeSat</div>
-        <div class="micro muted" style="margin-top:7px;">NUNITO · WORDMARK ONLY</div>
-        <div style="font:700 28px/1.08 var(--font-display);letter-spacing:-.02em;margin-top:20px;color:var(--text-strong);">Engineering should be understandable.</div>
-        <div class="micro muted" style="margin-top:7px;">NUNITO SANS · DISPLAY / HEADINGS</div>
-        <div class="small" style="margin-top:18px;">Exact values, direct language, caveats included. Fail loudly, succeed quietly.</div>
-        <div class="micro muted" style="margin-top:7px;">IBM PLEX MONO · BODY / CODE</div>
+        <div style="font:800 29px/1 var(--font-logo);letter-spacing:.04em;text-transform:uppercase;color:var(--text-strong);">Build a CubeSat</div>
+        <div class="micro mono muted" style="margin-top:7px;">NUNITO · WORDMARK ONLY, UPPERCASE</div>
+        <div style="font:var(--fw-heading) 28px/1.08 var(--font-display);letter-spacing:var(--ls-tight);margin-top:20px;color:var(--text-strong);">Engineering should be understandable.</div>
+        <div class="micro mono muted" style="margin-top:7px;">NUNITO SANS 500 · HEADINGS</div>
+        <div class="small" style="margin-top:16px;">Exact values, direct language, caveats included. Fail loudly, succeed quietly.</div>
+        <div class="micro mono muted" style="margin-top:7px;">NUNITO SANS 400 · BODY</div>
+        <div class="small mono" style="margin-top:12px;">7.42 V · 2026-10-27 09:26 UTC</div>
+        <div class="micro mono muted" style="margin-top:7px;">IBM PLEX MONO · LABELS, FIGURES, CODE</div>
       </div>
     </div>
   </section>
 
   <section style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:31px;">
-    <div class="card" style="padding:18px 20px;border-top:3px solid var(--bac-yellow);">
-      <div class="eyebrow">Engineering fillet</div><div class="small" style="margin-top:9px;">Moderate radii, warm hairlines, soft shadows. No bubble UI and no glassmorphism.</div>
+    <div class="card" style="padding:18px 20px;">
+      <div class="eyebrow">Form</div><div class="small" style="margin-top:9px;">Pill controls, 6 and 10 px corners, hairline borders. No shadows: depth comes from background steps.</div>
     </div>
     <div class="card" style="padding:18px 20px;">
-      <div class="eyebrow">Ops</div><div class="small" style="margin-top:9px;">Technical and operational communication. Flat warm surfaces, restrained hierarchy, semantic yellow.</div>
+      <div class="eyebrow">Ops</div><div class="small" style="margin-top:9px;">Technical and operational communication. Flat neutral surfaces, restrained hierarchy, status in colour, shape and word.</div>
     </div>
-    <div class="mission-viewport" style="padding:18px 20px;border-radius:8px;">
-      <div class="eyebrow" style="position:relative;z-index:2;color:var(--nebula-copper);">Mission</div><div class="small" style="position:relative;z-index:2;margin-top:9px;">Presentation-led communication. Dark viewports, paper wells and restrained nebula atmosphere.</div>
+    <div class="mission-viewport" style="padding:18px 20px;">
+      <div class="eyebrow mission-rose" style="position:relative;z-index:2;">Mission</div><div class="small" style="position:relative;z-index:2;margin-top:9px;">Presentation-led communication. Dark viewports, paper wells and restrained nebula atmosphere.</div>
     </div>
   </section>
 

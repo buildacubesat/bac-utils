@@ -1,4 +1,4 @@
-# bac-kicad-stitch v0.1.0
+# bac-kicad-stitch v0.1.1
 
 Build a CubeSat – ground stitching vias where a board needs them. `stitch` reads a board's filled ground zones, works out every spot where a through via would be DRC-clean on all copper layers, and adds vias until no point of the ground copper is farther than the pitch from one. The ground vias already on the board count, so a region that is dense with them gets nothing, and a second run adds nothing. `report` only measures, `remove` takes the added vias out again. A preview SVG shows the ground copper, where a via may go, the vias before and after, and the gaps no via can close.
 
@@ -103,4 +103,5 @@ uv run --no-sync pytest tools/bac-kicad-stitch
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.1.1 | 2026-10-27 | The preview SVG marks gaps in the 1.0 alarm red `#E94538` (was `#CE6C63`). |
 | 0.1.0 | 2026-10-19 | First version: `report`, `stitch`, `remove`, `init`; coverage by pitch or frequency; farthest-point placement with gaps; the `bac-stitch` group; preview SVG; DRC through `kicad-cli` after writing. Tested by Mänu on the MCU MicroMod carrier board: the plan, the write, the group in KiCad. |
