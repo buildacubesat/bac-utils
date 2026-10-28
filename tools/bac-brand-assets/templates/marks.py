@@ -16,7 +16,11 @@ import cairosvg
 design = Path(sys.argv[1] if len(sys.argv) > 1 else "../../../../bac-design").resolve()
 assets = design / "assets"
 sizes = {}
-for name, kw in (("logo", {"output_width": 2400}), ("logo-tagline", {"output_width": 2400}), ("symbol", {"output_height": 800})):
+for name, kw in (
+    ("logo", {"output_width": 2400}),
+    ("logo-tagline", {"output_width": 2400}),
+    ("symbol", {"output_height": 800}),
+):
     for color in ("black", "white"):
         svg = assets / f"bac-{name}-{color}-v4r1.svg"
         m = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg.read_text(encoding="utf-8"))
@@ -36,7 +40,11 @@ for name in ("led-board", "cubesat-wireframe"):
         cairosvg.svg2png(url=str(svg), write_to=f"sample-{name}.png", output_width=1600)
         print(f"sample-{name}.png")
 # The kicker: the short BAC Yellow dash before an eyebrow (18 × 4 px, rounded 2, Identity Guide §4.1).
-cairosvg.svg2png(bytestring=b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 4"><rect width="18" height="4" rx="2" fill="#F7D400"/></svg>', write_to="kicker.png", output_width=360)
+cairosvg.svg2png(
+    bytestring=b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 4"><rect width="18" height="4" rx="2" fill="#F7D400"/></svg>',  # noqa: E501
+    write_to="kicker.png",
+    output_width=360,
+)
 print("kicker.png")
 Path("marks.json").write_text(json.dumps(sizes, indent=2) + "\n", encoding="utf-8")
 print("marks.json")

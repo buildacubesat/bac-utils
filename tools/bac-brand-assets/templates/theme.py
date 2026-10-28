@@ -14,12 +14,29 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-SLOTS = ("dk1", "lt1", "dk2", "lt2", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "hlink", "folHlink")
+SLOTS = (
+    "dk1",
+    "lt1",
+    "dk2",
+    "lt2",
+    "accent1",
+    "accent2",
+    "accent3",
+    "accent4",
+    "accent5",
+    "accent6",
+    "hlink",
+    "folHlink",
+)
 
 deck = Path(sys.argv[1])
 theme = json.loads(Path("theme.json").read_text(encoding="utf-8"))
 name = theme["name"].replace("&", "&amp;").replace('"', "&quot;")
-scheme = f'<a:clrScheme name="{name}">' + "".join(f'<a:{k}><a:srgbClr val="{theme["colors"][k].upper()}"/></a:{k}>' for k in SLOTS) + "</a:clrScheme>"
+scheme = (
+    f'<a:clrScheme name="{name}">'
+    + "".join(f'<a:{k}><a:srgbClr val="{theme["colors"][k].upper()}"/></a:{k}>' for k in SLOTS)
+    + "</a:clrScheme>"
+)
 
 tmp = Path(tempfile.mkdtemp()) / deck.name
 with zipfile.ZipFile(deck) as src, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as dst:
