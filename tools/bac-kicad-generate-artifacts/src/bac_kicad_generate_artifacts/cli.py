@@ -239,7 +239,7 @@ def _main(argv: list[str], debug: bool) -> int:
         raise UsageError("Give at least one KiCad project folder.", f"See `{TOOL_NAME} --help`.")
     only, skip = parse_stage_list(args.only), parse_stage_list(args.skip)
     settings = load_settings(args.config)
-    catalog = load_catalog(settings.catalog_passives, settings.catalog_ics)
+    catalog = load_catalog(settings.catalog_passives, settings.catalog_ics, settings.catalog_parts)
     # Absolute: the iBOM plugin resolves a relative --dest-dir against the board's folder, not the cwd.
     root = (Path(args.desktop).expanduser() if args.desktop else (settings.output_root or desktop_dir())).resolve()
     run = Run(
@@ -262,7 +262,8 @@ def _main(argv: list[str], debug: bool) -> int:
     if settings.source:
         ui.dim(f"config {ui.path(settings.source)}")
     if run.catalog:
-        ui.dim(f"catalog {len(run.catalog.passives)} passives, {len(run.catalog.ics)} ICs")
+        counts = f"catalog {len(run.catalog.passives)} passives, {len(run.catalog.ics)} ICs"
+        ui.dim(counts + (f", {len(run.catalog.parts)} parts" if run.catalog.parts else ""))
     if not args.dry_run:
         root.mkdir(parents=True, exist_ok=True)
     done = failed = 0

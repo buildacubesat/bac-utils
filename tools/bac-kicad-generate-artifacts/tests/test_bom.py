@@ -20,7 +20,7 @@ def test_read_export_groups_and_flags(tmp_path: Path):
     src = tmp_path / "bom-resolve.csv"
     src.write_text(RESOLVE_SAMPLE)
     lines = bom.read_export(src)
-    assert len(lines) == 11
+    assert len(lines) == 12
     assert lines[0].references == "R1, R2" and lines[0].quantity == 2 and lines[0].kind == "r"
     assert lines[5].references == "C3" and lines[5].dnp
     assert lines[6].mpn == "TCAN334GDCNR" and not lines[6].dnp
@@ -34,9 +34,9 @@ def test_write_builds(tmp_path: Path):
     catalog = load_catalog(CATALOG / "passives", CATALOG / "ics")
     build = {"dev": tmp_path / "bom-dev.csv", "flight": tmp_path / "bom-flight.csv"}
     summary = bom.write_builds(catalog, bom.read_export(src), build, tmp_path / "jlc.csv", tmp_path / "issues.csv")
-    assert summary.lines == 11 and summary.resolved == {"dev": 9, "flight": 8} and summary.issues == 5
+    assert summary.lines == 12 and summary.resolved == {"dev": 9, "flight": 8} and summary.issues == 7
     assert summary.flagged == 0
-    assert summary.note() == "9/11 dev, 8/11 flight resolved, 5 issues, 3 without LCSC"
+    assert summary.note() == "9/12 dev, 8/12 flight resolved, 7 issues, 4 without LCSC"
 
     dev = _rows(build["dev"])
     assert list(dev[0]) == list(bom.BUILD_COLUMNS)
@@ -55,6 +55,7 @@ def test_write_builds(tmp_path: Path):
     sw1 = dev[10]
     assert sw1["Value"] == "Aratas D3SH-A1R1" and sw1["Note"].startswith("no Manufacturer PN")
     assert sw1["Rating"] == "" and sw1["Tolerance"] == ""
+    assert dev[11]["Note"] == "DX07S016JA1R1500 is not in the IC catalog"  # no parts catalog loaded here
 
     flight = _rows(build["flight"])
     assert flight[0]["Manufacturer PN"] == "TNPW06034K70FHEA"
@@ -65,7 +66,7 @@ def test_write_builds(tmp_path: Path):
 
     jlc = _rows(tmp_path / "jlc.csv")
     assert list(jlc[0]) == list(bom.JLCPCB_COLUMNS)
-    assert [r["Designator"] for r in jlc] == ["R1,R2", "R3", "R4", "C1", "C2", "U1", "U2", "U3", "U4", "SW1"]  # no C3
+    assert [r["Designator"] for r in jlc] == ["R1,R2", "R3", "R4", "C1", "C2", "U1", "U2", "U3", "U4", "SW1", "J1"]
     assert jlc[0] == {
         "Comment": "4k7",
         "Designator": "R1,R2",
@@ -79,10 +80,30 @@ def test_write_builds(tmp_path: Path):
     assert [(r["Designator"], r["Grade"], r["Kind"]) for r in issues] == [
         ("R4", "dev", "unresolved"),
         ("SW1", "dev", "unresolved"),
+        ("J1", "dev", "unresolved"),
         ("R4", "flight", "unresolved"),
         ("U4", "flight", "unresolved"),
         ("SW1", "flight", "unresolved"),
+        ("J1", "flight", "unresolved"),
     ]
+
+
+def test_parts_resolve_like_ics(tmp_path: Path):
+    src = tmp_path / "bom-resolve.csv"
+    src.write_text(RESOLVE_SAMPLE)
+    catalog = load_catalog(CATALOG / "passives", CATALOG / "ics", CATALOG / "parts")
+    build = {"dev": tmp_path / "bom-dev.csv", "flight": tmp_path / "bom-flight.csv"}
+    summary = bom.write_builds(catalog, bom.read_export(src), build, tmp_path / "jlc.csv", tmp_path / "issues.csv")
+    assert summary.note() == "10/12 dev, 8/12 flight resolved, 6 issues, 1 flagged, 4 without LCSC"
+    j1 = _rows(build["dev"])[11]
+    assert j1["Manufacturer PN"] == "DX07S016JA1R1500" and j1["Manufacturer"] == "JAE"
+    assert j1["Catalog"] == "conn-usb-c-16p.dx07s016ja1r1500" and j1["Verified"] == "false"
+    issues = _rows(tmp_path / "issues.csv")
+    assert [(r["Designator"], r["Grade"], r["Kind"]) for r in issues if r["Designator"] == "J1"] == [
+        ("J1", "dev", "unverified"),
+        ("J1", "flight", "unresolved"),  # commercial, no flight row
+    ]
+    assert [r for r in issues if r["Designator"] == "SW1"][0]["Reason"].endswith("not a resistor or capacitor")
 
 
 def test_flagged_rows_go_to_the_issues_list(tmp_path: Path):

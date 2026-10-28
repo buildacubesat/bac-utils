@@ -77,7 +77,7 @@ def test_kind_from_the_first_reference():
 
 
 def test_example_catalog_loads(catalog):
-    assert len(catalog.passives) == 15 and len(catalog.ics) == 14
+    assert len(catalog.passives) == 15 and len(catalog.ics) == 14 and catalog.parts == []
     assert all(r["_value"] is not None for r in catalog.passives)
     assert catalog.ic_by_mpn("tcan334gdcnr")["id"] == "can-xcvr-sot23-8.tcan334g"
 
@@ -187,11 +187,26 @@ def test_lines_the_catalogs_do_not_cover(catalog):
         resolve(catalog, BomLine("R1", 1, "4k7", R0603, ""), "proto")
 
 
+def test_parts_catalog(catalog):
+    full = load_catalog(CATALOG / "passives", CATALOG / "ics", CATALOG / "parts")
+    assert len(full.parts) == 6 and full.ic_by_mpn("dx07s016ja1r1500")["slot"] == "conn-usb-c-16p"
+    line = BomLine("J1", 1, "USB-C", "x", "DX07S016JA1R1500")
+    assert resolve(catalog, line, "dev").reason == "DX07S016JA1R1500 is not in the IC catalog"
+    r = resolve(full, line, "dev")
+    assert r.catalog_id == "conn-usb-c-16p.dx07s016ja1r1500" and r.verified == "false" and r.flags == ["unverified"]
+    assert resolve(full, line, "flight").row is None  # commercial, no flight row
+    assert resolve(full, BomLine("J2", 1, "x", "y", "NOPE"), "dev").reason == "NOPE is not in the IC or parts catalog"
+    only_parts = load_catalog(None, None, CATALOG / "parts")
+    assert resolve(only_parts, line, "dev").row is not None and not only_parts.empty
+
+
 def test_missing_files_and_columns_are_config_errors(tmp_path: Path):
     with pytest.raises(ConfigError, match="Passives catalog file missing"):
         load_catalog(tmp_path, None)
     with pytest.raises(ConfigError, match="IC catalog file missing"):
         load_catalog(None, tmp_path)
+    with pytest.raises(ConfigError, match="Parts catalog file missing"):
+        load_catalog(None, None, tmp_path)
     (tmp_path / "bac-ics.csv").write_text("id,mpn\nx,y\n")
     with pytest.raises(ConfigError, match="lacks the column"):
         load_catalog(None, tmp_path)

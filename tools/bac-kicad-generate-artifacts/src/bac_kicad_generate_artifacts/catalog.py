@@ -1,14 +1,15 @@
 # SPDX-License-Identifier: MIT
 """The part catalogs and the resolution of BOM lines against them.
 
-Two collections, both CSV, both kept outside this repository (BAC's are in
+Three collections, all CSV, all kept outside this repository (BAC's are in
 ``bac-hardware/resources/``): the *passives* – one row per value, package and
-grade, dev and flight rows sharing value and package – and the *ICs* – rows
+grade, dev and flight rows sharing value and package –, the *ICs* – rows
 grouped in a ``slot`` (one function in one footprint) with the ``reference``
-part fitted on the board, ``drop-in`` alternatives and a ``flight`` candidate.
-A BOM line from the schematic names a passive by value and footprint and an IC
-by its manufacturer part number; this module finds the row for a dev build and
-the row for a flight build, and says why when it cannot.
+part fitted on the board, ``drop-in`` alternatives and a ``flight`` candidate –
+and the *parts* (connectors, switches, LEDs, holders, spacers) in the ICs'
+shape. A BOM line from the schematic names a passive by value and footprint and
+anything else by its manufacturer part number; this module finds the row for a
+dev build and the row for a flight build, and says why when it cannot.
 """
 
 from __future__ import annotations
@@ -32,6 +33,7 @@ __all__ = [
 
 PASSIVE_FILES = ("bac-passives-capacitors.csv", "bac-passives-resistors.csv")
 IC_FILE = "bac-ics.csv"
+PARTS_FILE = "bac-parts.csv"  # the ICs' columns
 PASSIVE_COLUMNS = ("id", "grade", "value", "package", "manufacturer", "mpn", "role", "status", "lcsc", "digikey")
 IC_COLUMNS = ("id", "slot", "role", "compat", "manufacturer", "mpn", "qualification", "lcsc", "digikey")
 GRADES = ("dev", "flight")
@@ -175,18 +177,24 @@ def _percent(text: str) -> str:
 class Catalog:
     passives: list[dict[str, str]] = field(default_factory=list)
     ics: list[dict[str, str]] = field(default_factory=list)
+    parts: list[dict[str, str]] = field(default_factory=list)  # connectors and such, resolved like ICs
     source: dict[str, Path] = field(default_factory=dict)
 
     @property
     def empty(self) -> bool:
-        return not self.passives and not self.ics
+        return not self.passives and not self.ics and not self.parts
+
+    @property
+    def by_mpn(self) -> list[dict[str, str]]:
+        """Every row a manufacturer part number can name: the ICs, then the parts."""
+        return self.ics + self.parts
 
     def ic_by_mpn(self, mpn: str) -> dict[str, str] | None:
         key = mpn.strip().casefold()
-        return next((r for r in self.ics if r["mpn"].strip().casefold() == key), None) if key else None
+        return next((r for r in self.by_mpn if r["mpn"].strip().casefold() == key), None) if key else None
 
     def slot(self, name: str) -> list[dict[str, str]]:
-        return [r for r in self.ics if r["slot"] == name]
+        return [r for r in self.by_mpn if r["slot"] == name]
 
 
 # ---------------------------------------------------------------------------
@@ -203,8 +211,8 @@ def _read(path: Path, required: tuple[str, ...]) -> list[dict[str, str]]:
         return [{k: (v or "").strip() for k, v in row.items() if k} for row in reader]
 
 
-def load_catalog(passives_dir: Path | None, ics_dir: Path | None) -> Catalog:
-    """The two collections from their folders; a folder may be absent, a file in a given folder may not."""
+def load_catalog(passives_dir: Path | None, ics_dir: Path | None, parts_dir: Path | None = None) -> Catalog:
+    """The collections from their folders; a folder may be absent, a file in a given folder may not."""
     catalog = Catalog()
     if passives_dir is not None:
         for name in PASSIVE_FILES:
@@ -224,6 +232,12 @@ def load_catalog(passives_dir: Path | None, ics_dir: Path | None) -> Catalog:
             raise ConfigError(f"IC catalog file missing: {path}", "Check ics in [catalog].")
         catalog.ics = _read(path, IC_COLUMNS)
         catalog.source[IC_FILE] = path
+    if parts_dir is not None:
+        path = parts_dir.expanduser() / PARTS_FILE
+        if not path.is_file():
+            raise ConfigError(f"Parts catalog file missing: {path}", "Check parts in [catalog].")
+        catalog.parts = _read(path, IC_COLUMNS)
+        catalog.source[PARTS_FILE] = path
     return catalog
 
 
@@ -344,7 +358,8 @@ def _ic(line: BomLine, grade: str, row: dict[str, str], note: str = "") -> Resol
 def _resolve_ic(catalog: Catalog, line: BomLine, grade: str) -> Resolved:
     row = catalog.ic_by_mpn(line.mpn)
     if row is None:
-        return Resolved(line, grade, None, reason=f"{line.mpn} is not in the IC catalog")
+        which = "IC or parts" if catalog.parts else "IC"
+        return Resolved(line, grade, None, reason=f"{line.mpn} is not in the {which} catalog")
     if grade == "dev":
         return _ic(line, grade, row, f"{row['role']} row" if row["role"] != "reference" else "")
     if row["role"] == "flight":  # the board already carries the flight part
@@ -372,12 +387,12 @@ def resolve(catalog: Catalog, line: BomLine, grade: str) -> Resolved:
         raise ValueError(grade)
     if line.kind in ("c", "r") and catalog.passives:
         return _resolve_passive(catalog, line, grade)
-    if line.mpn and catalog.ics:
+    if line.mpn and catalog.by_mpn:
         return _resolve_ic(catalog, line, grade)
     if line.kind in ("c", "r"):
         reason = "no passives catalog configured"
     elif line.mpn:
-        reason = "no IC catalog configured"
+        reason = "no IC or parts catalog configured"
     else:
         reason = "no Manufacturer PN on the symbol, and not a resistor or capacitor"
     return Resolved(line, grade, None, reason=reason)

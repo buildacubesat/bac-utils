@@ -317,11 +317,13 @@ def test_bom_with_catalogs(fake, synth, tmp_path):
     from genart_testkit import CATALOG
 
     cfg = tmp_path / "ga.toml"
-    cfg.write_text(f'[catalog]\npassives = "{CATALOG / "passives"}"\nics = "{CATALOG / "ics"}"\n')
+    cfg.write_text(
+        f'[catalog]\npassives = "{CATALOG / "passives"}"\nics = "{CATALOG / "ics"}"\nparts = "{CATALOG / "parts"}"\n'
+    )
     r = invoke(cli._main, ["--config", str(cfg), "--desktop", str(tmp_path / "o"), "--only", "bom", str(synth)])
     assert r.exit_code == 0, r.output
-    assert "catalog 15 passives, 14 ICs" in r.stdout
-    assert "✓ BOM → bac-synth-v2r3-bom{,-dev,-flight,-jlcpcb,-issues}.csv (9/11 dev, 8/11 flight resolved" in r.stdout
+    assert "catalog 15 passives, 14 ICs, 6 parts" in r.stdout
+    assert "✓ BOM → bac-synth-v2r3-bom{,-dev,-flight,-jlcpcb,-issues}.csv (10/12 dev, 8/12 flight resolved" in r.stdout
     d = tmp_path / "o" / "bac-synth-v2r3"
     names = sorted(p.name for p in d.iterdir())
     assert names == [
