@@ -27,6 +27,8 @@ from PIL import Image
 from bac_common.cad import set_step_header
 from bac_common.errors import ConfigError, ExternalToolError
 
+from . import bom
+from .catalog import Catalog
 from .config import Settings
 from .project import Plan, normalize_export_names, rewrite_gbrjob
 from .qr import insert_qr_file, substitute_variables
@@ -75,6 +77,7 @@ class Context:
     qr_text: str = ""
     open: bool = False  # --open: the iBOM may open its browser tab, the ZIP goes to GerbView
     debug: bool = False
+    catalog: Catalog | None = None  # the part catalogs, when [catalog] names them: the bom stage resolves against them
     spinner: Callable[[str], object] = field(default=lambda message: _NoSpinner())
     board: Path | None = None  # the board the stages export: the project's, or the QR stage's copy
     failed: set[str] = field(default_factory=set)  # names of the stages that failed so far in this project
@@ -282,18 +285,40 @@ def stage_pinout(ctx: Context) -> str:
     return kb(plan.pinout_webp)
 
 
-def stage_bom(ctx: Context) -> str:
-    plan, s = ctx.plan, ctx.settings
-    assert plan.project.sch_file is not None
+def _export_bom(ctx: Context, output: Path, fields: str, labels: str, group_by: str) -> None:
+    assert ctx.plan.project.sch_file is not None
     ctx.run(
         [
-            ctx.tools.kicad_cli, "sch", "export", "bom", "--output", str(plan.bom_csv),
-            "--fields", s.bom_fields, "--labels", s.bom_labels, "--group-by", s.bom_group_by,
+            ctx.tools.kicad_cli, "sch", "export", "bom", "--output", str(output),
+            "--fields", fields, "--labels", labels, "--group-by", group_by,
             "--sort-field", "Reference", "--field-delimiter", ",", "--string-delimiter", '"',
-            str(plan.project.sch_file),
+            str(ctx.plan.project.sch_file),
         ]
     )  # fmt: skip
-    return "" if ctx.run.dry_run else kb(plan.bom_csv)
+
+
+def stage_bom(ctx: Context) -> str:
+    """The plain export with the ``[bom]`` columns; with a catalog also the dev, flight, JLCPCB and issues files."""
+    plan, s = ctx.plan, ctx.settings
+    _export_bom(ctx, plan.bom_csv, s.bom_fields, s.bom_labels, s.bom_group_by)
+    if ctx.catalog is None:
+        return "" if ctx.run.dry_run else kb(plan.bom_csv)
+    lines_csv = _work(ctx) / "bom-resolve.csv"
+    _export_bom(ctx, lines_csv, bom.RESOLVE_FIELDS, bom.RESOLVE_LABELS, bom.RESOLVE_GROUP_BY)
+    if ctx.run.dry_run:
+        return "with dev, flight, jlcpcb and issues"
+    if not lines_csv.is_file():
+        raise ExternalToolError("kicad-cli wrote no BOM to resolve.", str(lines_csv))
+    lines = bom.read_export(lines_csv)
+    summary = bom.write_builds(
+        ctx.catalog,
+        lines,
+        {grade: plan.bom_build_csv(grade) for grade in ("dev", "flight")},
+        plan.bom_jlcpcb_csv,
+        plan.bom_issues_csv,
+    )
+    ctx.shown = f"{plan.sch_base}-bom{{,-dev,-flight,-jlcpcb,-issues}}.csv"
+    return summary.note()
 
 
 def ibom_python(ctx: Context) -> str:

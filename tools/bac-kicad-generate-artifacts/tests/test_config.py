@@ -22,7 +22,7 @@ def test_defaults_without_a_file(no_config):
 def test_template_is_valid_toml_and_loads_back(tmp_path: Path):
     text = config_template(Path("/opt/ibom/generate_interactive_bom.py"), today=date(2026, 10, 6))
     data = tomllib.loads(text)
-    assert set(data) == {"output", "naming", "metadata", "bom", "ibom", "qr"}
+    assert set(data) == {"output", "naming", "metadata", "bom", "catalog", "ibom", "qr"}
     assert "written by --init on 2026-10-06" in text
     cfg = tmp_path / "c.toml"
     cfg.write_text(text)

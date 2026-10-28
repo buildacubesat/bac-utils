@@ -11,11 +11,27 @@ from bac_kicad_generate_artifacts.runner import Runner, Tools
 from PIL import Image
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
+CATALOG = Path(__file__).resolve().parents[1] / "examples" / "catalog"
 SYNTH = FIXTURES / "eps" / "bac-synth-v2" / "kicad10"
 PANEL = FIXTURES / "eps" / "bac-synth-panel-v1" / "kicad10"
 DSW = FIXTURES / "deployment-switch" / "kicad10"
 
 TOOLS = Tools(kicad_cli="/usr/bin/kicad-cli", svg_raster="/usr/bin/rsvg-convert")
+
+# What the resolution export of a small schematic looks like (grouped, kicad-cli's "R1, R2" references).
+RESOLVE_SAMPLE = """Reference,Qty,Value,Footprint,MPN,DNP
+"R1, R2",2,4k7,Resistor_SMD:R_0603_1608Metric,,
+R3,1,0R,Resistor_SMD:R_0603_1608Metric,,
+R4,1,1k,Resistor_SMD:R_0603_1608Metric,,
+C1,1,0.1u,Capacitor_SMD:C_0402_1005Metric,,
+C2,1,10u,Capacitor_SMD:C_0805_2012Metric,,
+C3,1,10u,Capacitor_SMD:C_0805_2012Metric,,DNP
+U1,1,TCAN334G,Package_TO_SOT_SMD:SOT-23-8,TCAN334GDCNR,
+U2,1,ESD751,Diode_SMD:D_SOD-523,ESD751DYAR,
+U3,1,RV-3032-C7,bac:SON-8,RV-3032-C7-32.768KHZ-2.5PPM-TA-QA,
+U4,1,STM32F405RGT7,Package_QFP:LQFP-64_10x10mm_P0.5mm,STM32F405RGT7,
+SW1,1,Aratas D3SH-A1R1,bac:Aratas-D3SH-A1R1,,
+"""
 
 STEP_SAMPLE = """ISO-10303-21;
 HEADER;
@@ -77,7 +93,9 @@ class FakeRunner(Runner):
         elif words.startswith("sch export pdf"):
             Path(_arg(cmd, "--output")).write_bytes(b"%PDF-1.4 fake\n")
         elif words.startswith("sch export bom"):
-            Path(_arg(cmd, "--output")).write_text("#,Designator,Qty\n1,R1 R2,2\n")
+            out = Path(_arg(cmd, "--output"))
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(RESOLVE_SAMPLE if out.name == "bom-resolve.csv" else "#,Designator,Qty\n1,R1 R2,2\n")
         elif words.startswith("sch export netlist"):
             Path(_arg(cmd, "--output")).write_text("<export/>")
         elif words.startswith("pcb export gerbers"):

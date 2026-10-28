@@ -437,6 +437,18 @@ class Plan:
     def bom_csv(self) -> Path:
         return self.out_dir / f"{self.sch_base}-bom.csv"
 
+    def bom_build_csv(self, grade: str) -> Path:
+        """The catalog-resolved BOM of one grade: ``…-bom-dev.csv``, ``…-bom-flight.csv``."""
+        return self.out_dir / f"{self.sch_base}-bom-{grade}.csv"
+
+    @property
+    def bom_jlcpcb_csv(self) -> Path:
+        return self.out_dir / f"{self.sch_base}-bom-jlcpcb.csv"
+
+    @property
+    def bom_issues_csv(self) -> Path:
+        return self.out_dir / f"{self.sch_base}-bom-issues.csv"
+
     @property
     def ibom_html(self) -> Path:
         return self.out_dir / f"{self.base}-ibom.html"

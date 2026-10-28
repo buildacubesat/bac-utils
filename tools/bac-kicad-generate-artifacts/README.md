@@ -1,8 +1,8 @@
-# bac-kicad-generate-artifacts v0.6.2
+# bac-kicad-generate-artifacts v0.7.0
 
-Build a CubeSat – the release bundle of a KiCad project from one command. For every project folder given, the tool drives `kicad-cli` through the stages of a hardware release and puts the results into one folder: a 720 × 720 px 3D render, a 1920 × 1080 px pinout plot, the schematic PDF, the CSV BOM, an optional interactive HTML BOM, Gerbers and Excellon drills, the pick-and-place centroid file, the STEP model with author and organisation in its header, an optional QR code on the board, and a timestamped manufacturing ZIP. Every file is named after the BAC artifact scheme `<prefix>-<subsystem>-<name>-<vXrY>-<kind>.<ext>`, with the version and revision read from the board's title block.
+Build a CubeSat – the release bundle of a KiCad project from one command. For every project folder given, the tool drives `kicad-cli` through the stages of a hardware release and puts the results into one folder: a 720 × 720 px 3D render, a 1920 × 1080 px pinout plot, the schematic PDF, the CSV BOM – with the part catalogs configured also a dev and a flight build BOM, a JLCPCB assembly file and an issues list –, an optional interactive HTML BOM, Gerbers and Excellon drills, the pick-and-place centroid file, the STEP model with author and organisation in its header, an optional QR code on the board, and a timestamped manufacturing ZIP. Every file is named after the BAC artifact scheme `<prefix>-<subsystem>-<name>-<vXrY>-<kind>.<ext>`, with the version and revision read from the board's title block.
 
-Everything specific to a project – output root, naming prefix, author, BOM fields, plugin paths – lives in `~/.config/bac/bac-kicad-generate-artifacts.toml`, written by `--init`. The defaults are BAC's; §9 says what to change for another project.
+Everything specific to a project – output root, naming prefix, author, BOM fields, part catalogs, plugin paths – lives in `~/.config/bac/bac-kicad-generate-artifacts.toml`, written by `--init`. The defaults are BAC's; §10 says what to change for another project.
 
 ## 1. Install
 
@@ -32,7 +32,7 @@ bac-kicad-generate-artifacts --dry-run --skip step panel-a/kicad10 panel-b/kicad
 | `--desktop DIR` | Output root. Default: `root` in the config, else `$XDG_DESKTOP_DIR` or `~/Desktop`. |
 | `--only STAGES`, `--skip STAGES` | Run only, or run without, the named stages (comma-separated; §3 has the names). An unknown name exits 2 and lists them. |
 | `--ibom` | Also build the interactive HTML BOM (opt-in: it needs KiCad's own Python). |
-| `--qr TEXT` | Replace the `QR_MARKER` text boxes on the board with a QR code of `TEXT` (§5). |
+| `--qr TEXT` | Replace the `QR_MARKER` text boxes on the board with a QR code of `TEXT` (§6). |
 | `--patch N` | Patch revision on the version tags: `v1r2` becomes `v1r2.N` for the board and the schematic. |
 | `--open` | Open the output folder in the file manager and the ZIP in GerbView when the project is done. |
 | `--dry-run` | Print the plan and record the commands (`--debug` shows them); nothing is written, not even the output folder. The QR stage only names its text, so the recorded board paths are the project's own. |
@@ -50,7 +50,7 @@ Stages run in this order; `--only` and `--skip` pick from them.
 | `render` | `<base>-render.webp` | `kicad-cli pcb render` at 2160 × 2160 px, rotated 22.5°/−22.5°, zoom 0.8, side lights at 90°, transparent; cropped to the board, padded 10 %, squared and resized to 720 px, lossless WebP. `bac-cad-preview` frames its previews the same way. |
 | `schematic` | `<sch-base>-schematic.pdf` | Black and white, all sheets. |
 | `pinout` | `<base>-pinout.webp` | `Edge.Cuts`, `F.Fab` and `F.Silkscreen` as a single black-and-white SVG, rasterised at 4× and scaled to 80 % of a 1920 × 1080 px transparent canvas. |
-| `bom` | `<sch-base>-bom.csv` | `kicad-cli sch export bom` with the field list, labels and grouping from `[bom]`. |
+| `bom` | `<sch-base>-bom.csv`, `…-bom-dev.csv`, `…-bom-flight.csv`, `…-bom-jlcpcb.csv`, `…-bom-issues.csv` | `kicad-cli sch export bom` with the field list, labels and grouping from `[bom]`. With the part catalogs configured in `[catalog]`, a second export (reference, quantity, value, footprint, `Manufacturer PN`, DNP) is resolved against them and written as the dev and flight build BOMs, the JLCPCB assembly file and the issues list (§5). |
 | `ibom` | `<base>-ibom.html` | Opt-in (`--ibom`). Exports a `kicadxml` netlist and runs the InteractiveHtmlBom plugin (`script` in `[ibom]`) with the first Python that imports `pcbnew`: `python` in `[ibom]`, then `/usr/bin/python3`, then `python3`. Dark mode, pin 1 highlighted, `BOM` as the DNP field; the plugin's browser tab opens only with `--open`. The plugin takes a relative `--dest-dir` as relative to the board's folder, so it gets absolute paths. |
 | `gerbers` | `gerber/` | Into an emptied `gerber/`: the board's copper layers (read from its `(layers …)` block, in stack order) plus `F.Paste`, `B.Paste`, `F.Silkscreen`, `B.Silkscreen`, `F.Mask`, `B.Mask`, `Edge.Cuts`; on a panel also `User.Comments` (V-cut lines). RS-274X without X2 attributes, 6 digits, KiCad extensions. Zone fills are exported as saved: `--check-zones` is never passed, so a panel's fills stay as the panelizer left them and a board's fills are the ones its designer last filled. |
 | `drills` | `drill/` | Into an emptied `drill/`: Excellon, absolute origin, millimetres, decimal format. |
@@ -91,6 +91,10 @@ fields = "${ITEM_NUMBER},Reference,${QUANTITY},Manufacturer,Manufacturer PN,Valu
 labels = "#,Designator,Qty,Manufacturer,Manufacturer PN,Value,Package,Tolerance,R Rated Power,C Class,C D Rated Voltage,Notes,DNP,Alternative parts,Digikey URL"
 group_by = "Value,Package,Manufacturer,Manufacturer PN,Tolerance,R Rated Power,C Class,C D Rated Voltage,Notes,${DNP},Alternative parts,Digikey URL"
 
+[catalog]
+passives = ""          # folder with bac-passives-capacitors.csv and bac-passives-resistors.csv (§5)
+ics = ""               # folder with bac-ics.csv; both empty: the plain export only
+
 [ibom]
 script = ""            # generate_interactive_bom.py; --init fills it in when the plugin is installed
 python = ""            # empty: /usr/bin/python3, then python3
@@ -100,7 +104,24 @@ marker = "QR_MARKER"
 text = ""              # default for --qr; the stage runs whenever a text is known
 ```
 
-## 5. QR code
+## 5. Build BOMs from the part catalogs
+
+The schematic stays thin: a passive carries `Value` and `Footprint`, an IC its `Manufacturer PN`. Which part is bought for a given build is the catalogs' business – the Build a CubeSat part collections in `bac-hardware/resources/`: `passives/bac-passives-capacitors.csv` and `passives/bac-passives-resistors.csv` with one row per value, package and grade (`dev` for the commercial part at LCSC, `flight` for the AEC-Q200 part), and `ics/bac-ics.csv` with the parts of a board grouped in slots (one function in one footprint: the `reference` part fitted on the board, `drop-in` alternatives, the `flight` candidate). `examples/catalog/` holds a dozen rows in that shape. Name the two folders in `[catalog]` and the `bom` stage writes, next to the plain export:
+
+| File | Content |
+| :-- | :-- |
+| `<sch-base>-bom-dev.csv` | One line per group of the schematic with the dev part: `#`, `Designator`, `Qty`, `Value`, `Package`, `Tolerance` (`1 %`), `Rating` (a resistor's power, a capacitor's voltage, an IC's temperature range), `Dielectric`, `Height` (mm, where the catalog states one), `Manufacturer`, `Manufacturer PN`, `LCSC`, `Digikey`, `Catalog` (the row's id), `Status` (the catalog's word: `active`, `conditional`, `sourcing-open`; `unresolved` without a row), `Lifecycle` and `Verified` (ICs only), `Note` (what is text by nature: a condition, a difference to check, the candidate for the next board revision, the reason a line is unresolved), `DNP`. |
+| `<sch-base>-bom-flight.csv` | The same lines with the flight part. |
+| `<sch-base>-bom-jlcpcb.csv` | The dev build in JLCPCB's assembly format: `Comment` (the value of a passive, the MPN otherwise), `Designator`, `Footprint`, `LCSC Part #`; DNP lines left out. |
+| `<sch-base>-bom-issues.csv` | Every line a grade could not resolve, and every resolved row the catalog flags: `Designator`, `Grade`, `Kind` (`unresolved`, `lifecycle`, `unverified`), `Value`, `Footprint`, `MPN`, `Reason`. |
+
+A **passive** (a reference `R…` or `C…`) is looked up by kind, value and package: the value in R-notation or SI (`4k7`, `4.7k`, `0.1u`, `100nF`, `2u2`, `0R`, `60R4`, `20m`), the package as the imperial code in the footprint name (`R_0603_1608Metric` → `0603`; a tantalum's `CP_EIA-3528-21` → `1411`). The row of the wanted grade with role `default` and status `active` wins; `shunt` and `jumper` rows match their values; an `alternative` row is taken when there is no `default` row, and `Note` says so; a `conditional` or `sourcing-open` row is taken with its status in `Status` and the condition in `Note`; a `proposal` row is never taken. A symbol with a `Manufacturer PN` that is itself a released catalog row of the wanted grade takes that row. A DNP line is resolved like any other (a part left off the dev build may be fitted in flight) and marked in the `DNP` column; only the JLCPCB file leaves it out. An unresolved line has `Status` `unresolved`, the reason in `Note`, and keeps the schematic's value, so the file is complete even when the catalog is not.
+
+An **IC** (any other reference with a `Manufacturer PN`) is looked up by that number. For the dev build it is the schematic's part with the catalog's LCSC and DigiKey numbers (an `alternative` row says so). For the flight build the slot's `flight` row replaces it when its `compat` is `drop-in`; with `drop-in-behavior` it replaces it and `Note` carries the catalog's `difference` to check; with `footprint-only` or `different-footprint` the board has to change first, so the reference part stays and `Note` names the candidate for the next board revision. A reference part that is itself qualified (`aec-q100`, `aec-q101`, `aec-q200`, `enhanced-product`, `space`) stays in the flight build, with the slot's flight row named in `Note` when there is one (the catalog's rule 3); a slot with neither goes to the issues list. A symbol that already carries the slot's flight part keeps it. An IC row's `lifecycle` and `verified` are columns of their own; a row with `nrnd` or `verified` false is taken and listed in the issues file as flagged, an `obsolete` row is refused like a part the catalog does not have (the catalog's rules 4 and 5). A part the catalog does not know, and a symbol without `Manufacturer PN` that is not a resistor or capacitor (a switch, a connector), is an issue in both grades.
+
+The ✓ line counts: `9/11 dev, 8/11 flight resolved, 5 issues, 3 without LCSC` (`2 flagged` joins when there are any) – issues are lines without a row, flagged are resolved rows the catalog marks `nrnd` or unverified, and the last are dev lines in the JLCPCB file without an LCSC number. The columns the stage reads are `grade`, `value`, `package`, `role`, `status`, `manufacturer`, `mpn`, `lcsc`, `digikey`, `notes`, `tolerance`, `power_w` or `voltage_v`, `dielectric`, `height_max_mm` of a passive and `temp_min_c`, `temp_max_c`, `slot`, `role`, `compat`, `qualification`, `lifecycle`, `verified`, `manufacturer`, `mpn`, `lcsc`, `digikey`, `difference` of an IC; a file missing one of the required columns, or a folder without its files, stops the run before the first project. The resolution export goes to `.work/bom-resolve.csv` and is removed with the work folder (kept with `--debug`).
+
+## 6. QR code
 
 Place a square text box (`gr_text_box`) with the text `QR_MARKER` on the board where the code should go, on any layer. With `--qr TEXT` (or `text` in `[qr]`) the `qr` stage replaces every such box with the QR code for the text: one filled zero-width `gr_rect` per dark module, the module size the box's side divided by the code's size, error correction level L, the smallest version that holds the text, no quiet zone (leave room around the box). On a back layer the code is mirrored left to right so it reads correctly when the board is turned over. A box that is not square gets the code centred in the square of its shorter side. `${TITLE}`, `${REVISION}`, `${COMPANY}`, `${ISSUE_DATE}` and `${COMMENT1}` … `${COMMENT9}` in the text are replaced from the board's title block, so `--qr '${COMMENT4}'` encodes the bac.page link the deployment switch carries in its fourth comment.
 
@@ -108,9 +129,9 @@ The stage works on a copy of the project folder in `.work/project/` (backups, lo
 
 The stage is a reimplementation of Emil Fresk's [kicad-qr-inserter](https://github.com/korken89/kicad-qr-inserter) (MIT), which does the same with the `pcbnew` Python module. This version reads and edits the board through `bac_common.sexp`, so it needs no KiCad Python and changes nothing in the file but the marker boxes.
 
-## 6. Fixtures and tests
+## 7. Fixtures and tests
 
-`tests/fixtures/deployment-switch/kicad10/` is the BAC deployment switch (KiCad 10 format, one sheet, two footprints, 4.8 × 8.7 mm) with a `QR_MARKER` text box added on `B.SilkS`; it is the live fixture for a run with the installed KiCad. `tests/fixtures/eps/` holds a hand-written four-layer project with renamed inner layers, a hierarchical sheet and two marker boxes, and a schematic-less copy of it as a panel with a V-cut line on `User.Comments`. `kicad-cli` is not needed to run the tests: a stand-in runner writes the files each subcommand would produce. The 110 tests cover the title block and version tags, the naming, the layer map and the rename pass including the job file, the QR geometry front and back, every stage, the command line and the config.
+`tests/fixtures/deployment-switch/kicad10/` is the BAC deployment switch (KiCad 10 format, one sheet, two footprints, 4.8 × 8.7 mm) with a `QR_MARKER` text box added on `B.SilkS`; it is the live fixture for a run with the installed KiCad. `tests/fixtures/eps/` holds a hand-written four-layer project with renamed inner layers, a hierarchical sheet and two marker boxes, and a schematic-less copy of it as a panel with a V-cut line on `User.Comments`. `kicad-cli` is not needed to run the tests: a stand-in runner writes the files each subcommand would produce. The 160 tests cover the title block and version tags, the naming, the layer map and the rename pass including the job file, the QR geometry front and back, every stage, the command line and the config, the catalogs and the build BOMs.
 
 A run on the deployment switch with kicad-cli present looks like this:
 
@@ -118,34 +139,35 @@ A run on the deployment switch with kicad-cli present looks like this:
 bac-kicad-generate-artifacts --desktop ~/Desktop/releases --qr '${COMMENT4}' tests/fixtures/deployment-switch/kicad10
 ```
 
-## 7. Changes against 0.4.2 and 0.5.0
+## 8. Changes against 0.4.2 and 0.5.0
 
 0.6.0 merges the two earlier lines: the stage architecture, `--only`/`--skip` and the parsing tests of the 0.5.0 candidate of 2026-05, and the behaviour of the installed 0.4.2 (panel mode, the rename pass, UTC timestamps, dry run, summary). On top of that: the package moves onto `bac-common` (Rich output, standard flags, config and `--init`, error boundary); the output folder and the artifacts are named after the project's own name instead of the parent folder (`adcs/magnetorquer-placeholder-XY/1U/kicad9` was `bac-adcs-1U-…`) and the prefix no longer doubles; renamed layers no longer leave spaces in Gerber names; the `.gbrjob` file is rewritten with the renamed paths; the stem is removed from the front of a file name only; collisions count up instead of clobbering `-dup`; a dry run creates nothing; kicad-cli's help text is no longer probed (10.x is the target); the STEP header carries name, author and organisation; `--open` replaces the unconditional launch of the file manager and GerbView; `--patch` replaces `--pcb-patch-rev` and `--schematic-patch-rev`; panel mode proceeds after its warning instead of prompting (`-y` is gone); `--keep-work` is gone, `--debug` keeps the work folder; the iBOM plugin path and interpreter come from the config instead of `--ibom-script` and `--ibom-python`, and the plugin runs with `--no-browser` unless `--open`; a project outside the hardware repository gets no subsystem instead of `unknown`; the WebP encoder is Pillow instead of `cwebp`; a failing stage prints a ✗ line on stdout and marks the project but the remaining stages still run (the top-level `ERROR` line is still stderr); the `kicad` launcher is no longer tried when `gerbview` is missing; `gerber/`, `drill/` and `centroid/` are emptied before an export and the STEP export passes `--force`, so a re-run replaces instead of accumulating. The QR stage is new.
 
-## 8. Development
+## 9. Development
 
 ```sh
 uv run pytest tools/bac-kicad-generate-artifacts
 uv run ruff check tools/bac-kicad-generate-artifacts
 ```
 
-Modules: `cli` (parser, the per-project loop, output), `project` (discovery, title block, tags, names, layers, the rename pass), `stages` (the eleven stages and their selection), `qr` (marker search and rectangle generation on `bac_common.sexp`), `runner` (program discovery, the subprocess wrapper with dry run and timeout), `config` (settings and the `--init` template).
+Modules: `cli` (parser, the per-project loop, output), `project` (discovery, title block, tags, names, layers, the rename pass), `stages` (the eleven stages and their selection), `catalog` (the two collections, value and package parsing, the resolution of a line per grade), `bom` (the resolution export and the four build files), `qr` (marker search and rectangle generation on `bac_common.sexp`), `runner` (program discovery, the subprocess wrapper with dry run and timeout), `config` (settings and the `--init` template).
 
-## 9. Adapting for your own project
+## 10. Adapting for your own project
 
-Set `prefix` and `hardware_root` in `[naming]` to your organisation's prefix and the name of the folder your hardware projects live under, or leave `hardware_root` pointing at a folder that does not exist to get `<prefix>-<name>-<vXrY>` without a subsystem. Put your name and organisation into `[metadata]`. Replace the `[bom]` field list with the symbol fields your library uses (`${ITEM_NUMBER}`, `${QUANTITY}` and `${DNP}` are KiCad's built-in columns). Boards whose title reads `<something> v<N>` with a numeric `rev` get clean `vXrY` tags; anything else still works but produces `r-<text>` or `v-unknownr-unknown`. The render camera and the pinout layers are constants at the top of `stages.py`.
+Set `prefix` and `hardware_root` in `[naming]` to your organisation's prefix and the name of the folder your hardware projects live under, or leave `hardware_root` pointing at a folder that does not exist to get `<prefix>-<name>-<vXrY>` without a subsystem. Put your name and organisation into `[metadata]`. Replace the `[bom]` field list with the symbol fields your library uses (`${ITEM_NUMBER}`, `${QUANTITY}` and `${DNP}` are KiCad's built-in columns). Leave `[catalog]` empty unless you keep part collections in the shape of §5; the resolver reads `Value`, `Footprint` and `Manufacturer PN`, so a library that names the MPN field differently needs `RESOLVE_FIELDS` in `bom.py` changed. Boards whose title reads `<something> v<N>` with a numeric `rev` get clean `vXrY` tags; anything else still works but produces `r-<text>` or `v-unknownr-unknown`. The render camera and the pinout layers are constants at the top of `stages.py`.
 
-## 10. License
+## 11. License
 
 MIT, like the rest of bac-utils. The QR stage follows Emil Fresk's kicad-qr-inserter (MIT, © 2024 Emil Fresk) in its approach; no code of it is included.
 
-## 11. Version history
+## 12. Version history
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.7.0 | 2026-10-28 | The `bom` stage resolves the schematic against the part catalogs (§5): `[catalog]` names the folders of `bac-passives-*.csv` and `bac-ics.csv`, a second export with fixed columns is matched by value and package (passives) or manufacturer part number (ICs, by slot and compatibility), and `…-bom-dev.csv`, `…-bom-flight.csv`, `…-bom-jlcpcb.csv` and `…-bom-issues.csv` are written next to the unchanged plain export. Without `[catalog]` nothing changes. `examples/catalog/` with a dozen rows; 50 new tests. |
 | 0.6.2 | 2026-10-24 | The `--qr` example in the README names the live short link, `bac.page/deployment-switch-v1` (`dsw-v1` never existed); the `--help` epilog's example encodes `${COMMENT4}`, the title-block comment the deployment switch keeps its link in. No change to the tool. |
 | 0.6.1 | 2026-10-07 | The output folder is named like the artifacts (`bac-inhibit-deployment-switch-v1r1/`, was `deployment-switch-v1r1/`), so two projects of one name in different subsystems no longer share a folder. From the first live run: the iBOM plugin gets absolute paths (it resolves `--dest-dir` against the board's folder), the program lookup happens at call time, `--init` keeps its `[table]` names. |
-| 0.6.0 | 2026-10-06 | Rebuilt on `bac-common` as `tools/bac-kicad-generate-artifacts` in bac-utils, merging the 0.5.0 architecture with the 0.4.2 behaviour (§7). New: the `qr` stage, STEP header metadata, `--open`, `--patch`, `--init`/`--config`, the name from the project stem, Gerber names without spaces, `.gbrjob` rewrite, kicad-cli 10 targeted directly, Pillow instead of `cwebp`. Fixtures: the deployment switch and a synthetic project with a panel; 110 tests. |
+| 0.6.0 | 2026-10-06 | Rebuilt on `bac-common` as `tools/bac-kicad-generate-artifacts` in bac-utils, merging the 0.5.0 architecture with the 0.4.2 behaviour (§8). New: the `qr` stage, STEP header metadata, `--open`, `--patch`, `--init`/`--config`, the name from the project stem, Gerber names without spaces, `.gbrjob` rewrite, kicad-cli 10 targeted directly, Pillow instead of `cwebp`. Fixtures: the deployment switch and a synthetic project with a panel; 110 tests. |
 | 0.5.0 | 2026-05 | Candidate (never installed): `Config`, `Runner`, `Plan` and `Stage` architecture, `--only`/`--skip`/`--verbose`, 48 tests of the pure functions. |
 | 0.4.2 | 2026-08-06 | Panelized boards: also skip the pinout WebP export. |
 | 0.4.1 | 2026-08-06 | Panelized boards: include the `User.Comments` layer in the Gerber export (V-cut lines). |

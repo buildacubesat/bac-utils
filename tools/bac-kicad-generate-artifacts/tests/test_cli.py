@@ -311,3 +311,46 @@ def test_deployment_switch_fixture(fake, dsw, tmp_path):
     assert "1 marker, encodes 'https://bac.page/dsw-v1'" in r.stdout
     gerbers = sorted(p.name for p in (d / "gerber").iterdir())
     assert "bac-deployment-switch-v1r1-F_Cu.gbr" in gerbers and not any("MIX" in g for g in gerbers)
+
+
+def test_bom_with_catalogs(fake, synth, tmp_path):
+    from genart_testkit import CATALOG
+
+    cfg = tmp_path / "ga.toml"
+    cfg.write_text(f'[catalog]\npassives = "{CATALOG / "passives"}"\nics = "{CATALOG / "ics"}"\n')
+    r = invoke(cli._main, ["--config", str(cfg), "--desktop", str(tmp_path / "o"), "--only", "bom", str(synth)])
+    assert r.exit_code == 0, r.output
+    assert "catalog 15 passives, 14 ICs" in r.stdout
+    assert "✓ BOM → bac-synth-v2r3-bom{,-dev,-flight,-jlcpcb,-issues}.csv (9/11 dev, 8/11 flight resolved" in r.stdout
+    d = tmp_path / "o" / "bac-synth-v2r3"
+    names = sorted(p.name for p in d.iterdir())
+    assert names == [
+        "bac-synth-v2r3-bom-dev.csv",
+        "bac-synth-v2r3-bom-flight.csv",
+        "bac-synth-v2r3-bom-issues.csv",
+        "bac-synth-v2r3-bom-jlcpcb.csv",
+        "bac-synth-v2r3-bom.csv",
+    ]
+    assert (d / "bac-synth-v2r3-bom.csv").read_text().startswith("#,Designator,Qty\n")  # the [bom] export as before
+    assert "TNPW06034K70FHEA" in (d / "bac-synth-v2r3-bom-flight.csv").read_text()
+    exports = [c for c in fake.commands if c[1:4] == ["sch", "export", "bom"]]
+    assert len(exports) == 2 and exports[1][exports[1].index("--fields") + 1].startswith("Reference,${QUANTITY}")
+
+    fake.commands.clear()
+    r = invoke(cli._main, ["--config", str(cfg), "--dry-run", "--only", "bom", str(synth)])
+    assert r.exit_code == 0 and "· BOM → bac-synth-v2r3-bom.csv (with dev, flight, jlcpcb and issues)" in r.stdout
+
+
+def test_bom_without_catalogs_is_the_plain_export(fake, synth, tmp_path):
+    r = invoke(cli._main, ["--desktop", str(tmp_path / "o"), "--only", "bom", str(synth)])
+    assert r.exit_code == 0, r.output
+    assert " ICs" not in r.stdout
+    assert sorted(p.name for p in (tmp_path / "o" / "bac-synth-v2r3").iterdir()) == ["bac-synth-v2r3-bom.csv"]
+    assert len([c for c in fake.commands if c[1:4] == ["sch", "export", "bom"]]) == 1
+
+
+def test_missing_catalog_file_stops_the_run(fake, synth, tmp_path):
+    cfg = tmp_path / "ga.toml"
+    cfg.write_text(f'[catalog]\nics = "{tmp_path}"\n')
+    r = invoke(cli._main, ["--config", str(cfg), "--only", "bom", str(synth)])
+    assert r.exit_code == 1 and "IC catalog file missing" in r.stderr and "Check ics in [catalog]" in r.stderr

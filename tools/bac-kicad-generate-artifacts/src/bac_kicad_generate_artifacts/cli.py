@@ -35,6 +35,7 @@ from bac_common import ui
 from bac_common.errors import BacError, UsageError
 
 from . import TOOL_NAME, __version__
+from .catalog import Catalog, load_catalog
 from .config import Settings, config_template, desktop_dir, find_ibom_script, load_settings
 from .project import discover, make_plan
 from .runner import Runner, Tools, find_tools
@@ -112,6 +113,7 @@ class Run:
     open: bool
     dry_run: bool
     debug: bool
+    catalog: Catalog | None = None
 
 
 def open_outputs(out_dir: Path, zip_path: Path | None) -> None:
@@ -178,6 +180,7 @@ def process(kicad_dir: Path, run: Run) -> bool:
         qr_text=run.qr_text,
         open=run.open,
         debug=debug,
+        catalog=run.catalog,
         spinner=ui.spinner,
     )
     if not run.dry_run:
@@ -236,10 +239,12 @@ def _main(argv: list[str], debug: bool) -> int:
         raise UsageError("Give at least one KiCad project folder.", f"See `{TOOL_NAME} --help`.")
     only, skip = parse_stage_list(args.only), parse_stage_list(args.skip)
     settings = load_settings(args.config)
+    catalog = load_catalog(settings.catalog_passives, settings.catalog_ics)
     # Absolute: the iBOM plugin resolves a relative --dest-dir against the board's folder, not the cwd.
     root = (Path(args.desktop).expanduser() if args.desktop else (settings.output_root or desktop_dir())).resolve()
     run = Run(
         settings=settings,
+        catalog=None if catalog.empty else catalog,
         tools=find_tools(),
         runner=Runner(dry_run=args.dry_run, timeout=settings.timeout),
         root=root,
@@ -256,6 +261,8 @@ def _main(argv: list[str], debug: bool) -> int:
     ui.opening(TOOL_NAME, __version__, DESCRIPTION)
     if settings.source:
         ui.dim(f"config {ui.path(settings.source)}")
+    if run.catalog:
+        ui.dim(f"catalog {len(run.catalog.passives)} passives, {len(run.catalog.ics)} ICs")
     if not args.dry_run:
         root.mkdir(parents=True, exist_ok=True)
     done = failed = 0

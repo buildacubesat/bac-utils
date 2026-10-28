@@ -4,7 +4,8 @@
 Everything has a default, so the tool runs without a config file. The file
 is where a project records what is specific to it: the output root, the
 asset prefix and hardware repository name, author and organisation for the
-STEP header, the BOM field list, the iBOM plugin path and the QR marker.
+STEP header, the BOM field list, the part catalogs, the iBOM plugin path and
+the QR marker.
 """
 
 from __future__ import annotations
@@ -53,6 +54,8 @@ class Settings:
     bom_fields: str = BOM_FIELDS
     bom_labels: str = BOM_LABELS
     bom_group_by: str = BOM_GROUP_BY
+    catalog_passives: Path | None = None  # folder with bac-passives-capacitors.csv and -resistors.csv
+    catalog_ics: Path | None = None  # folder with bac-ics.csv
     ibom_script: Path | None = None
     ibom_python: str | None = None
     qr_marker: str = "QR_MARKER"
@@ -99,7 +102,9 @@ def load_settings(config_path: str | os.PathLike[str] | None) -> Settings:
     data = bac_config.load_toml(TOOL_NAME, config_path)
     output, naming, meta = _table(data, "output"), _table(data, "naming"), _table(data, "metadata")
     bom, ibom, qr = _table(data, "bom"), _table(data, "ibom"), _table(data, "qr")
+    catalog = _table(data, "catalog")
     root = _text(output, "root", "")
+    passives, ics = _text(catalog, "passives", ""), _text(catalog, "ics", "")
     script = _text(ibom, "script", "")
     timeout = output.get("timeout_s", 600)
     if not isinstance(timeout, (int, float)) or timeout <= 0:
@@ -114,6 +119,8 @@ def load_settings(config_path: str | os.PathLike[str] | None) -> Settings:
         bom_fields=_text(bom, "fields", BOM_FIELDS),
         bom_labels=_text(bom, "labels", BOM_LABELS),
         bom_group_by=_text(bom, "group_by", BOM_GROUP_BY),
+        catalog_passives=Path(passives).expanduser() if passives else None,
+        catalog_ics=Path(ics).expanduser() if ics else None,
         ibom_script=Path(script).expanduser() if script else None,
         ibom_python=_text(ibom, "python", "") or None,
         qr_marker=_text(qr, "marker", "QR_MARKER") or "QR_MARKER",
@@ -151,6 +158,13 @@ organization = ""
 fields = "{BOM_FIELDS}"
 labels = "{BOM_LABELS}"
 group_by = "{BOM_GROUP_BY}"
+
+[catalog]
+# The part catalogs the bom stage resolves the schematic against (README §4): the folder with
+# bac-passives-capacitors.csv and bac-passives-resistors.csv, and the folder with bac-ics.csv.
+# Empty: the stage writes the plain export only.
+passives = ""
+ics = ""
 
 [ibom]
 # The InteractiveHtmlBom plugin's generate_interactive_bom.py (--ibom runs it with a python that imports pcbnew).
