@@ -81,7 +81,7 @@ def wrap(
     who = "Build a CubeSat (BAC)" if brand == "Build a CubeSat" else f"{brand} (BAC flight software)"
     desc = (
         f"{who} brand {kind.replace('-', ' ')}, version {version[1:]}. {construction} {rights}. "
-        "A BAC Mark: not covered by any open licence, use governed by the BAC Trademark Policy "
+        "A BAC Mark: not covered by any open license, use governed by the BAC Trademark Policy "
         "(hello@buildacubesat.space)."
     )
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {_f(width)} {_f(height)}" role="img"
@@ -231,14 +231,14 @@ def logo_parts(fonts_dir: Path, color: str, tagline: bool = False) -> tuple[str,
         body += f'  <g id="tagline">\n{frag}  </g>\n'
         construction += (
             f' Tagline "{TAGLINE}" in IBM Plex Mono, tracking {TAGLINE_TRACKING:.3f} em, sized to {TAGLINE_FILL:.0%}'
-            f" of the wordmark's width and centred under it, rules filling the rest, outlined."
+            f" of the wordmark's width and centered under it, rules filling the rest, outlined."
         )
     canvas_w = sym_w + GAP + width + (sym_w - EDGE * math.sqrt(3)) / 2
     return body, canvas_w, sym_h, construction
 
 
 def logo_svg(fonts_dir: Path, color: str, tagline: bool = False) -> str:
-    """The symbol on its own canvas, the wordmark centred on the cube to its right."""
+    """The symbol on its own canvas, the wordmark centered on the cube to its right."""
     body, w, h, construction = logo_parts(fonts_dir, color, tagline)
     return wrap("logo-tagline" if tagline else "logo", body, w, h, construction)
 
@@ -337,7 +337,7 @@ def assets() -> Iterator[Asset]:
         for variant in BADGES:
             yield Asset(kind, variant, f"bac-{kind}-{variant}-{VERSION}.svg")
     for part in ("symbol", "wordmark", "logo"):
-        for variant in (*COLORS, "colour"):
+        for variant in (*COLORS, "color"):
             yield Asset(f"rocinante-{part}", variant, f"rocinante-{part}-{variant}-{rocinante.VERSION}.svg")
 
 

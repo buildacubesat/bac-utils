@@ -30,7 +30,7 @@ def test_list_prints_every_asset_once():
     names = r.stdout.split()
     svgs = [n for n in names if n.endswith(".svg")]
     assert svgs == [a.name for a in assets.assets()]
-    assert len(names) == len(set(names)) == 28 + 84  # 21 coloured SVGs × two sizes × PNG and WebP
+    assert len(names) == len(set(names)) == 28 + 84  # 21 colored SVGs × two sizes × PNG and WebP
     assert all(
         re.fullmatch(r"(png|webp)/(bac|rocinante)-[a-z-]+-v\d+r\d+-(512|2048)\.(png|webp)", n) for n in names[28:]
     )
@@ -38,7 +38,7 @@ def test_list_prints_every_asset_once():
     pattern = (
         r"bac-(symbol|wordmark|logo|logo-tagline)-(black|white|currentcolor)-v\d+r\d+\.svg"
         r"|bac-(symbol|logo)-badge-(light|dark)-v\d+r\d+\.svg"
-        r"|rocinante-(symbol|wordmark|logo)-(black|white|currentcolor|colour)-v\d+r\d+\.svg"
+        r"|rocinante-(symbol|wordmark|logo)-(black|white|currentcolor|color)-v\d+r\d+\.svg"
     )
     assert all(re.fullmatch(pattern, n) for n in names), names
 
@@ -47,7 +47,7 @@ def test_symbol_is_a_true_isometric_cube_on_the_guide_grid():
     svg = assets.symbol_svg("#000000")
     assert 'viewBox="0 0 400 650"' in svg
     assert 'stroke-width="15"' in svg and "width=" not in svg.split(">", 1)[0].replace("stroke-width", "")
-    # the outline's six vertices: the cube is 200√3 wide and 600 tall, centred on the canvas
+    # the outline's six vertices: the cube is 200√3 wide and 600 tall, centered on the canvas
     half = assets.EDGE * math.sqrt(3) / 2
     for x, y in [(200, 25), (200 + half, 125), (200 + half, 525), (200, 625), (200 - half, 525), (200 - half, 125)]:
         assert f"Q{x:.2f}".rstrip("0").rstrip(".") + f" {y}" in svg, (x, y)
@@ -64,7 +64,7 @@ def test_every_file_carries_title_desc_and_the_trademark_notice():
     assert chr(0x2014) not in svg  # no em dash anywhere
 
 
-def test_currentcolor_variant_carries_no_literal_colour():
+def test_currentcolor_variant_carries_no_literal_color():
     svg = assets.symbol_svg("currentColor")
     assert "#000000" not in svg and "#ffffff" not in svg
     assert svg.count("currentColor") == 2  # stroke and the dot's fill
@@ -107,7 +107,7 @@ def test_badge_encloses_the_symbol_and_rocinante_ring_has_three_gaps():
     assert 'id="badge"' in badge and "#D0D0D0" in badge and 'id="symbol"' in badge
     ring = rocinante.ring_path(0, 0)
     assert ring.count("A") == 3 and ring.count("M") == 3
-    svg = rocinante.symbol_svg("colour", assets.wrap)
+    svg = rocinante.symbol_svg("color", assets.wrap)
     assert "Rocinante Symbol v2r1" in svg and "#1F1F1F" in svg and "#004C8B" in svg
 
 

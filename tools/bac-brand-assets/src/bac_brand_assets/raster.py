@@ -2,7 +2,7 @@
 """PNG and WebP renderings of the marks, for the places that cannot take an SVG.
 
 Two sizes per mark, named by the longest side; transparent background. The currentColor
-files are not rendered – they have no colour of their own.
+files are not rendered – they have no color of their own.
 """
 
 from __future__ import annotations

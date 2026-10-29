@@ -1,6 +1,6 @@
 [project]
 name = "bac-brand-assets"
-version = "0.2.0"
+version = "0.3.0"
 description = "Writes the Build a CubeSat symbol, wordmark and logo SVGs into the bac-design checkout from exact geometry and the self-hosted Nunito."
 readme = "README.md"
 license = { text = "MIT" }

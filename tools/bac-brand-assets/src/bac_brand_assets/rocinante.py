@@ -94,7 +94,7 @@ def symbol_group(head_color: str, ring_color: str, ox: float = 0, oy: float = 0)
 
 
 def wordmark_group(fonts_dir: Path, word_color: str, sub_color: str, cx: float, baseline: float) -> tuple[str, float]:
-    """ROCINANTE centred on cx with the subtitle and its rules under it; returns (group, width)."""
+    """ROCINANTE centered on cx with the subtitle and its rules under it; returns (group, width)."""
     from fontTools.ttLib import TTFont
 
     nunito = wordmark.load(fonts_dir, WORD_WEIGHT)
@@ -109,22 +109,22 @@ def wordmark_group(fonts_dir: Path, word_color: str, sub_color: str, cx: float, 
     ), width
 
 
-def colours(variant: str) -> tuple[str, str]:
-    """(head and word, ring and subtitle) for a colour variant."""
-    if variant == "colour":
+def colors(variant: str) -> tuple[str, str]:
+    """(head and word, ring and subtitle) for a color variant."""
+    if variant == "color":
         return TWO_TONE["head"], TWO_TONE["ring"]
     return COLORS[variant], COLORS[variant]
 
 
 def symbol_svg(variant: str, wrap) -> str:
-    a, b = colours(variant)
+    a, b = colors(variant)
     return wrap(
         "symbol", symbol_group(a, b), CANVAS, CANVAS, _construction(variant), brand="Rocinante", version=VERSION
     )
 
 
 def wordmark_svg(fonts_dir: Path, variant: str, wrap) -> str:
-    a, b = colours(variant)
+    a, b = colors(variant)
     pad = 40
     g, w = wordmark_group(fonts_dir, a, b, 0, 0)
     cap = WORD_SIZE * 0.705
@@ -134,8 +134,8 @@ def wordmark_svg(fonts_dir: Path, variant: str, wrap) -> str:
 
 
 def logo_svg(fonts_dir: Path, variant: str, wrap) -> str:
-    """The stacked lockup, as the original: symbol above the wordmark, centred."""
-    a, b = colours(variant)
+    """The stacked lockup, as the original: symbol above the wordmark, centered."""
+    a, b = colors(variant)
     g, w = wordmark_group(fonts_dir, a, b, 0, 0)
     width = max(CANVAS, w + 80)
     cx = width / 2
@@ -150,9 +150,9 @@ def _construction(variant: str) -> str:
         f"Head polygon and ear from the original vector artwork at scale {SCALE}, ring radius {_f(RING_R)}"
         f" stroke {RING_STROKE} with three gaps; Nunito {WORD_WEIGHT} and IBM Plex Mono {SUB_WEIGHT}, outlined."
     )
-    if variant == "colour":
+    if variant == "color":
         c += (
-            f" Two-tone in brand colours: {TWO_TONE['head']} for head and word,"
+            f" Two-tone in brand colors: {TWO_TONE['head']} for head and word,"
             f" {TWO_TONE['ring']} for ring and subtitle."
         )
     return c
