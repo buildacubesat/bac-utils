@@ -23,7 +23,6 @@ def isolated(monkeypatch, tmp_path):
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
     monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
     monkeypatch.setattr(config_module, "CONFIG_DIR", tmp_path / "config" / "bac")
-    monkeypatch.setattr("bac_page.cli.LEGACY_ENV", tmp_path / "legacy" / ".env")
     monkeypatch.chdir(tmp_path)
     yield
     os.environ.clear()

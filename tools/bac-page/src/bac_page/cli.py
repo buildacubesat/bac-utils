@@ -3,19 +3,20 @@
 
 ``bac-page <url> [slug]`` writes a redirect folder into the Pages repository,
 commits and pushes; ``list`` shows what is there, ``edit`` changes a slug or
-a destination or makes a QR code, ``init`` sets the repository path. The
+a destination or makes a QR code, ``init`` sets the repository path. A renamed
+slug stays behind as an alias of the new one, so its links keep working. The
 parser and the error boundary come from ``bac_common.cli``.
 """
 
 from __future__ import annotations
 
 import argparse
+import datetime
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
-
-from dotenv import load_dotenv
 
 from bac_common import cli as bac_cli
 from bac_common import ui
@@ -34,18 +35,17 @@ from .redirects import (
     slug_exists,
     validate_slug,
     validate_target,
+    write_alias,
 )
 
 TOOL = "bac-page"
 REPO_ENV = "BAC_PAGE_REPO"
-# read once more in 0.5; gone in 0.6 – put BAC_PAGE_REPO in a .env or run --init
-LEGACY_ENV = Path("~/.config/bac-page/.env")
 COMMANDS = ("add", "list", "edit", "init")
 DESCRIPTION = f"""Create and manage {DOMAIN} short URLs.
 
 commands:
   <url> [slug]   create a redirect (`add`); slug 1–{SLUG_MAX} characters, else random
-  list           every redirect, sorted by slug
+  list           every redirect, renamed slugs dimmed (--old: only those)
   edit           change a slug or destination, or make a QR code
   init           set the Pages repository path (same as --init)"""
 EXAMPLES = (
@@ -86,8 +86,11 @@ def build_add_parser() -> argparse.ArgumentParser:
 
 
 def build_list_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog=f"{TOOL} list", description="List every redirect, sorted by slug.")
+    p = argparse.ArgumentParser(
+        prog=f"{TOOL} list", description="List every redirect, sorted by slug; renamed slugs are dimmed."
+    )
     p.add_argument("--plain", action="store_true", help="tab-separated lines, no table (automatic when piped)")
+    p.add_argument("--old", action="store_true", help="only the renamed slugs, with their new slug and date")
     return p
 
 
@@ -131,15 +134,13 @@ def _subparser(command: str) -> argparse.ArgumentParser:
 
 
 def load_environment(env_file: str | None) -> None:
-    """The nearest ``.env`` (or the given one), then the legacy file with a note."""
+    """The nearest ``.env``, or the given one (the legacy ``~/.config/bac-page/.env`` is gone since 0.6)."""
     load_env(env_file)
-    legacy = LEGACY_ENV.expanduser()
-    if env_file is None and legacy.is_file():
-        load_dotenv(legacy)
-        ui.err_console.print(
-            f"[dim]{ui.esc(str(legacy))} is read for the last time in 0.5: "
-            f"put {REPO_ENV} in a .env next to your work or run `{TOOL} --init`.[/]"
-        )
+
+
+def today() -> str:
+    """The date a rename records, YYYY-MM-DD (local)."""
+    return datetime.date.today().isoformat()
 
 
 def repo_path(config_path: str | None) -> Path:
@@ -264,29 +265,40 @@ def cmd_add(args: argparse.Namespace) -> int:
 def cmd_list(args: argparse.Namespace) -> int:
     repo = repo_path(args.config)
     redirects = list_redirects(repo)
+    if args.old:
+        redirects = [r for r in redirects if r.is_alias]
     if not redirects:
-        ui.step("No redirects found.")
+        ui.step("No renamed slugs found." if args.old else "No redirects found.")
         return 0
     if args.plain or not ui.console.is_terminal:
-        for slug, target in redirects:
-            print(f"{short_url(slug)}\t{target}")
+        for r in redirects:
+            # an alias gets a third column with its rename date
+            print(f"{short_url(r.slug)}\t{r.target}" + (f"\t{r.renamed_on}" if r.is_alias else ""))
         return 0
+    aliases = sum(r.is_alias for r in redirects)
+    title = f"{DOMAIN} renamed slugs ({aliases})" if args.old else f"{DOMAIN} redirects ({len(redirects)})"
     ui.table(
-        f"{DOMAIN} redirects ({len(redirects)})",
+        title,
         [("Slug", 0), ("Destination", 1)],
-        [(ui.path("/" + slug), ui.esc(target)) for slug, target in redirects],
+        [
+            (f"[dim]/{ui.esc(r.slug)}[/]", f"[dim]→ /{ui.esc(r.renamed_to)} (renamed {r.renamed_on})[/]")
+            if r.is_alias
+            else (ui.path("/" + r.slug), ui.esc(r.target))
+            for r in redirects
+        ],
     )
     return 0
 
 
 def cmd_edit(args: argparse.Namespace) -> int:
     repo = repo_path(args.config)
-    redirects = list_redirects(repo)
+    everything = list_redirects(repo)
+    redirects = [r for r in everything if not r.is_alias]  # an alias is not edited, only listed
     if not redirects:
         ui.step("No redirects found.")
         return 0
     ui.opening(TOOL, __version__, f"Editing a redirect in {ui.esc(str(repo))}.")
-    slug, target = redirects[prompts.pick_redirect(redirects)]
+    slug, target, *_ = redirects[prompts.pick_redirect(redirects)]
     url = short_url(slug)
     ui.fields([("Short URL", url), ("Destination", target)])
     action = prompts.pick_action(slug)
@@ -305,21 +317,44 @@ def cmd_edit(args: argparse.Namespace) -> int:
         if new_slug == slug:
             ui.step("Unchanged.")
             return 0
-        validate_slug(repo, new_slug)
-        ui.step(f"{ui.path(url)} → {ui.path(short_url(new_slug))}")
+        # renaming back onto one of its own aliases undoes that rename; any other taken slug is refused
+        undo = next((r for r in everything if r.slug == new_slug and r.renamed_to == slug), None)
+        if undo is None:
+            validate_slug(repo, new_slug)
+        # earlier aliases of this slug move along, so every old link takes one redirect
+        earlier = [r for r in everything if r.renamed_to == slug and r.slug != new_slug]
+        ui.step(f"{ui.path(url)} → {ui.path(short_url(new_slug))}; /{ui.esc(slug)} stays as an alias")
+        if undo is not None:
+            ui.step(f"undoes the rename of /{ui.esc(new_slug)} on {undo.renamed_on}: it is live again")
+        for r in earlier:
+            ui.step(f"alias /{ui.esc(r.slug)} (renamed {r.renamed_on}) now points to /{ui.esc(new_slug)}")
+        aliases = ", ".join(f"/{s}" for s in [slug, *(r.slug for r in earlier)])
         if args.dry_run:
-            ui.summary([("Old", url), ("New", short_url(new_slug))], dry_run=True)
+            ui.summary([("Old", url), ("New", short_url(new_slug)), ("Aliases", aliases)], dry_run=True)
             return 0
         if not prompts.confirm("Rename and push?"):
             raise UserAbort()
         with ui.spinner("Committing and pushing"):
+            if undo is not None:
+                git(repo, "rm", "-r", "-q", "--", new_slug)
+                shutil.rmtree(repo / new_slug, ignore_errors=True)  # untracked leftovers (.DS_Store) too
             git(repo, "mv", "--", slug, new_slug)
+            if not (repo / new_slug / "index.html").is_file():
+                raise ExternalToolError(
+                    f"The rename did not leave /{new_slug}/index.html in place; nothing was committed.",
+                    f"Check `git status` in {repo} and restore with `git checkout -- .`",
+                )
+            write_alias(repo, slug, new_slug, today())
+            for r in earlier:
+                write_alias(repo, r.slug, new_slug, r.renamed_on)
+            for folder in [slug, *(r.slug for r in earlier)]:
+                git(repo, "add", "--", folder)
             git(repo, "commit", "-m", f"rename redirect: /{slug} → /{new_slug}")
             git(repo, "pull", "--rebase")
             git(repo, "push")
         ui.ok(f"{ui.path(short_url(new_slug))} → {ui.esc(target)}")
-        ui.warn(f"QR codes and links to /{slug} no longer resolve")
-        ui.summary([("Old", url), ("New", short_url(new_slug))])
+        ui.ok(f"{ui.path(url)} redirects to /{ui.esc(new_slug)}")
+        ui.summary([("Old", url), ("New", short_url(new_slug)), ("Aliases", aliases)])
         return 0
 
     new_target = prompts.ask_text("New destination URL:", target)

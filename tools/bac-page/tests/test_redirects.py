@@ -24,7 +24,10 @@ def test_list_skips_dotfolders_cli_and_folders_without_a_redirect(tmp_path):
     (tmp_path / "plain").mkdir()
     (tmp_path / "broken").mkdir()
     (tmp_path / "broken" / "index.html").write_text("<html></html>")
-    assert r.list_redirects(tmp_path) == [("alpha", "https://a.example"), ("Zeta", "https://z.example")]
+    assert r.list_redirects(tmp_path) == [
+        ("alpha", "https://a.example", None, None),
+        ("Zeta", "https://z.example", None, None),
+    ]
 
 
 def test_slug_rules(tmp_path):
@@ -51,3 +54,38 @@ def test_uid_shape():
     uid = r.generate_uid()
     assert len(uid) == 8 and uid.isalnum()
     assert r.short_url(uid) == f"https://bac.page/{uid}"
+
+
+def test_live_redirect_is_unchanged_and_an_alias_carries_its_marker(tmp_path):
+    # the shape every live redirect in the Pages repository has (0.4.2 to 0.6.0)
+    assert r.redirect_html("https://example.com/x") == (
+        "<!DOCTYPE html>\n"
+        '<html lang="en">\n'
+        "<head>\n"
+        '  <meta charset="utf-8">\n'
+        '  <meta http-equiv="refresh" content="0; url=https://example.com/x">\n'
+        '  <link rel="canonical" href="https://example.com/x">\n'
+        "  <title>Redirecting…</title>\n"
+        "</head>\n"
+        "<body>\n"
+        '  <p>Redirecting to <a href="https://example.com/x">https://example.com/x</a></p>\n'
+        "  <script>window.location.replace('https://example.com/x');</script>\n"
+        "</body>\n"
+        "</html>\n"
+    )
+    folder = r.write_alias(tmp_path, "old", "new", "2026-10-29")
+    index = folder / "index.html"
+    assert '<meta name="bac-page" content="renamed 2026-10-29 to /new">' in index.read_text()
+    assert r.parse_target(index) == "https://bac.page/new" and r.parse_renamed(index) == ("2026-10-29", "new")
+    (alias,) = r.list_redirects(tmp_path)
+    assert alias.is_alias and alias.renamed_to == "new" and alias.renamed_on == "2026-10-29"
+    with pytest.raises(BacError) as exc:
+        r.validate_slug(tmp_path, "old")
+    assert "renamed slug (now /new)" in exc.value.message
+
+
+def test_a_folder_without_a_redirect_takes_the_slug(tmp_path):
+    (tmp_path / "assets").mkdir()
+    with pytest.raises(BacError) as exc:
+        r.validate_slug(tmp_path, "assets")
+    assert "already exists" in exc.value.message

@@ -6,6 +6,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .qr import FORMATS, LEVELS, QrOptions
+from .redirects import Redirect
 
 __all__ = ["ask_text", "confirm", "pick_action", "pick_redirect", "qr_options"]
 
@@ -17,12 +18,12 @@ ACTIONS = (
 )
 
 
-def pick_redirect(redirects: list[tuple[str, str]]) -> int:
+def pick_redirect(redirects: list[Redirect]) -> int:
     """Fuzzy pick by slug only – matching on destinations made typing a slug pick the wrong entry."""
     from InquirerPy import inquirer
     from InquirerPy.base.control import Choice
 
-    choices = [Choice(value=i, name=f"/{slug}") for i, (slug, _) in enumerate(redirects)]
+    choices = [Choice(value=i, name=f"/{r.slug}") for i, r in enumerate(redirects)]
     return inquirer.fuzzy(message="Redirect to edit:", choices=choices, max_height="70%").execute()
 
 
