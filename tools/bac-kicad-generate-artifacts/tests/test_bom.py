@@ -94,15 +94,14 @@ def test_parts_resolve_like_ics(tmp_path: Path):
     catalog = load_catalog(CATALOG / "passives", CATALOG / "ics", CATALOG / "parts")
     build = {"dev": tmp_path / "bom-dev.csv", "flight": tmp_path / "bom-flight.csv"}
     summary = bom.write_builds(catalog, bom.read_export(src), build, tmp_path / "jlc.csv", tmp_path / "issues.csv")
-    assert summary.note() == "10/12 dev, 8/12 flight resolved, 6 issues, 1 flagged, 4 without LCSC"
+    assert summary.note() == "10/12 dev, 9/12 flight resolved, 5 issues, 4 without LCSC"
     j1 = _rows(build["dev"])[11]
     assert j1["Manufacturer PN"] == "DX07S016JA1R1500" and j1["Manufacturer"] == "JAE"
-    assert j1["Catalog"] == "conn-usb-c-16p.dx07s016ja1r1500" and j1["Verified"] == "false"
+    assert j1["Catalog"] == "conn-usb-c-16p.dx07s016ja1r1500" and j1["Verified"] == "true"
+    flight = _rows(build["flight"])[11]
+    assert flight["Manufacturer PN"] == "DX07S016JA1R1500" and flight["Note"] == "accepted reference stays"
     issues = _rows(tmp_path / "issues.csv")
-    assert [(r["Designator"], r["Grade"], r["Kind"]) for r in issues if r["Designator"] == "J1"] == [
-        ("J1", "dev", "unverified"),
-        ("J1", "flight", "unresolved"),  # commercial, no flight row
-    ]
+    assert [r for r in issues if r["Designator"] == "J1"] == []  # accepted for flight, verified
     assert [r for r in issues if r["Designator"] == "SW1"][0]["Reason"].endswith("not a resistor or capacitor")
 
 

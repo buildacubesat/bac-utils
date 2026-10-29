@@ -15,5 +15,6 @@ The columns the stage reads: `grade`, `value`, `package`, `role`, `status`, `man
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 3 | 2026-10-29 | The six parts rows taken again from the verified catalog (parts 0.2.0): five `accepted` for flight, the white LED commercial with no flight row. |
 | 2 | 2026-10-28 | `parts/bac-parts.csv` with six of the MCU carrier's connectors, switch, LED and spacer, drafted from the boards (unverified, no distributor numbers). |
 | 1 | 2026-10-28 | Rows taken from the Build a CubeSat catalogs (passives 0.2.0, ICs 0.3.0 of 2026-10-10), with bac-kicad-generate-artifacts 0.7.0. |

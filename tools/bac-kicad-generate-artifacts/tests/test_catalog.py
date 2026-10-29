@@ -193,8 +193,12 @@ def test_parts_catalog(catalog):
     line = BomLine("J1", 1, "USB-C", "x", "DX07S016JA1R1500")
     assert resolve(catalog, line, "dev").reason == "DX07S016JA1R1500 is not in the IC catalog"
     r = resolve(full, line, "dev")
-    assert r.catalog_id == "conn-usb-c-16p.dx07s016ja1r1500" and r.verified == "false" and r.flags == ["unverified"]
-    assert resolve(full, line, "flight").row is None  # commercial, no flight row
+    assert r.catalog_id == "conn-usb-c-16p.dx07s016ja1r1500" and r.verified == "true" and r.flags == []
+    # accepted by decision: the reference stays in the flight build like a qualified part
+    accepted = resolve(full, line, "flight")
+    assert accepted.mpn == "DX07S016JA1R1500" and accepted.note == "accepted reference stays"
+    led = resolve(full, BomLine("D1", 1, "LED W", "x", "150060WS75000"), "flight")
+    assert led.row is None and led.reason == "no flight candidate in slot led-0603-white"  # commercial, no flight row
     assert resolve(full, BomLine("J2", 1, "x", "y", "NOPE"), "dev").reason == "NOPE is not in the IC or parts catalog"
     only_parts = load_catalog(None, None, CATALOG / "parts")
     assert resolve(only_parts, line, "dev").row is not None and not only_parts.empty

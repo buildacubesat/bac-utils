@@ -517,7 +517,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-kicad-generate-artifacts"
-version = "0.6.2"
+version = "0.7.2"
 source = { editable = "tools/bac-kicad-generate-artifacts" }
 dependencies = [
     { name = "bac-common" },

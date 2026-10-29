@@ -37,8 +37,9 @@ PARTS_FILE = "bac-parts.csv"  # the ICs' columns
 PASSIVE_COLUMNS = ("id", "grade", "value", "package", "manufacturer", "mpn", "role", "status", "lcsc", "digikey")
 IC_COLUMNS = ("id", "slot", "role", "compat", "manufacturer", "mpn", "qualification", "lcsc", "digikey")
 GRADES = ("dev", "flight")
-# the qualification grades that let a reference IC stay in a flight build
-QUALIFIED = ("aec-q100", "aec-q101", "aec-q200", "enhanced-product", "space")
+# the qualification grades that let a reference IC stay in a flight build; `accepted` is a decision
+# for a part with no qualified variant (a connector, a spacer)
+QUALIFIED = ("aec-q100", "aec-q101", "aec-q102", "aec-q200", "enhanced-product", "space", "accepted")
 # roles a passive line resolves to, in order of preference
 ROLE_ORDER = ("default", "shunt", "jumper", "alternative")
 
