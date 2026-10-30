@@ -7,11 +7,11 @@ The Build a CubeSat (BAC) reference gallery follows the project's licensing spli
 | Renderer software: `src/`, `tests/`, `pyproject.toml` | MIT |
 | Stylesheets: `css/tokens.css`, `css/gallery.css`, `css/index.css` | MIT or CC BY-SA 4.0, at your option (`SPDX-License-Identifier: MIT OR CC-BY-SA-4.0` in each file) |
 | Documentation: the HTML pages, the SVG illustrations, `README.md`, `REFERENCE-MAP.md` and the rendered PNG and PDF exports | CC BY-SA 4.0 |
-| Brand marks: `assets/bac-symbol.svg`, the Build a CubeSat name and wordmark wherever they appear in the pages and exports | Not licensed – BAC Marks of nihil.space GmbH, see the [BAC Trademark Policy](https://github.com/buildacubesat/bac-design/blob/main/guides/bac-trademark-policy.md) |
+| Brand marks: `assets/bac-symbol-currentcolor-v4r1.svg` (a copy of the file in bac-design `assets/`), the Build a CubeSat name and wordmark wherever they appear in the pages and exports | Not licensed – BAC Marks of nihil.space GmbH, see the [BAC Trademark Policy](https://github.com/buildacubesat/bac-design/blob/main/guides/bac-trademark-policy.md) |
 
 CC BY-SA 4.0 is the Creative Commons Attribution-ShareAlike 4.0 International license: https://creativecommons.org/licenses/by-sa/4.0/legalcode. The MIT text, the same as the repository's `LICENSE`, follows so that it travels with the installed package.
 
-The Build a CubeSat name and logo are not covered by this gallery's licences; see the [BAC Trademark Policy](https://github.com/buildacubesat/bac-design/blob/main/guides/bac-trademark-policy.md) (nihil.space GmbH, hello@buildacubesat.space). The canonical BAC guides remain authoritative for project-wide licensing conventions.
+The Build a CubeSat name and logo are not covered by this gallery's licenses; see the [BAC Trademark Policy](https://github.com/buildacubesat/bac-design/blob/main/guides/bac-trademark-policy.md) (nihil.space GmbH, hello@buildacubesat.space). The canonical BAC guides remain authoritative for project-wide licensing conventions.
 
 ## The MIT License
 
