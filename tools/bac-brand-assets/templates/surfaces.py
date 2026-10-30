@@ -1,41 +1,15 @@
 # SPDX-License-Identifier: MIT
-"""Render the Mission surfaces the slides template places as images.
+"""Render the recessed viewport the Mission title slide places as an image.
 
 uv run --with playwright python surfaces.py
-Writes hero-bg.png (the dark hero: --space-ink with nebula light, a restrained starfield and
-orbital rings, 16:9 at 1920 × 1080) and viewport.png (the recessed viewport: gridded dark panel,
-teal-tinted border, inner glow, 1320 × 990). The CSS is the BAC Reference Gallery's product-sheet
-hero and viewport (Identity Guide §6–§7); pptxgenjs cannot draw inset glows or gradients of this
-kind, so the surfaces are rendered once here and the layouts carry the pixels.
+Writes viewport.png (gridded dark panel, teal-tinted border, inner glow, 1320 × 990), the
+BAC Reference Gallery's product-sheet viewport (Identity Guide §7, surface 1). pptxgenjs cannot
+draw inset glows, so the surface is rendered once here and the layout carries the pixels. The
+Mission backdrop itself is nebula.jpg, the nebula of the Tooldance media kit (2026-10).
 Needs a Chromium – the one bac-reference-gallery --init installs is enough.
 """
 
-from pathlib import Path
-
 from playwright.sync_api import sync_playwright
-
-HERO = """<!doctype html><meta charset="utf-8"><style>
-html,body{margin:0}
-.hero{width:1920px;height:1080px;position:relative;overflow:hidden;
-  background:
-    radial-gradient(ellipse at 72% 8%, rgba(122,90,248,.38) 0, rgba(122,90,248,.08) 17%, transparent 33%),
-    radial-gradient(ellipse at 84% 46%, rgba(14,149,148,.18) 0, transparent 28%),
-    radial-gradient(ellipse at 10% 95%, rgba(14,149,148,.14) 0, transparent 30%),
-    radial-gradient(circle at 52% 22%, rgba(255,255,255,.85) 0 1.4px, transparent 1.9px),
-    radial-gradient(circle at 19% 64%, rgba(255,255,255,.65) 0 1.4px, transparent 1.9px),
-    radial-gradient(circle at 88% 76%, rgba(255,255,255,.7) 0 1.4px, transparent 1.9px),
-    #171320;}
-.hero::before{content:"";position:absolute;inset:0;opacity:.22;
-  background-image:
-    radial-gradient(circle, rgba(255,255,255,.95) 0 1.1px, transparent 1.7px),
-    radial-gradient(circle, rgba(255,255,255,.55) 0 1px, transparent 1.5px),
-    radial-gradient(circle, rgba(255,255,255,.4) 0 .9px, transparent 1.4px);
-  background-size:233px 181px, 157px 263px, 311px 127px;background-position:17px 31px, 61px 119px, 131px 73px;}
-.ring{position:absolute;border:1.5px solid rgba(143,135,158,.26);border-radius:50%;transform:rotate(-12deg)}
-.r1{width:1120px;height:470px;right:-220px;top:-150px}
-.r2{width:1120px;height:470px;right:-220px;top:-20px;border-color:rgba(143,135,158,.14)}
-.r3{width:1120px;height:470px;right:-220px;top:112px;border-color:rgba(143,135,158,.08)}
-</style><div class="hero"><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div></div>"""
 
 VIEWPORT = """<!doctype html><meta charset="utf-8"><style>
 html,body{margin:0;background:transparent}
@@ -61,7 +35,5 @@ def shot(page, html, selector, out, omit_bg=False):
 with sync_playwright() as p:
     browser = p.chromium.launch()
     page = browser.new_page(viewport={"width": 1920, "height": 1080}, device_scale_factor=1)
-    shot(page, HERO, ".hero", "hero-bg.png")
     shot(page, VIEWPORT, ".vp", "viewport.png", omit_bg=True)
     browser.close()
-Path("hero-bg.png").stat()

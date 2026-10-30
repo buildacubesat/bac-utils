@@ -1,0 +1,250 @@
+/* SPDX-License-Identifier: MIT */
+/* print.css – the paged layout of a BAC document (Identity Guide §7.3).
+
+   Every colour, family, weight, tracking, line height, radius and border comes from the
+   design tokens as var(--…): bac-design-export writes tokens.css from bac-design-tokens in
+   front of this file on every run, so no token value is kept here. What lives here is what
+   the tokens do not cover: the page, the print type sizes in pt, and the running header and
+   footer. Ops mode – white paper, monochrome hierarchy, no nebula colour, no shadows. */
+
+@page {
+  size: A4;
+  margin: 18mm 16mm 18mm 16mm;
+  @top-left {
+    content: none; /* the document name, set per document */
+    font: var(--fw-medium) 7pt/1 var(--font-mono);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    vertical-align: bottom;
+    padding-bottom: 4mm;
+  }
+  @top-right {
+    content: none; /* version and date, set per document */
+    font: var(--fw-regular) 7pt/1 var(--font-mono);
+    letter-spacing: var(--ls-label);
+    color: var(--text-muted);
+    vertical-align: bottom;
+    padding-bottom: 4mm;
+  }
+  @bottom-left {
+    content: none; /* repository and licence, set per document */
+    font: var(--fw-regular) 7pt/1.3 var(--font-mono);
+    color: var(--text-muted);
+    vertical-align: top;
+    padding-top: 4mm;
+  }
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font: var(--fw-regular) 7pt/1.3 var(--font-mono);
+    color: var(--text-muted);
+    vertical-align: top;
+    padding-top: 4mm;
+  }
+}
+@page :first {
+  @top-left { content: none; }
+  @top-right { content: none; }
+}
+@page letter { size: letter; }
+html.letter body { page: letter; }
+
+html {
+  font-family: var(--font-body);
+  font-weight: var(--fw-regular);
+  font-size: 9.5pt;
+  line-height: var(--lh-normal);
+  color: var(--text);
+  background: var(--neutral-0);
+  font-variant-numeric: tabular-nums;
+  -weasy-hyphens: manual;
+}
+body { margin: 0; }
+
+/* ---- The front matter: logo, kicker and eyebrow, title, lead ---- */
+.front { margin-bottom: 8mm; }
+.front .logo { height: 13mm; display: block; margin-bottom: 14mm; }
+.eyebrow {
+  font: var(--fw-semibold) 8pt/1.2 var(--font-mono);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  margin: 0 0 3mm;
+}
+/* The kicker: the short BAC Yellow dash before the eyebrow (18 × 4 px, radius 2). */
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--kicker);
+  margin-right: 10px;
+  vertical-align: 0.2em;
+}
+h1 {
+  font: var(--fw-heading) 30pt/var(--lh-tight) var(--font-display);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-strong);
+  margin: 0 0 3mm;
+}
+.lead {
+  font-size: 12.5pt;
+  line-height: var(--lh-snug);
+  color: var(--text);
+  margin: 0 0 2mm;
+}
+.meta {
+  font: var(--fw-regular) 8pt/1.4 var(--font-mono);
+  letter-spacing: var(--ls-label);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ---- Contents ---- */
+nav.toc { margin: 8mm 0 0; break-after: page; }
+nav.toc .label {
+  font: var(--fw-medium) 8pt/1 var(--font-mono);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: 2mm;
+  border-bottom: var(--border-w-thick) solid var(--text-strong);
+  margin: 0;
+}
+nav.toc ol { list-style: none; margin: 0; padding: 0; }
+nav.toc li { border-bottom: var(--border-w) solid var(--border); }
+/* block, not flex: WeasyPrint resolves target-counter() only outside flex items */
+nav.toc a {
+  display: block;
+  color: var(--text);
+  text-decoration: none;
+  padding: 1.4mm 0;
+}
+nav.toc .n { display: inline-block; font-family: var(--font-mono); color: var(--text-muted); width: 10mm; }
+nav.toc a::after {
+  content: target-counter(attr(href), page);
+  float: right;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* ---- Headings: the number in mono, muted; the text in Nunito Sans 500 ---- */
+h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading);
+  color: var(--text-strong);
+  break-after: avoid;
+  break-inside: avoid;
+}
+h2 {
+  font-size: 15pt;
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+  margin: 9mm 0 3mm;
+  padding-top: 3mm;
+  border-top: var(--border-w-thick) solid var(--text-strong);
+}
+h3 { font-size: 11.5pt; line-height: var(--lh-snug); margin: 6mm 0 2mm; }
+h4 { font-size: 10pt; line-height: var(--lh-snug); margin: 4mm 0 1.5mm; }
+h2 .num, h3 .num, h4 .num {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-regular);
+  color: var(--text-muted);
+  letter-spacing: 0;
+  margin-right: 0.6em;
+}
+h2 .num { font-size: 12pt; }
+article > h2:first-child { margin-top: 0; }
+
+/* ---- Body text ---- */
+p { margin: 0 0 2.4mm; orphans: 3; widows: 3; }
+strong { font-weight: var(--fw-semibold); color: var(--text-strong); }
+em { font-style: italic; }
+a { color: var(--link); text-decoration: none; }
+ul, ol { margin: 0 0 2.4mm; padding-left: 5mm; }
+li { margin: 0 0 1mm; }
+li > p { margin: 0 0 1mm; }
+ul { list-style: none; }
+ul > li { position: relative; }
+ul > li::before {
+  content: "";
+  position: absolute;
+  left: -4mm;
+  top: 0.62em;
+  width: 1.6mm;
+  height: 1px;
+  background: var(--text-muted);
+}
+ol > li::marker { font-family: var(--font-mono); color: var(--text-muted); }
+hr { border: 0; border-top: var(--border-w) solid var(--border); margin: 5mm 0; }
+
+/* ---- Code: Plex Mono on the sunken surface, 6 px corners ---- */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  padding: 0.05em 0.3em;
+  color: var(--text-strong);
+  white-space: nowrap; /* --text-strong must not break after its hyphens */
+}
+pre {
+  font: var(--fw-regular) 8pt/1.45 var(--font-mono);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  padding: 3mm 3.5mm;
+  margin: 0 0 3mm;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  break-inside: avoid;
+}
+pre code { background: none; padding: 0; font-size: 1em; color: var(--text); white-space: inherit; }
+
+/* ---- Callout: a blockquote is a hairline card, 10 px corners, not a quote bar ---- */
+blockquote {
+  margin: 0 0 3mm;
+  padding: 3.5mm 4mm 1.5mm;
+  border: var(--border-w) solid var(--border-strong);
+  border-radius: var(--radius-md);
+  break-inside: avoid;
+}
+blockquote p { margin-bottom: 2mm; }
+
+/* ---- Tables: strong header rule, hairline rows, no outer border, no fills ---- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8.5pt;
+  line-height: 1.38;
+  margin: 1mm 0 4mm;
+}
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th {
+  font: var(--fw-medium) 7.5pt/1.3 var(--font-mono);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: left;
+  vertical-align: bottom;
+  padding: 0 2.5mm 1.6mm 0;
+  border-bottom: var(--border-w-thick) solid var(--text-strong);
+}
+th strong { font-weight: inherit; color: inherit; }
+td {
+  vertical-align: top;
+  padding: 1.6mm 2.5mm 1.6mm 0;
+  border-bottom: var(--border-w) solid var(--border);
+  overflow-wrap: break-word;
+}
+td code { white-space: normal; }
+
+/* ---- The closing note on the last page ---- */
+.colophon {
+  margin-top: 10mm;
+  padding-top: 3mm;
+  border-top: var(--border-w) solid var(--border);
+  font: var(--fw-regular) 7.5pt/1.5 var(--font-mono);
+  color: var(--text-muted);
+}

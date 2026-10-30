@@ -226,7 +226,7 @@ id = "U1"
 severity = "advisory"
 title = "GitHub URL for a BAC repository that is hosted on Codeberg"
 kind = "regex"
-pattern = "github\\.com/buildacubesat(-project)?/(?!bac-page\\b|bac\\.page\\b|CubeSat-Resources\\b|bac-utils\\b)"
+pattern = "github\\.com/buildacubesat(-project)?/(?!bac-page\\b|bac\\.page\\b|CubeSat-Resources\\b|bac-utils\\b|bac-design\\b|bac-ops\\b)"
 note = "Codeberg is the primary forge; GitHub only for bac-page (the bac.page shortener), CubeSat-Resources and bac-utils."
 
 [[rules]]

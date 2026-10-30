@@ -1,37 +1,50 @@
 # SPDX-License-Identifier: MIT
-"""Render the v4r1 marks to PNG for the template scripts and record their pixel sizes.
+"""Take the v4r1 marks for the template scripts from bac-design and record their pixel sizes.
 
 uv run --with cairosvg python marks.py [bac-design path] [gallery assets path]
-Writes logo-, logo-tagline- and symbol-{black,white}.png, two sample illustrations and marks.json; the scripts take the
-aspect ratio from marks.json, never from a constant, so a new mark revision cannot distort it.
+Copies logo-{black,white}, logo-tagline-white and symbol-{black,white}.png from bac-design assets/png/ (the 2048 px
+renderings bac-brand-assets writes), renders the kicker and two sample illustrations, and writes
+marks.json; the scripts take every aspect ratio from marks.json, never from a constant, so a new
+mark revision cannot distort it.
 """
 
 import json
-import re
+import shutil
+import struct
 import sys
 from pathlib import Path
 
 import cairosvg
 
+VERSION = "v4r1"
+SIZE = 2048
+
 design = Path(sys.argv[1] if len(sys.argv) > 1 else "../../../../bac-design").resolve()
-assets = design / "assets"
+png_dir = design / "assets" / "png"
+
+
+def png_size(path: Path) -> tuple[int, int]:
+    """Width and height from the PNG's IHDR chunk."""
+    with path.open("rb") as f:
+        head = f.read(24)
+    if head[:8] != b"\x89PNG\r\n\x1a\n":
+        raise SystemExit(f"{path} is not a PNG.")
+    return struct.unpack(">II", head[16:24])
+
+
+# The five marks the letterhead and the slides place.
+MARKS = (("logo", "black"), ("logo", "white"), ("logo-tagline", "white"), ("symbol", "black"), ("symbol", "white"))
+
 sizes = {}
-for name, kw in (
-    ("logo", {"output_width": 2400}),
-    ("logo-tagline", {"output_width": 2400}),
-    ("symbol", {"output_height": 800}),
-):
-    for color in ("black", "white"):
-        svg = assets / f"bac-{name}-{color}-v4r1.svg"
-        m = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg.read_text(encoding="utf-8"))
-        vw, vh = float(m.group(1)), float(m.group(2))
-        if "output_width" in kw:
-            w, h = kw["output_width"], round(kw["output_width"] * vh / vw)
-        else:
-            w, h = round(kw["output_height"] * vw / vh), kw["output_height"]
-        cairosvg.svg2png(url=str(svg), write_to=f"{name}-{color}.png", output_width=w, output_height=h)
-        sizes[name] = {"width": w, "height": h, "viewBox": [vw, vh]}
-        print(f"{name}-{color}.png {w}×{h}")
+for name, color in MARKS:
+    source = png_dir / f"bac-{name}-{color}-{VERSION}-{SIZE}.png"
+    if not source.is_file():
+        raise SystemExit(f"{source} is missing. Run bac-brand-assets in bac-utils first.")
+    shutil.copyfile(source, f"{name}-{color}.png")
+    w, h = png_size(source)
+    sizes[name] = {"width": w, "height": h, "source": f"assets/png/{source.name}"}
+    print(f"{name}-{color}.png {w}×{h} (from {source.name})")
+
 # Two gallery illustrations for the sample slides (the slots are for hardware photography).
 gallery = Path(sys.argv[2] if len(sys.argv) > 2 else "../../bac-reference-gallery/assets").resolve()
 for name in ("led-board", "cubesat-wireframe"):

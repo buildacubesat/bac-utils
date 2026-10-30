@@ -45,14 +45,17 @@ The coordinates are written with two decimals, which is below anything a rendere
 
 ## 4. Templates
 
-`templates/` holds the generators of the document templates in bac-design `templates/` (letterhead v1r1 in English and German, the 16:9 slides template v1r1). They are Node scripts on docx-js and pptxgenjs rather than part of the Python tool, with a Python step before and after:
+`templates/` holds the generators of the document templates in bac-design `templates/` (letterhead v1r1 in English and German, the 16:9 slides template v1r2). They are Node scripts on docx-js and pptxgenjs rather than part of the Python tool, with Python steps before and after:
 
 ```sh
-cd templates && npm install                                   # docx, pptxgenjs
-uv run --with cairosvg python marks.py ../../../../bac-design  # the marks as PNG
-node letterhead.js                                            # bac-letterhead-{en,de}-v1r1.docx
-node slides.js && python theme.py bac-slides-template-v1r1.pptx
+cd templates && npm install                                    # docx, pptxgenjs
+uv run --with cairosvg python marks.py ../../../../bac-design   # the marks from bac-design assets/png, the kicker and two sample illustrations, plus marks.json
+uv run --with playwright python surfaces.py                    # the recessed viewport as PNG (needs a Chromium)
+node letterhead.js                                             # bac-letterhead-{en,de}-v1r1.docx
+node slides.js && uv run python theme.py bac-slides-template-v1r2.pptx
 ```
+
+`marks.py` copies the five marks the templates place (logo black and white, logo with tagline white, symbol black and white) from bac-design `assets/png/` – the 2048 px renderings this tool writes, so run it first – and records their pixel sizes in `marks.json`; the scripts take each mark's aspect ratio from there, never from a constant. `surfaces.py` renders the Mission viewport from the Reference Gallery's product-sheet CSS (Identity Guide §7) through a headless Chromium – pptxgenjs cannot draw inset glows – and the title layout places the pixels; the Chromium `bac-reference-gallery --init` installs is enough. `nebula.jpg` (1920 × 1080) is a source file: the nebula of the Tooldance media kit (2026-10), the backdrop of every dark layout. `theme.py` writes the deck's own colors into `ppt/theme/theme1.xml`, which pptxgenjs leaves at Office's palette.
 
 The outputs are copied into bac-design `templates/` by hand; a change to a script moves the template's version (`v<version>r<revision>`, in the file name). Every number the scripts use – margins, sizes, colors, layout names – is listed in bac-design `templates/README.md`.
 
