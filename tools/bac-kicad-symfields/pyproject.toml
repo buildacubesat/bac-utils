@@ -1,6 +1,6 @@
 [project]
 name = "bac-kicad-symfields"
-version = "0.3.0"
+version = "0.3.1"
 description = "Unify property fields and lint text sizes across KiCad symbol and footprint libraries, from TOML rules, editing files by span."
 readme = "README.md"
 license = { text = "MIT" }

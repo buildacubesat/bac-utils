@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""The operations: text, courtyard, via and label normalisation, the library rename, the statistics.
+"""The operations: text, courtyard, via, label and title-block normalization, the library rename, the statistics.
 
 Everything works on :mod:`bac_common.sexp` trees and produces span edits,
 so the file comes back with KiCad's own formatting and only the intended
@@ -30,6 +30,7 @@ __all__ = [
     "TEXT_HEADS",
     "Patches",
     "transform",
+    "normalize_titleblock",
     "inspect_stats",
     "discover",
     "suffixes_for",
@@ -131,6 +132,17 @@ class Patches:
             self.insertions.setdefault(line_start, []).append(f"{indent}{indent_unit(indent)}{text}{eol}")
         else:
             self.insertions.setdefault(close, []).append(" " + text)
+
+    def insert_after(self, node: Node, text: str) -> None:
+        """Insert ``text`` as a sibling right after ``node``, on a line of its own with the same indent."""
+        line_start = self.text.rfind("\n", 0, node.start) + 1
+        indent = self.text[line_start : node.start]
+        newline = self.text.find("\n", node.end)
+        if indent.strip() or newline < 0:
+            self.insertions.setdefault(node.end, []).append(" " + text)
+            return
+        eol = "\r\n" if self.text[newline - 1 : newline] == "\r" else "\n"
+        self.insertions.setdefault(newline + 1, []).append(f"{indent}{text}{eol}")
 
     def scalar(self, node: Node, head: str, values: Iterable[object]) -> None:
         """Set ``(head v1 v2 …)`` inside ``node``: edit the numbers that differ, add the list when missing."""
@@ -333,6 +345,35 @@ def migrate_library(root: Node, patches: Patches, old: str, new: str, counts: Co
 
 
 # ---------------------------------------------------------------------------
+# Title block
+# ---------------------------------------------------------------------------
+
+
+def normalize_titleblock(root: Node, patches: Patches, company: str, counts: Counter) -> None:
+    """``(title_block (company …))`` of a board or sheet set to ``company``; the block is added when missing."""
+    block = _one(root, "title_block")
+    if block is None:
+        heads = ("paper", "uuid", "generator_version", "generator", "version")
+        anchor = next((n for h in heads if (n := _one(root, h)) is not None), None) or next(iter(root.children()), None)
+        if anchor is None:
+            raise MaintainError("An empty file has no place for a title block.")
+        patches.insert_after(anchor, f"(title_block (company {quoted(company)}))")
+        counts["title blocks"] += 1
+        return
+    entry = _one(block, "company")
+    if entry is None:
+        patches.append(block, f"(company {quoted(company)})")
+        counts["title blocks"] += 1
+        return
+    atoms = entry.atoms()
+    if len(atoms) != 2:
+        raise MaintainError(f"Unexpected (company …) shape: {patches.text[entry.start : entry.end]}")
+    if atoms[1].value != company:
+        patches.replace(atoms[1], quoted(company))
+        counts["title blocks"] += 1
+
+
+# ---------------------------------------------------------------------------
 # Statistics
 # ---------------------------------------------------------------------------
 
@@ -412,12 +453,17 @@ def transform(
         assert old is not None and new is not None
         migrate_library(root, patches, old, new, counts)
     elif root.head == "kicad_sch":
-        if "labels" not in selected:
-            raise MaintainError("A schematic needs --labels; the other operations are for boards.")
-        normalize_labels(root, patches, settings.label_size_mm, counts)
+        if not selected & {"labels", "titleblock"}:
+            raise MaintainError("A schematic needs --labels or --titleblock; the other operations are for boards.")
+        if "labels" in selected:
+            normalize_labels(root, patches, settings.label_size_mm, counts)
+        if "titleblock" in selected:
+            normalize_titleblock(root, patches, settings.titleblock_company, counts)
     else:
         if root.head not in BOARD_HEADS:
             raise MaintainError(f"Not a board: the file starts with ({root.head} …).")
+        if "titleblock" in selected:
+            normalize_titleblock(root, patches, settings.titleblock_company, counts)
         nets = net_table(root)
         for item in board_items(root):
             if "text" in selected and item.head in TEXT_HEADS:
@@ -444,9 +490,9 @@ def transform(
 def suffixes_for(command: str, selected: set[str]) -> set[str]:
     """Which file types a command touches: boards for the PCB operations, schematics for labels and the rename."""
     out: set[str] = set()
-    if command == "rename-library" or "labels" in selected:
+    if command == "rename-library" or selected & {"labels", "titleblock"}:
         out.add(SCHEMATIC_SUFFIX)
-    if command != "rename-library" and selected & {"text", "courtyards", "vias"}:
+    if command != "rename-library" and selected & {"text", "courtyards", "vias", "titleblock"}:
         out.add(BOARD_SUFFIX)
     return out
 

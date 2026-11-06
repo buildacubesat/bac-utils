@@ -34,6 +34,18 @@ enabled = false
 # Local, global and hierarchical schematic labels only.
 size_mil = 50
 
+[titleblock]
+enabled = false
+# Written into (title_block (company …)) of every board and sheet: the legal entity.
+company = "nihil.space GmbH"
+
+[audit]
+# The library audit (`check ROOT --audit`) reads one repository root. Paths are relative to that root.
+library = "resources/kicad-libraries"
+# The part-catalog folders: the audit counts a row's `footprint` as used, `check ROOT --catalog`
+# checks the CSVs and the README tables generated from them.
+catalogs = ["resources/catalog/passives", "resources/catalog/ics", "resources/catalog/other"]
+
 [files]
 # Glob patterns matched against each file's path relative to the directory
 # given, or against its name. Example: exclude = ["vendor/*", "generated/*"]

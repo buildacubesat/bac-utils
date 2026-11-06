@@ -1,4 +1,7 @@
 # Build a CubeSat – example field rules for bac-kicad-symfields.
+# Retired as the BAC workflow on 2026-11-05: the library is thin now (Reference, Value, Footprint,
+# Datasheet, Description, Manufacturer PN) and the part data lives in bac-hardware/resources/catalog/.
+# The files stay as examples of the rule syntax.
 # Every symbol carries the sourcing fields, hidden, at the small property size.
 # Empty values are placeholders: the field exists so the symbol fields table
 # shows it, and a later rule or a person fills it.

@@ -16,7 +16,7 @@ from bac_common.config import load_toml
 from bac_common.errors import ConfigError
 
 TOOL = "bac-kicad-maintain"
-OPERATIONS = ("text", "courtyards", "vias", "labels")
+OPERATIONS = ("text", "courtyards", "vias", "labels", "titleblock", "audit", "catalog")
 VIA_TYPES = ("through", "blind", "micro")
 
 __all__ = ["TOOL", "OPERATIONS", "VIA_TYPES", "Settings", "CONFIG_TEMPLATE", "load_settings", "number"]
@@ -40,11 +40,15 @@ class Settings:
     via_types: tuple[str, ...] = ("through",)
     labels: bool = False
     label_size_mil: float = 50
+    titleblock: bool = False
+    titleblock_company: str = "nihil.space GmbH"
+    audit_library: str = "resources/kicad-libraries"
+    audit_catalogs: tuple[str, ...] = ("resources/catalog/passives", "resources/catalog/ics", "resources/catalog/other")
     exclude: tuple[str, ...] = ()
 
     def enabled(self) -> set[str]:
-        """The operations the config turns on; the command line can select others."""
-        return {name for name in OPERATIONS if getattr(self, name)}
+        """The operations the config turns on; the command line can select others. Audit and catalog are flags only."""
+        return {name for name in OPERATIONS if name not in ("audit", "catalog") and getattr(self, name)}
 
     @property
     def label_size_mm(self) -> Decimal:
@@ -89,6 +93,18 @@ enabled = {str(DEFAULTS.labels).lower()}
 # Local, global and hierarchical schematic labels only.
 size_mil = {DEFAULTS.label_size_mil:g}
 
+[titleblock]
+enabled = {str(DEFAULTS.titleblock).lower()}
+# Written into (title_block (company …)) of every board and sheet: the legal entity.
+company = "{DEFAULTS.titleblock_company}"
+
+[audit]
+# The library audit (`check ROOT --audit`) reads one repository root. Paths are relative to that root.
+library = "{DEFAULTS.audit_library}"
+# The part-catalog folders: the audit counts a row's `footprint` as used, `check ROOT --catalog`
+# checks the CSVs and the README tables generated from them.
+catalogs = [{", ".join(f'"{c}"' for c in DEFAULTS.audit_catalogs)}]
+
 [files]
 # Glob patterns matched against each file's path relative to the directory
 # given, or against its name. Example: exclude = ["vendor/*", "generated/*"]
@@ -112,16 +128,19 @@ def number(value: object) -> Decimal:
 def load_settings(config_path: str | None) -> Settings:
     """The config file merged over the defaults; a missing default file means defaults."""
     data = load_toml(TOOL, config_path)
-    known = {"text", "courtyards", "vias", "labels", "files"}
+    known = {"text", "courtyards", "vias", "labels", "titleblock", "audit", "files"}
     for section in data:
         if section not in known:
             raise ConfigError(f"Unknown config section [{section}].", "Known: " + ", ".join(sorted(known)) + ".")
     text, courtyards = _table(data, "text"), _table(data, "courtyards")
     vias, labels, files = _table(data, "vias"), _table(data, "labels"), _table(data, "files")
+    titleblock, audit = _table(data, "titleblock"), _table(data, "audit")
     _known_keys(text, "text", ("enabled", "width", "height", "thickness", "center", "keep_upright", "layers"))
     _known_keys(courtyards, "courtyards", ("enabled", "width"))
     _known_keys(vias, "vias", ("enabled", "diameter", "drill", "preserve_nets", "types"))
     _known_keys(labels, "labels", ("enabled", "size_mil"))
+    _known_keys(titleblock, "titleblock", ("enabled", "company"))
+    _known_keys(audit, "audit", ("library", "catalogs"))
     _known_keys(files, "files", ("exclude",))
     settings = Settings(
         text=_flag(text, "enabled", DEFAULTS.text),
@@ -140,6 +159,10 @@ def load_settings(config_path: str | None) -> Settings:
         via_types=_strings(vias, "types", DEFAULTS.via_types),
         labels=_flag(labels, "enabled", DEFAULTS.labels),
         label_size_mil=_size(labels, "size_mil", DEFAULTS.label_size_mil),
+        titleblock=_flag(titleblock, "enabled", DEFAULTS.titleblock),
+        titleblock_company=_string(titleblock, "company", DEFAULTS.titleblock_company),
+        audit_library=_string(audit, "library", DEFAULTS.audit_library),
+        audit_catalogs=_strings(audit, "catalogs", DEFAULTS.audit_catalogs),
         exclude=_strings(files, "exclude", DEFAULTS.exclude),
     )
     validate(settings)
@@ -160,6 +183,10 @@ def validate(settings: Settings) -> None:
     size = settings.label_size_mm
     if size != size.quantize(Decimal("0.000001")):
         raise ConfigError(f"A label size of {settings.label_size_mil} mil needs more than six decimals in mm.")
+    if not settings.titleblock_company.strip() or any(ord(c) < 32 for c in settings.titleblock_company):
+        raise ConfigError("titleblock.company must be a non-empty line of text.")
+    if not settings.audit_library.strip():
+        raise ConfigError("audit.library must name the library folder.")
 
 
 def _table(data: dict, key: str) -> dict:
@@ -190,6 +217,13 @@ def _size(table: dict, key: str, default: float) -> float:
     if n <= 0 or n.as_tuple().exponent < -6:
         raise ConfigError(f"{key} must be positive with at most six decimals, got {value!r}.")
     return float(value)
+
+
+def _string(table: dict, key: str, default: str) -> str:
+    value = table.get(key, default)
+    if not isinstance(value, str):
+        raise ConfigError(f"{key} must be a string, got {value!r}.")
+    return value
 
 
 def _strings(table: dict, key: str, default: tuple[str, ...]) -> tuple[str, ...]:

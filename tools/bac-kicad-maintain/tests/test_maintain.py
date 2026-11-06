@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 from bac_kicad_maintain.config import DEFAULTS, load_settings
@@ -205,6 +206,11 @@ def test_config_file_values_and_errors(tmp_path):
         with pytest.raises(ConfigError):
             load_settings(str(config))
     assert load_settings(None) == DEFAULTS  # no file: the defaults
+    example = Path(__file__).resolve().parents[1] / "examples" / "bac-kicad-maintain.toml"
+    assert (
+        load_settings(str(example)) == DEFAULTS
+    )  # the shipped example is the template: every key known, every default
+    assert DEFAULTS.audit_catalogs == ("resources/catalog/passives", "resources/catalog/ics", "resources/catalog/other")
 
 
 KICAD10 = (
@@ -284,3 +290,53 @@ def test_vertical_layout_without_font_and_with_render_cache():
     assert "\t\t(effects\n\t\t\t(font (size 0.8 0.8) (thickness 0.1))\n\t\t)\n\t)\n\t(via\n" in out.text
     assert "(justify left)" not in out.text
     assert run(out.text, {"text", "vias"}).text == out.text
+
+
+TITLED_SHEET = (
+    "(kicad_sch\n"
+    "\t(version 20260306)\n"
+    '\t(generator "eeschema")\n'
+    '\t(uuid "u")\n'
+    '\t(paper "A4")\n'
+    "\t(title_block\n"
+    '\t\t(title "bac EPS Main Board v2")\n'
+    '\t\t(company "Build a CubeSat")\n'
+    '\t\t(comment 1 "Manuel")\n'
+    "\t)\n"
+    "\t(lib_symbols)\n"
+    ")\n"
+)
+
+UNTITLED_BOARD = '(kicad_pcb (version 20260101) (generator pcbnew)\n\t(paper "A4")\n\t(layers (0 "F.Cu" signal))\n)\n'
+
+
+def test_titleblock_company_replaced_added_and_inserted():
+    settings = replace(DEFAULTS, titleblock_company="nihil.space GmbH")
+    out = run(TITLED_SHEET, {"titleblock"}, settings)
+    assert out.counts == {"title blocks": 1}
+    assert '\t\t(company "nihil.space GmbH")\n\t\t(comment 1 "Manuel")\n' in out.text
+    assert run(out.text, {"titleblock"}, settings).counts == {}
+    # A block without a company gets one as its last entry.
+    stripped = TITLED_SHEET.replace('\t\t(company "Build a CubeSat")\n', "")
+    out = run(stripped, {"titleblock"}, settings)
+    assert '\t\t(comment 1 "Manuel")\n\t\t(company "nihil.space GmbH")\n\t)\n' in out.text
+    # No block at all: one line after (paper …), on both boards and sheets.
+    out = run(UNTITLED_BOARD, {"titleblock"}, settings)
+    assert out.text == UNTITLED_BOARD.replace(
+        '\t(paper "A4")\n', '\t(paper "A4")\n\t(title_block (company "nihil.space GmbH"))\n'
+    )
+    parse(out.text)
+    assert run(out.text, {"titleblock"}, settings).text == out.text
+
+
+def test_titleblock_with_labels_and_on_a_one_line_header():
+    settings = replace(DEFAULTS, titleblock_company="X")
+    out = run(LABELS, {"labels", "titleblock"}, settings)
+    assert out.counts["labels"] == 3 and out.counts["title blocks"] == 1
+    assert "(title_block" in out.text and parse(out.text)
+    inline = '(kicad_sch (version 1) (generator eeschema) (paper "A4") (lib_symbols))'
+    out = run(inline, {"titleblock"}, settings)
+    assert (
+        out.text
+        == '(kicad_sch (version 1) (generator eeschema) (paper "A4") (title_block (company "X")) (lib_symbols))'
+    )

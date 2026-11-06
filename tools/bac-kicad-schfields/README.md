@@ -1,4 +1,4 @@
-# bac-kicad-schfields v0.2.0
+# bac-kicad-schfields v0.2.1
 
 Build a CubeSat – bulk-edits symbol fields and flags across a KiCad schematic hierarchy from TOML rules. Roughly what KiCad's symbol fields table does interactively, but deterministic, reviewable and repeatable: the rule file is the record of what was changed and why. The root sheet is given, the hierarchy is walked from there, and every sheet is edited by splicing byte ranges into its original text, so a diff shows only the intended change and a second run is a no-op.
 
@@ -36,7 +36,7 @@ Markers: `+` added, `~` filled an empty value, `!` overwrote a value, `*` change
 
 ## 3. Rule files
 
-Only files with `target = "schematic"` are used; the same directory can hold the library rules of `bac-kicad-symfields`. `examples/rules/60-project.toml` is a commented example.
+Only files with `target = "schematic"` are used; the same directory can hold the library rules of `bac-kicad-symfields`. `examples/rules/60-project.toml` is a commented example in the field vocabulary the BAC library used until October 2026; the library is thin since then (a symbol carries Reference, Value, Footprint, Datasheet, Description and `Manufacturer PN`, the part data lives in the catalogs), so the example shows the rule syntax, not the current BAC workflow.
 
 ```toml
 title = "Board-level fields and flags"
@@ -90,5 +90,6 @@ New properties are placed at the symbol's origin, hidden, at 1.27 mm. The tool w
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.2.1 | 2026-11-05 | README only: the example rule file is retired as the BAC workflow (thin library since October 2026) and kept as an example of the syntax. No change to the tool. |
 | 0.2.0 | 2026-09-07 | Moved into bac-utils from bac-kicad-tools (`bac-schfields`), renamed `bac-kicad-schfields`, rebuilt on `bac-common` and `bac-kicad-common`: the shared parser and field engine, standard flags, Rich output, `--dry-run` instead of dry-run-by-default with `--apply`, confirmation and `.bak` backups, `--help` from 30 lines to 23. Flag rules never touch the `lib_symbols` cache; a sheet that does not parse is reported and skipped; a failed write exits 1. 9 tests on a two-sheet fixture project (reused sheet, fill, overwrite gate, flag insert and rewrite, idempotency, symbols without properties). |
 | 0.1.0 | 2026-09-04 | `bac-schfields` in bac-kicad-tools. |

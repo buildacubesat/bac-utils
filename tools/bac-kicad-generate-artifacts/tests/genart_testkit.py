@@ -19,19 +19,20 @@ DSW = FIXTURES / "deployment-switch" / "kicad10"
 TOOLS = Tools(kicad_cli="/usr/bin/kicad-cli", svg_raster="/usr/bin/rsvg-convert")
 
 # What the resolution export of a small schematic looks like (grouped, kicad-cli's "R1, R2" references).
-RESOLVE_SAMPLE = """Reference,Qty,Value,Footprint,MPN,DNP
-"R1, R2",2,4k7,Resistor_SMD:R_0603_1608Metric,,
-R3,1,0R,Resistor_SMD:R_0603_1608Metric,,
-R4,1,1k,Resistor_SMD:R_0603_1608Metric,,
-C1,1,0.1u,Capacitor_SMD:C_0402_1005Metric,,
-C2,1,10u,Capacitor_SMD:C_0805_2012Metric,,
-C3,1,10u,Capacitor_SMD:C_0805_2012Metric,,DNP
-U1,1,TCAN334G,Package_TO_SOT_SMD:SOT-23-8,TCAN334GDCNR,
-U2,1,ESD751,Diode_SMD:D_SOD-523,ESD751DYAR,
-U3,1,RV-3032-C7,bac:SON-8,RV-3032-C7-32.768KHZ-2.5PPM-TA-QA,
-U4,1,STM32F405RGT7,Package_QFP:LQFP-64_10x10mm_P0.5mm,STM32F405RGT7,
-SW1,1,Aratas D3SH-A1R1,bac:Aratas-D3SH-A1R1,,
-J1,1,USB-C,bac:JAE-DX07S016JA1R1500,DX07S016JA1R1500,
+RESOLVE_SAMPLE = """Reference,Qty,Value,Footprint,MPN,DNP,Build,Qty per footprint
+"R1, R2",2,4k7,Resistor_SMD:R_0603_1608Metric,,,,
+R3,1,0R,Resistor_SMD:R_0603_1608Metric,,,,
+R4,1,1k,Resistor_SMD:R_0603_1608Metric,,,,
+C1,1,0.1u,Capacitor_SMD:C_0402_1005Metric,,,,
+C2,1,10u,Capacitor_SMD:C_0805_2012Metric,,,,
+C3,1,10u,Capacitor_SMD:C_0805_2012Metric,,DNP,,
+U1,1,TCAN334G,Package_TO_SOT_SMD:SOT-23-8,TCAN334GDCNR,,,
+U2,1,ESD751,Diode_SMD:D_SOD-523,ESD751DYAR,,,
+U3,1,RV-3032-C7,bac:SON-8,RV-3032-C7-32.768KHZ-2.5PPM-TA-QA,,,
+U4,1,STM32F405RGT7,Package_QFP:LQFP-64_10x10mm_P0.5mm,STM32F405RGT7,,,
+SW1,1,Aratas D3SH-A1R1,bac:Aratas-D3SH-A1R1,,,,
+J1,1,USB-C,bac:JAE-DX07S016JA1R1500,DX07S016JA1R1500,,,
+"J401, J601",2,Landing pad,bac:EPS-Module-Landing-Pad,61300811821,,dev,4
 """
 
 STEP_SAMPLE = """ISO-10303-21;
@@ -49,6 +50,16 @@ END-ISO-10303-21;
 
 def _arg(cmd: list[str], flag: str) -> str:
     return cmd[cmd.index(flag) + 1]
+
+
+# One line per label of the plain export, the way kicad-cli quotes it; a landing pad with four sockets per footprint.
+PLAIN_VALUES = {"Reference": "J401, J601", "Qty": "2", "Value": "Landing pad", "Qty per footprint": "4", "DNP": ""}
+
+
+def _plain_bom(labels: str) -> str:
+    names = labels.split(",")
+    row = [PLAIN_VALUES.get(n, "x") for n in names]
+    return ",".join(f'"{n}"' for n in names) + "\n" + ",".join(f'"{v}"' for v in row) + "\n"
 
 
 def _png(path: Path, size: tuple[int, int], box: tuple[int, int, int, int]) -> None:
@@ -96,7 +107,7 @@ class FakeRunner(Runner):
         elif words.startswith("sch export bom"):
             out = Path(_arg(cmd, "--output"))
             out.parent.mkdir(parents=True, exist_ok=True)
-            out.write_text(RESOLVE_SAMPLE if out.name == "bom-resolve.csv" else "#,Designator,Qty\n1,R1 R2,2\n")
+            out.write_text(RESOLVE_SAMPLE if out.name.startswith("bom-") else _plain_bom(_arg(cmd, "--labels")))
         elif words.startswith("sch export netlist"):
             Path(_arg(cmd, "--output")).write_text("<export/>")
         elif words.startswith("pcb export gerbers"):

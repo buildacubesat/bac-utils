@@ -1,4 +1,4 @@
-# bac-kicad-symfields v0.3.0
+# bac-kicad-symfields v0.3.1
 
 Build a CubeSat – one tool for keeping a KiCad symbol and footprint library uniform. `fields` adds, fills and (when allowed) overwrites property fields from TOML rule files; `lint` reports what drifts from the library conventions – font sizes, the footprint nickname prefix, duplicate UUIDs, and with `--rules` the fields that are missing; `fix` corrects the sizes. KiCad's own symbol fields table and library editor do the same interactively, but the change is not reviewable, not repeatable and leaves no record. Here the rule file is the record.
 
@@ -63,7 +63,7 @@ Exit codes: `0` done (`lint`: clean), `1` findings or a failed write, `2` bad ar
 
 ## 3. Rule files
 
-TOML, one directory for all the KiCad tools. Each file declares a `target` (`symbol`, the default, or `footprint`; `schematic` files belong to `bac-kicad-schfields` and are skipped here), an optional `[match]` block that picks the population, and `[[field]]` entries. `examples/rules/` holds a commented set using the BAC field vocabulary.
+TOML, one directory for all the KiCad tools. Each file declares a `target` (`symbol`, the default, or `footprint`; `schematic` files belong to `bac-kicad-schfields` and are skipped here), an optional `[match]` block that picks the population, and `[[field]]` entries. `examples/rules/` holds a commented set that shows the rule syntax in the field vocabulary the BAC library used until October 2026 (`Manufacturer`, `Package`, `Tolerance`, `BOM`, `DNP`, `Max Height`). Since then the library is thin – a symbol carries Reference, Value, Footprint, Datasheet, Description and `Manufacturer PN`, and everything else lives in the part catalogs that `bac-kicad-generate-artifacts` resolves against – so the examples are retired as a description of the BAC workflow and kept as examples of what a rule file can do.
 
 ```toml
 title = "Passive components"
@@ -132,6 +132,7 @@ Change the sizes and the prefix to your library's, point `rules` at your rule di
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.3.1 | 2026-11-05 | README only: the example rules are retired as the BAC workflow – the library is thin since October 2026 and the part data lives in the catalogs – and kept as examples of the rule syntax. No change to the tool. |
 | 0.3.0 | 2026-09-07 | Moved into bac-utils from bac-kicad-tools (`bac-symfields`), renamed `bac-kicad-symfields`, rebuilt on `bac-common` and `bac-kicad-common` with the shared span-recording parser. Subcommands: `fields` (the previous tool), `lint` and `fix` absorb the four `bac-kicad-misc` scripts (`kicad9_sym_lint.py`, `kicad9_sym_surgical_fix_sizes.py`, `kicad9_fp_text_fontfix.py`; `kicad9_sym_fix_text_sizes.py` dropped – it stripped quotes and wrote libraries on one line). Accepted property sizes 1.27 and 0.762 with 0.635 corrected to 0.762; pin, text and footprint fonts checked; duplicate UUIDs reported; lint exits 1 (was 2). Standard flags, Rich output, `--dry-run`, confirmation and `.bak` backups, config with `init`; KiCad 10 properties carry `show_name`/`do_not_autoplace`; example rules in the BAC field vocabulary. A failed write exits 1. 18 tests plus the shared library's 23. |
 | 0.2.0 | 2026-09-04 | `bac-symfields` in bac-kicad-tools: symbol and footprint targets, per-field size, KiCad 10 `(hide yes)` placement. |
 | 0.1.0 | 2026-09-04 | First version, symbols only. |

@@ -66,7 +66,7 @@ def test_insert_replaces_only_the_markers_and_keeps_the_rest_byte_for_byte():
     assert count == 2 and smallest == pytest.approx(0.4)
     new_root = sexp.parse(new)
     assert len(new_root.children("gr_text_box")) == 1  # NOT_A_MARKER stays
-    assert len(new_root.children("footprint")) == 2
+    assert len(new_root.children("footprint")) == 4
     # everything before the first marker and after the last one is unchanged
     first, last = find_markers(text, root, "QR_MARKER")[0], find_markers(text, root, "QR_MARKER")[-1]
     assert new.startswith(text[: first.start]) and new.endswith(text[last.end :])

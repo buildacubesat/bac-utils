@@ -1,23 +1,29 @@
 # SPDX-License-Identifier: MIT
-"""bac-kicad-maintain – keep KiCad boards and schematics on the project conventions.
+"""bac-kicad-maintain – keep KiCad boards, schematics and the library on the project conventions.
 
-``check`` and ``apply`` normalise text (size, stroke, centring, keep
-upright), courtyard line widths and, when asked, via sizes on boards, and
-label sizes on schematics; ``stats`` lists the sizes a file uses;
-``rename-library`` moves a schematic's symbols to another library
-nickname, cached copies included. Files are edited by span, so a diff shows
-only the intended tokens. Nothing is written without confirmation (``--yes``
-in scripts), a ``.bak`` keeps the previous content unless ``--no-backup``,
-and ``--dry-run`` only reports.
+``check`` and ``apply`` normalize text (size, stroke, centering, keep
+upright), courtyard line widths and, when asked, via sizes on boards, label
+sizes on schematics and the title block's company on both; ``--audit``
+reads a repository and reports unused footprints and models, broken links
+and field mismatches, and ``apply`` prefixes the unused files ``#unused-``;
+``--catalog`` checks the part catalogs as data and regenerates the slot
+tables of their READMEs; ``stats`` lists the sizes a file uses; ``rename-library`` moves a
+schematic's symbols to another library nickname, cached copies included.
+Files are edited by span, so a diff shows only the intended tokens. Nothing
+is written without confirmation (``--yes`` in scripts), a ``.bak`` keeps the
+previous content unless ``--no-backup``, and ``--dry-run`` only reports.
 
-Exit codes: 0 done (``check``: nothing to change), 1 ``check`` found
-changes, a file could not be read or a write failed, 2 bad arguments.
+Exit codes: 0 done (``check``: nothing to change, no audit or catalog
+findings), 1 ``check`` found changes or findings, a file could not be read or a write or
+rename failed, 2 bad arguments.
 """
 
 from __future__ import annotations
 
 import difflib
 import json
+import os
+import shutil
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -32,6 +38,8 @@ from bac_kicad_common.files import confirm, write_back
 from bac_kicad_common.report import print_item
 
 from . import __version__
+from .audit import Rename, Report, Repository, audit, load_repository, plan_renames, rel
+from .catalogs import CatalogReport, inspect
 from .config import CONFIG_TEMPLATE, OPERATIONS, TOOL, Settings, load_settings, number, validate
 from .maintain import Outcome, discover, suffixes_for, transform
 
@@ -40,14 +48,16 @@ app = typer.Typer(
     rich_markup_mode=None,
     pretty_exceptions_enable=False,
     help=(
-        "Build a CubeSat – text, courtyard, via and label sizes on KiCad boards and "
-        "schematics, and symbol-library renames, editing files by span."
+        "Build a CubeSat – text, courtyard, via, label and title-block conventions on KiCad "
+        "boards and schematics, the library audit, the catalog check, and symbol-library renames, by span."
     ),
     epilog=(
         "\b\n"
         "Examples:\n"
         "  bac-kicad-maintain check boards/ --diff\n"
         "  bac-kicad-maintain apply board.kicad_pcb --vias --yes\n"
+        "  bac-kicad-maintain check ~/bac/bac-hardware --audit\n"
+        "  bac-kicad-maintain apply ~/bac/bac-hardware --catalog\n"
         "  bac-kicad-maintain rename-library . --from 'bac Library v1' --to 'bac v2'"
     ),
 )
@@ -109,10 +119,13 @@ Json = typer.Option(False, "--json", help="Print a machine-readable report inste
 DryRun = typer.Option(False, "--dry-run", help="Report what would change; write nothing.")
 Yes = typer.Option(False, "--yes", help="Write without asking.")
 NoBackup = typer.Option(False, "--no-backup", help="Do not keep <file>.bak copies.")
-Text = typer.Option(False, "--text", help="Select text normalisation on boards.")
+Text = typer.Option(False, "--text", help="Select text normalization on boards.")
 Courtyards = typer.Option(False, "--courtyards", help="Select courtyard line widths on boards.")
 Vias = typer.Option(False, "--vias", help="Select via resizing on boards (off unless selected).")
 Labels = typer.Option(False, "--labels", help="Select label sizes on schematics.")
+Titleblock = typer.Option(False, "--titleblock", help="Select the title block's company on boards and sheets.")
+Audit = typer.Option(False, "--audit", help="The library audit of one repository root; alone.")
+CatalogOpt = typer.Option(False, "--catalog", help="The part-catalog check of one repository root; alone.")
 ViaDiameter = typer.Option(None, "--via-diameter", metavar="MM", help="Via diameter; needs --vias.")
 ViaDrill = typer.Option(None, "--via-drill", metavar="MM", help="Via drill; needs --vias.")
 PreserveNet = typer.Option(None, "--preserve-net", metavar="GLOB", help="Nets whose vias keep their size; repeatable.")
@@ -127,6 +140,9 @@ def check(
     courtyards: bool = Courtyards,
     vias: bool = Vias,
     labels: bool = Labels,
+    titleblock: bool = Titleblock,
+    audit_: bool = Audit,
+    catalog: bool = CatalogOpt,
     via_diameter: float | None = ViaDiameter,
     via_drill: float | None = ViaDrill,
     preserve_net: list[str] | None = PreserveNet,
@@ -137,8 +153,15 @@ def check(
 ) -> None:
     """Report what apply would change; exit 1 if it would."""
     settings, selected = _settings(
-        ctx, text, courtyards, vias, labels, via_diameter, via_drill, preserve_net, via_types
-    )
+        ctx, text, courtyards, vias, labels, titleblock, audit_, catalog, via_diameter, via_drill, preserve_net,
+        via_types,
+    )  # fmt: skip
+    if "audit" in selected:
+        _audit_run(paths, settings, "check", diff=diff, as_json=as_json, exclude=exclude)
+        return
+    if "catalog" in selected:
+        _catalog_run(paths, settings, "check", diff=diff, as_json=as_json, exclude=exclude)
+        return
     files = discover(paths, suffixes_for("check", selected), (*settings.exclude, *(exclude or [])))
     _opening(as_json, f"Checking {len(files)} file(s): {', '.join(sorted(selected))}.")
     plans = _plan(files, settings, "check", selected)
@@ -156,6 +179,9 @@ def apply(
     courtyards: bool = Courtyards,
     vias: bool = Vias,
     labels: bool = Labels,
+    titleblock: bool = Titleblock,
+    audit_: bool = Audit,
+    catalog: bool = CatalogOpt,
     via_diameter: float | None = ViaDiameter,
     via_drill: float | None = ViaDrill,
     preserve_net: list[str] | None = PreserveNet,
@@ -167,10 +193,37 @@ def apply(
     yes: bool = Yes,
     no_backup: bool = NoBackup,
 ) -> None:
-    """Normalise the selected sizes in place, with .bak copies."""
+    """Normalize the selected sizes in place with .bak copies; --audit renames, --catalog rewrites READMEs."""
     settings, selected = _settings(
-        ctx, text, courtyards, vias, labels, via_diameter, via_drill, preserve_net, via_types
-    )
+        ctx, text, courtyards, vias, labels, titleblock, audit_, catalog, via_diameter, via_drill, preserve_net,
+        via_types,
+    )  # fmt: skip
+    if "audit" in selected:
+        _audit_run(
+            paths,
+            settings,
+            "apply",
+            diff=diff,
+            as_json=as_json,
+            exclude=exclude,
+            dry_run=dry_run,
+            yes=yes,
+            backup=not no_backup,
+        )
+        return
+    if "catalog" in selected:
+        _catalog_run(
+            paths,
+            settings,
+            "apply",
+            diff=diff,
+            as_json=as_json,
+            exclude=exclude,
+            dry_run=dry_run,
+            yes=yes,
+            backup=not no_backup,
+        )
+        return
     files = discover(paths, suffixes_for("apply", selected), (*settings.exclude, *(exclude or [])))
     _opening(as_json, f"Applying {', '.join(sorted(selected))} to {len(files)} file(s).")
     plans = _plan(files, settings, "apply", selected)
@@ -266,6 +319,9 @@ def _settings(
     courtyards: bool,
     vias: bool,
     labels: bool,
+    titleblock: bool,
+    audit_: bool,
+    catalog: bool,
     via_diameter: float | None,
     via_drill: float | None,
     preserve_net: list[str] | None,
@@ -273,12 +329,27 @@ def _settings(
 ) -> tuple[Settings, set[str]]:
     """The config with the command-line overrides, and the operations this run performs."""
     settings = load_settings(ctx.obj.config)
-    flags = {"text": text, "courtyards": courtyards, "vias": vias, "labels": labels}
+    flags = {
+        "text": text,
+        "courtyards": courtyards,
+        "vias": vias,
+        "labels": labels,
+        "titleblock": titleblock,
+        "audit": audit_,
+        "catalog": catalog,
+    }
     selected = {name for name in OPERATIONS if flags[name]} or settings.enabled()
     if not selected:
         raise UsageError(
-            "No operation selected.", "Pass --text, --courtyards, --vias or --labels, or enable one in the config."
+            "No operation selected.",
+            "Pass --text, --courtyards, --vias, --labels, --titleblock, --audit or --catalog, "
+            "or enable one in the config.",
         )
+    for alone in ("audit", "catalog"):
+        if alone in selected and len(selected) > 1:
+            raise UsageError(
+                f"--{alone} runs on its own.", "It reads a repository root, not the files the other operations edit."
+            )
     overrides: dict[str, object] = {}
     if via_diameter is not None:
         overrides["via_diameter"] = _positive(via_diameter, "--via-diameter")
@@ -416,6 +487,360 @@ def _summary(plans: list[Plan], *, command: str, as_json: bool, dry_run: bool = 
     else:
         rows_out.append(("Files written", written))
     ui.summary(rows_out, dry_run=dry_run)
+
+
+# ---------------------------------------------------------------------------
+# The catalog check
+# ---------------------------------------------------------------------------
+
+
+def _catalog_run(
+    paths: list[Path],
+    settings: Settings,
+    command: str,
+    *,
+    diff: bool,
+    as_json: bool,
+    exclude: list[str] | None,
+    dry_run: bool = False,
+    yes: bool = False,
+    backup: bool = True,
+) -> None:
+    if len(paths) != 1 or not Path(paths[0]).expanduser().is_dir():
+        raise UsageError(
+            "--catalog takes one directory: the repository root.", "Example: check ~/bac/bac-hardware --catalog"
+        )
+    if exclude:
+        raise UsageError("--catalog reads the configured catalog folders; --exclude does not apply.")
+    if as_json and diff:
+        raise UsageError("--diff and --json do not combine.", "The JSON report names the stale READMEs.")
+    root = Path(paths[0]).expanduser()
+    _opening(as_json, f"Checking the part catalogs under {root}.")
+    report = inspect(root, [Path(c) for c in settings.audit_catalogs])
+    if as_json:
+        _catalog_json(report, command, dry_run)
+    else:
+        _catalog_show(report, diff=diff)
+    if command == "check":
+        if not as_json:
+            _catalog_summary(report, command)
+        if report.total:
+            raise typer.Exit(1)
+        return
+    written = _catalog_write(report, dry_run=dry_run, yes=yes, backup=backup, as_json=as_json)
+    if not as_json:
+        _catalog_summary(report, command, written=written, dry_run=dry_run)
+    if not dry_run and written < len(report.readmes):
+        raise typer.Exit(1)
+
+
+def _catalog_show(report: CatalogReport, *, diff: bool) -> None:
+    folders = ", ".join(f"{name} {ui.esc(str(rel_root(report.root, path)))}" for name, path in report.folders.items())
+    ui.dim(f"{report.catalog.counts()}; {folders}")
+    for name, version in report.catalog.versions.items():
+        if not version:
+            ui.dim(f"{name}: no version history in README.md")
+    for note in report.notes:
+        ui.dim(note)
+    for readme in report.plain:
+        ui.dim(f"{ui.esc(str(rel_root(report.root, readme)))} has no generated sections (3 Slots, 4 Catalog)")
+    if report.findings:
+        ui.rule(f"catalog findings ({len(report.findings)})")
+        for f in report.findings:
+            ui.step(f"  [dim]{ui.esc(f.file)}[/]  {ui.path(f.row)}  {ui.esc(f.detail)}")
+    if report.readmes:
+        ui.rule(f"stale README tables ({len(report.readmes)})")
+        for plan in report.readmes:
+            ui.step(f"  {ui.path(rel_root(report.root, plan.path))}  [dim]sections 3 and 4 differ from the CSV[/]")
+            if diff:
+                for line in difflib.unified_diff(
+                    plan.original.splitlines(), plan.text.splitlines(), str(plan.path), str(plan.path), lineterm=""
+                ):
+                    ui.console.print(ui.esc(line), markup=True, highlight=False)
+
+
+def rel_root(root: Path, path: Path) -> Path:
+    try:
+        return path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return path
+
+
+def _catalog_json(report: CatalogReport, command: str, dry_run: bool) -> None:
+    out = {
+        "tool": TOOL,
+        "version": __version__,
+        "command": command,
+        "catalog": True,
+        "dry_run": dry_run,
+        "root": str(report.root),
+        "folders": {name: str(path) for name, path in report.folders.items()},
+        "versions": report.catalog.versions,
+        "counts": {
+            "passives": len(report.catalog.passives),
+            "ics": len(report.catalog.ics),
+            "other": len(report.catalog.other),
+        },
+        "findings": [{"file": f.file, "row": f.row, "detail": f.detail} for f in report.findings],
+        "stale_readmes": [str(p.path) for p in report.readmes],
+        "plain_readmes": [str(p) for p in report.plain],
+    }
+    typer.echo(json.dumps(out, indent=2))
+
+
+def _catalog_summary(report: CatalogReport, command: str, *, written: int = 0, dry_run: bool = False) -> None:
+    rows: list[tuple[str, int | str]] = [
+        ("Catalog findings", len(report.findings)),
+        ("Stale README tables", len(report.readmes)),
+    ]
+    if command == "apply" and not dry_run:
+        rows.append(("Files written", written))
+    ui.summary(rows, dry_run=dry_run)
+
+
+def _catalog_write(report: CatalogReport, *, dry_run: bool, yes: bool, backup: bool, as_json: bool) -> int:
+    if not report.readmes:
+        if not as_json:
+            ui.dim("nothing to rewrite")
+        return 0
+    if dry_run:
+        return 0
+    if not as_json:
+        confirm(f"Rewrite {len(report.readmes)} README file(s)?", yes=yes)
+    elif not yes:
+        raise UsageError("--json writes only with --yes; there is no prompt in a report.")
+    done = 0
+    for plan in report.readmes:
+        try:
+            _unchanged(plan.path, plan.original)
+            saved = write_back(plan.path, plan.text, backup=backup)
+        except BacError as exc:
+            if not as_json:
+                ui.fail(f"{ui.path(rel_root(report.root, plan.path))}: {ui.esc(exc.message)}")
+            continue
+        done += 1
+        if not as_json:
+            note = f" [dim](backup {ui.esc(saved.name)})[/]" if saved else ""
+            ui.ok(f"Wrote {ui.path(rel_root(report.root, plan.path))}{note}")
+    return done
+
+
+# ---------------------------------------------------------------------------
+# The library audit
+# ---------------------------------------------------------------------------
+
+
+def _audit_run(
+    paths: list[Path],
+    settings: Settings,
+    command: str,
+    *,
+    diff: bool,
+    as_json: bool,
+    exclude: list[str] | None,
+    dry_run: bool = False,
+    yes: bool = False,
+    backup: bool = True,
+) -> None:
+    if len(paths) != 1 or not Path(paths[0]).expanduser().is_dir():
+        raise UsageError(
+            "--audit takes one directory: the repository root.", "Example: check ~/bac/bac-hardware --audit"
+        )
+    if diff:
+        raise UsageError("--audit has no diff; its report lists what it found.")
+    if exclude:
+        raise UsageError("--audit reads the whole repository; --exclude does not apply.")
+    root = Path(paths[0]).expanduser()
+    _opening(as_json, f"Auditing the library under {root}.")
+    with ui.spinner("Reading the library, the boards and the catalogs…") if not as_json else _quiet():
+        repo = load_repository(root, Path(settings.audit_library), [Path(c) for c in settings.audit_catalogs])
+        report = audit(repo)
+    renames, symbol_text = plan_renames(repo, report) if command == "apply" else ([], None)
+    if as_json:
+        _audit_json(repo, report, command, renames, symbol_text is not None, dry_run)
+    else:
+        _audit_show(repo, report)
+    if command == "check":
+        if not as_json:
+            _audit_summary(repo, report, [], False, command)
+        if report.total:
+            raise typer.Exit(1)
+        return
+    written = _audit_write(repo, renames, symbol_text, dry_run=dry_run, yes=yes, backup=backup, as_json=as_json)
+    if not as_json:
+        _audit_summary(repo, report, renames, symbol_text is not None, command, written=written, dry_run=dry_run)
+    if not dry_run and written < len(renames) + (symbol_text is not None):
+        raise typer.Exit(1)
+
+
+class _quiet:
+    def __enter__(self) -> None:
+        return None
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+
+def _audit_show(repo: Repository, report: Report) -> None:
+    c = report.counts
+    ui.dim(
+        f"{c['symbols']} symbols ({c['symbols #unused']} #unused), {c['footprints']} footprints "
+        f"({c['footprints #unused']} #unused), {c['models']} models; {c['boards']} boards, {c['sheets']} sheets, "
+        f"{c['design blocks']} design blocks, {c['catalog files']} catalog files"
+    )
+    for name, items in report.sections():
+        if not items:
+            continue
+        ui.rule(f"{name} ({len(items)})")
+        for f in items:
+            where = f"  [dim]{ui.esc(f.where)}[/]" if f.where else ""
+            ui.step(f"  [dim]{ui.esc(f.kind)}[/]  {ui.path(f.subject)}  {ui.esc(f.detail)}{where}")
+
+
+def _audit_json(
+    repo: Repository, report: Report, command: str, renames: list[Rename], symbols_change: bool, dry_run: bool
+) -> None:
+    out = {
+        "tool": TOOL,
+        "version": __version__,
+        "command": command,
+        "audit": True,
+        "dry_run": dry_run,
+        "root": str(repo.root),
+        "library": str(repo.library),
+        "counts": report.counts,
+        "findings": {name.replace(" ", "_"): [f.as_dict() for f in items] for name, items in report.sections()},
+        "renames": [{"from": str(r.path), "to": str(r.new_path), "reason": r.reason} for r in renames],
+        "symbol_library_changes": symbols_change,
+    }
+    typer.echo(json.dumps(out, indent=2))
+
+
+def _audit_summary(
+    repo: Repository,
+    report: Report,
+    renames: list[Rename],
+    symbols_change: bool,
+    command: str,
+    *,
+    written: int = 0,
+    dry_run: bool = False,
+) -> None:
+    rows: list[tuple[str, int | str]] = [(name[0].upper() + name[1:], len(items)) for name, items in report.sections()]
+    if command == "apply":
+        rows.append(("Files to rename or edit", len(renames) + int(symbols_change)))
+        if not dry_run:
+            rows.append(("Files written", written))
+    ui.summary(rows, dry_run=dry_run)
+
+
+def _lock_for(path: Path) -> Path:
+    return path.with_name("~" + path.name + ".lck")
+
+
+def _audit_write(
+    repo: Repository,
+    renames: list[Rename],
+    symbol_text: str | None,
+    *,
+    dry_run: bool,
+    yes: bool,
+    backup: bool,
+    as_json: bool,
+) -> int:
+    """Show the plan, confirm once, move and edit. Returns how many files were written or moved."""
+    pending = len(renames) + (symbol_text is not None)
+    if not pending:
+        if not as_json:
+            ui.dim("nothing to rename")
+        return 0
+    if not as_json:
+        ui.rule(f"apply ({pending})")
+        for r in renames:
+            arrow = f" → {ui.path(r.new_path.name)}" if r.new_path != r.path else " (edited in place)"
+            ui.step(f"  {ui.path(r.path.name)}{arrow}  [dim]{ui.esc(r.reason)}[/]")
+        if symbol_text is not None:
+            ui.step(f"  {ui.path(repo.symbol_file.name if repo.symbol_file else '')}  [dim]#unused symbols follow[/]")
+    if dry_run:
+        return 0
+    _preflight(repo, renames, symbol_text)  # every file checked before the first one moves
+    if not as_json:
+        confirm(f"Rename or edit {pending} file(s)?", yes=yes)
+    elif not yes:
+        raise UsageError("--json writes only with --yes; there is no prompt in a report.")
+    done = 0
+    for r in renames:
+        try:
+            _perform(r, backup=backup)
+        except BacError as exc:
+            if not as_json:
+                ui.fail(f"{ui.path(rel(repo, r.path))}: {ui.esc(exc.message)}")
+            continue
+        done += 1
+        if not as_json:
+            ui.ok(f"{'Moved' if r.new_path != r.path else 'Wrote'} {ui.path(rel(repo, r.new_path))}")
+    if symbol_text is not None and repo.symbol_file is not None:
+        try:
+            _check_lock(repo.symbol_file)
+            _unchanged(repo.symbol_file, repo.symbol_text)
+            saved = write_back(repo.symbol_file, symbol_text, backup=backup)
+            done += 1
+            if not as_json:
+                note = f" [dim](backup {ui.esc(saved.name)})[/]" if saved else ""
+                ui.ok(f"Wrote {ui.path(rel(repo, repo.symbol_file))}{note}")
+        except BacError as exc:
+            if not as_json:
+                ui.fail(f"{ui.path(rel(repo, repo.symbol_file))}: {ui.esc(exc.message)}")
+    return done
+
+
+def _preflight(repo: Repository, renames: list[Rename], symbol_text: str | None) -> None:
+    """Refuse the whole batch when a target exists, a file is locked or a file changed since it was read."""
+    if symbol_text is not None and repo.symbol_file is not None:
+        _check_lock(repo.symbol_file)
+        _unchanged(repo.symbol_file, repo.symbol_text)
+    for r in renames:
+        _check_lock(r.path)
+        if r.new_path != r.path and r.new_path.exists():
+            raise BacError(f"{rel(repo, r.new_path)} exists already; nothing was renamed.")
+        if r.original is not None:
+            _unchanged(r.path, r.original)
+
+
+def _unchanged(path: Path, original: str) -> None:
+    with path.open(encoding="utf-8", newline="") as f:
+        if f.read() != original:
+            raise BacError(f"{path.name} changed after it was planned; run again.")
+
+
+def _check_lock(path: Path) -> None:
+    lock = _lock_for(path)
+    if lock.exists():
+        raise BacError(f"KiCad has {path.name} open ({lock.name} exists); close it first.")
+
+
+def _perform(r: Rename, *, backup: bool) -> None:
+    """One rename: the edited text to the new name, the old file kept as ``.bak``; a model is moved as it is."""
+    _check_lock(r.path)
+    if r.new_path.exists() and r.new_path != r.path:
+        raise BacError(f"{r.new_path.name} exists already.")
+    try:
+        if r.text is None:
+            os.replace(r.path, r.new_path)
+            return
+        assert r.original is not None
+        _unchanged(r.path, r.original)
+        if r.new_path == r.path:
+            write_back(r.path, r.text, backup=backup)
+            return
+        with r.new_path.open("w", encoding="utf-8", newline="") as f:
+            f.write(r.text)
+        if backup:
+            shutil.move(r.path, r.path.with_name(r.path.name + ".bak"))
+        else:
+            r.path.unlink()
+    except OSError as exc:
+        raise BacError(f"Cannot write {r.new_path}", exc.strerror or str(exc)) from exc
 
 
 __all__ = ["app", "main"]

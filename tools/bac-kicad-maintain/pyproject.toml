@@ -1,12 +1,12 @@
 [project]
 name = "bac-kicad-maintain"
-version = "1.2.0"
-description = "Text, courtyard, via and label sizes on KiCad boards and schematics, and symbol-library renames, editing files by span."
+version = "1.4.0"
+description = "Text, courtyard, via, label and title-block conventions on KiCad boards and schematics, the library audit, the catalog check, and symbol-library renames, editing files by span."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 dependencies = [
-    "bac-common>=0.4",
+    "bac-common>=0.5",
     "bac-kicad-common>=0.1",
     "rich>=13.7",
     "typer>=0.12",

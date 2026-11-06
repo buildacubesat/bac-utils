@@ -33,6 +33,8 @@ def test_help_fits_and_names_the_options(no_config):
         "--qr",
         "--patch",
         "--open",
+        "--bom-scheme",
+        "--freeze",
         "--config",
         "--init",
         "--dry-run",
@@ -84,7 +86,7 @@ def test_init_writes_the_config_once(no_config, tmp_path):
     path = tmp_path / "config" / f"{TOOL}.toml"
     assert path.is_file() and "Wrote" in r.stdout
     text = path.read_text()
-    assert f'script = "{plugin}"' in text and 'prefix = "bac"' in text and "${ITEM_NUMBER}" in text
+    assert f'script = "{plugin}"' in text and 'prefix = "bac"' in text and 'scheme = "thin"' in text
     assert "[metadata]" in r.stdout and "[ibom]" not in r.stdout  # Rich must not eat the table names as markup
     r = invoke(cli._main, ["--init"])
     assert r.exit_code == 0 and "left as it is" in r.stdout
@@ -318,12 +320,15 @@ def test_bom_with_catalogs(fake, synth, tmp_path):
 
     cfg = tmp_path / "ga.toml"
     cfg.write_text(
-        f'[catalog]\npassives = "{CATALOG / "passives"}"\nics = "{CATALOG / "ics"}"\nparts = "{CATALOG / "parts"}"\n'
+        f'[catalog]\npassives = "{CATALOG / "passives"}"\nics = "{CATALOG / "ics"}"\nother = "{CATALOG / "other"}"\n'
     )
     r = invoke(cli._main, ["--config", str(cfg), "--desktop", str(tmp_path / "o"), "--only", "bom", str(synth)])
     assert r.exit_code == 0, r.output
-    assert "catalog 15 passives, 14 ICs, 6 parts" in r.stdout
-    assert "✓ BOM → bac-synth-v2r3-bom{,-dev,-flight,-jlcpcb,-issues}.csv (10/12 dev, 9/12 flight resolved" in r.stdout
+    assert "catalog 15 passives, 15 ICs, 7 other" in r.stdout
+    assert (
+        "✓ BOM → bac-synth-v2r3-bom{,-dev,-flight,-jlcpcb,-issues}.csv (11/13 dev, 9/12 flight resolved, 1 not fitted"
+        in r.stdout
+    )
     d = tmp_path / "o" / "bac-synth-v2r3"
     names = sorted(p.name for p in d.iterdir())
     assert names == [
@@ -333,10 +338,15 @@ def test_bom_with_catalogs(fake, synth, tmp_path):
         "bac-synth-v2r3-bom-jlcpcb.csv",
         "bac-synth-v2r3-bom.csv",
     ]
-    assert (d / "bac-synth-v2r3-bom.csv").read_text().startswith("#,Designator,Qty\n")  # the [bom] export as before
+    plain = (d / "bac-synth-v2r3-bom.csv").read_text()  # the thin columns; the per-footprint column folded into Qty
+    assert (
+        plain
+        == '"Reference","Qty","Value","Footprint","Manufacturer PN","DNP","Build","Datasheet"\n"J401, J601","8","Landing pad","x","x","","x","x"\n'
+    )
     assert "TNPW06034K70FHEA" in (d / "bac-synth-v2r3-bom-flight.csv").read_text()
     exports = [c for c in fake.commands if c[1:4] == ["sch", "export", "bom"]]
     assert len(exports) == 2 and exports[1][exports[1].index("--fields") + 1].startswith("Reference,${QUANTITY}")
+    assert exports[0][exports[0].index("--fields") + 1].endswith(",Build,Datasheet,Qty per footprint")
 
     fake.commands.clear()
     r = invoke(cli._main, ["--config", str(cfg), "--dry-run", "--only", "bom", str(synth)])
@@ -349,6 +359,57 @@ def test_bom_without_catalogs_is_the_plain_export(fake, synth, tmp_path):
     assert " ICs" not in r.stdout
     assert sorted(p.name for p in (tmp_path / "o" / "bac-synth-v2r3").iterdir()) == ["bac-synth-v2r3-bom.csv"]
     assert len([c for c in fake.commands if c[1:4] == ["sch", "export", "bom"]]) == 1
+
+
+def test_legacy_scheme_skips_the_catalogs(fake, synth, tmp_path):
+    from genart_testkit import CATALOG
+
+    cfg = tmp_path / "ga.toml"
+    cfg.write_text(f'[catalog]\npassives = "{CATALOG / "passives"}"\nics = "{tmp_path / "nowhere"}"\n')
+    args = ["--config", str(cfg), "--desktop", str(tmp_path / "o"), "--only", "bom", str(synth)]
+    r = invoke(cli._main, ["--bom-scheme", "legacy", *args])
+    assert r.exit_code == 0, r.output  # the missing IC catalog is never read
+    assert "bom scheme legacy – the symbols' own fields, no catalog resolution" in r.stdout
+    assert "✓ BOM → bac-synth-v2r3-bom.csv (" in r.stdout and " B, legacy scheme, " in r.stdout
+    assert sorted(p.name for p in (tmp_path / "o" / "bac-synth-v2r3").iterdir()) == ["bac-synth-v2r3-bom.csv"]
+    export = next(c for c in fake.commands if c[1:4] == ["sch", "export", "bom"])
+    assert export[export.index("--fields") + 1].startswith("${ITEM_NUMBER},Reference,${QUANTITY},Manufacturer,")
+    plain = (tmp_path / "o" / "bac-synth-v2r3" / "bac-synth-v2r3-bom.csv").read_text()
+    assert plain.startswith('"#","Designator","Qty","Manufacturer"') and "Qty per footprint" not in plain
+    # the same through the config, and --freeze refused on a legacy project
+    cfg.write_text('[bom]\nscheme = "legacy"\n')
+    args[args.index("bom")] = "freeze"
+    r = invoke(cli._main, ["--freeze", "dev", *args])
+    assert r.exit_code == 2 and "legacy-scheme project cannot be frozen" in r.stderr
+    r = invoke(cli._main, args)
+    assert r.exit_code == 2 and "--only freeze needs the build" in r.stderr
+
+
+def test_thin_scheme_hints_at_legacy_fields(fake, synth, tmp_path):
+    sheet = next(synth.glob("*.kicad_sch"))
+    text = sheet.read_text().rstrip()
+    assert text.endswith(")")
+    sheet.write_text(text[:-1] + '\t(property "C Class" "X7R" (at 0 0 0))\n)\n')
+    r = invoke(cli._main, ["--desktop", str(tmp_path / "o"), "--dry-run", "--only", "bom", str(synth)])
+    assert r.exit_code == 0, r.output
+    assert "carry the legacy rating fields (C Class, R Rated Power); --bom-scheme legacy fits them" in r.stdout
+    r = invoke(
+        cli._main,
+        ["--bom-scheme", "legacy", "--desktop", str(tmp_path / "o"), "--dry-run", "--only", "bom", str(synth)],
+    )
+    assert "legacy rating fields" not in r.stdout
+
+
+def test_old_parts_key_still_works_with_a_warning(fake, synth, tmp_path):
+    from genart_testkit import CATALOG
+
+    cfg = tmp_path / "ga.toml"
+    cfg.write_text(f'[catalog]\nparts = "{CATALOG / "other"}"\n')
+    r = invoke(
+        cli._main, ["--config", str(cfg), "--desktop", str(tmp_path / "o"), "--dry-run", "--only", "bom", str(synth)]
+    )
+    assert r.exit_code == 0, r.output
+    assert "! Config: parts in [catalog] is now other" in r.stdout and "catalog 0 passives, 0 ICs, 7 other" in r.stdout
 
 
 def test_missing_catalog_file_stops_the_run(fake, synth, tmp_path):

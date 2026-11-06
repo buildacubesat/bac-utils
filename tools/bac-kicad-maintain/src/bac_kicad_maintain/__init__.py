@@ -1,4 +1,4 @@
 # SPDX-License-Identifier: MIT
-"""bac-kicad-maintain – text, courtyard, via and label sizes on KiCad boards and schematics, library renames."""
+"""bac-kicad-maintain – KiCad boards and schematics on the conventions, the library audit, library renames."""
 
-__version__ = "1.2.0"
+__version__ = "1.4.0"

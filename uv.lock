@@ -342,7 +342,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-common"
-version = "0.4.2"
+version = "0.5.0"
 source = { editable = "lib/bac-common" }
 dependencies = [
     { name = "python-dotenv" },
@@ -553,7 +553,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-kicad-generate-artifacts"
-version = "0.7.2"
+version = "0.8.0"
 source = { editable = "tools/bac-kicad-generate-artifacts" }
 dependencies = [
     { name = "bac-common" },
@@ -628,7 +628,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-kicad-maintain"
-version = "1.2.0"
+version = "1.4.0"
 source = { editable = "tools/bac-kicad-maintain" }
 dependencies = [
     { name = "bac-common" },
@@ -655,7 +655,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-kicad-schfields"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "tools/bac-kicad-schfields" }
 dependencies = [
     { name = "bac-common" },
@@ -715,7 +715,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-kicad-symfields"
-version = "0.3.0"
+version = "0.3.1"
 source = { editable = "tools/bac-kicad-symfields" }
 dependencies = [
     { name = "bac-common" },
@@ -949,7 +949,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-reference-gallery"
-version = "0.5.1"
+version = "0.5.2"
 source = { editable = "tools/bac-reference-gallery" }
 dependencies = [
     { name = "bac-common" },
