@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import datetime as dt
 import shutil
+import subprocess
 import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -25,11 +26,12 @@ from pathlib import Path
 from PIL import Image
 
 from bac_common.cad import set_step_header
+from bac_common.catalog import Catalog, resolve
 from bac_common.errors import ConfigError, ExternalToolError
 
-from . import bom
-from .catalog import Catalog
-from .config import Settings
+from . import TOOL_NAME, __version__, bom
+from .config import LEGACY_FIELDS, Settings
+from .freeze import COPY_IGNORE, freeze_project, target_dir
 from .project import Plan, normalize_export_names, rewrite_gbrjob
 from .qr import insert_qr_file, substitute_variables
 from .runner import Runner, Tools
@@ -63,9 +65,6 @@ QR_MODULE_MIN_MM = 0.2  # a QR module smaller than this is below most fabs' silk
 GERBER_LAYERS = ("F.Paste", "B.Paste", "F.Silkscreen", "B.Silkscreen", "F.Mask", "B.Mask", "Edge.Cuts")
 PANEL_LAYERS = ("User.Comments",)  # V-cut lines live here
 
-# Folders and files a project copy does not need.
-COPY_IGNORE = shutil.ignore_patterns("*-backups", ".git", "__pycache__", "fp-info-cache", "*.lck", "~*", "*.kicad_prl")
-
 
 @dataclass
 class Context:
@@ -78,6 +77,8 @@ class Context:
     open: bool = False  # --open: the iBOM may open its browser tab, the ZIP goes to GerbView
     debug: bool = False
     catalog: Catalog | None = None  # the part catalogs, when [catalog] names them: the bom stage resolves against them
+    scheme: str = "thin"  # the BOM scheme of this run: thin (catalog resolution) or legacy (the symbols' own fields)
+    freeze: str = ""  # --freeze: the build to write a frozen project for, or ""
     spinner: Callable[[str], object] = field(default=lambda message: _NoSpinner())
     board: Path | None = None  # the board the stages export: the project's, or the QR stage's copy
     failed: set[str] = field(default_factory=set)  # names of the stages that failed so far in this project
@@ -297,19 +298,51 @@ def _export_bom(ctx: Context, output: Path, fields: str, labels: str, group_by: 
     )  # fmt: skip
 
 
-def stage_bom(ctx: Context) -> str:
-    """The plain export with the ``[bom]`` columns; with a catalog also the dev, flight, JLCPCB and issues files."""
-    plan, s = ctx.plan, ctx.settings
-    _export_bom(ctx, plan.bom_csv, s.bom_fields, s.bom_labels, s.bom_group_by)
-    if ctx.catalog is None:
-        return "" if ctx.run.dry_run else kb(plan.bom_csv)
-    lines_csv = _work(ctx) / "bom-resolve.csv"
+def legacy_fields(plan: Plan) -> bool:
+    """Whether the project's sheets carry the 0.7-era rating fields – the sign of a legacy schematic."""
+    for sheet in plan.project.kicad_dir.glob("*.kicad_sch"):
+        try:
+            text = sheet.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if any(f'(property "{name}"' in text for name in LEGACY_FIELDS):
+            return True
+    return False
+
+
+def _resolve_lines(ctx: Context, name: str) -> list[bom.BomLine] | None:
+    """The resolution export of the schematic as lines; ``None`` in a dry run."""
+    lines_csv = _work(ctx) / name
     _export_bom(ctx, lines_csv, bom.RESOLVE_FIELDS, bom.RESOLVE_LABELS, bom.RESOLVE_GROUP_BY)
     if ctx.run.dry_run:
-        return "with dev, flight, jlcpcb and issues"
+        return None
     if not lines_csv.is_file():
         raise ExternalToolError("kicad-cli wrote no BOM to resolve.", str(lines_csv))
-    lines = bom.read_export(lines_csv)
+    return bom.read_export(lines_csv)
+
+
+def stage_bom(ctx: Context) -> str:
+    """The plain export with the scheme's columns; thin with a catalog also the dev, flight, JLCPCB and issues files."""
+    plan, s = ctx.plan, ctx.settings
+    fields, labels, group_by = s.bom_columns(ctx.scheme)
+    _export_bom(
+        ctx,
+        plan.bom_csv,
+        f"{fields},{bom.PER_FOOTPRINT}",
+        f"{labels},{bom.PER_FOOTPRINT}",
+        f"{group_by},{bom.PER_FOOTPRINT}",
+    )
+    if not ctx.run.dry_run:
+        if not plan.bom_csv.is_file():
+            raise ExternalToolError("kicad-cli wrote no BOM.", str(plan.bom_csv))
+        bom.fold_per_footprint(plan.bom_csv, fields)
+    if ctx.scheme == "legacy":
+        return "legacy scheme" if ctx.run.dry_run else f"{kb(plan.bom_csv)}, legacy scheme"
+    if ctx.catalog is None:
+        return "" if ctx.run.dry_run else kb(plan.bom_csv)
+    lines = _resolve_lines(ctx, "bom-resolve.csv")
+    if lines is None:
+        return "with dev, flight, jlcpcb and issues"
     summary = bom.write_builds(
         ctx.catalog,
         lines,
@@ -365,7 +398,7 @@ def stage_ibom(ctx: Context) -> str:
             [
                 py, str(s.ibom_script), "--dest-dir", str(plan.out_dir.resolve()),
                 "--name-format", plan.ibom_html.stem, "--dark-mode", "--highlight-pin1", "selected",
-                "--dnp-field", "BOM", "--netlist-file", str(netlist.resolve()), *browser, _board(ctx),
+                "--netlist-file", str(netlist.resolve()), *browser, _board(ctx),
             ]
         )  # fmt: skip
     if ctx.run.dry_run:
@@ -373,6 +406,51 @@ def stage_ibom(ctx: Context) -> str:
     if not plan.ibom_html.is_file():
         raise ExternalToolError("The iBOM plugin wrote no HTML file.", str(plan.ibom_html))
     return kb(plan.ibom_html)
+
+
+def _commit(kicad_dir: Path) -> str:
+    """The short hash of the project's git commit, with ``+`` when the tree is dirty; ``unknown`` without git."""
+    git = shutil.which("git")
+    if not git:
+        return "unknown"
+    try:
+        head = subprocess.run(
+            [git, "-C", str(kicad_dir), "rev-parse", "--short", "HEAD"], capture_output=True, text=True, timeout=30
+        )
+        if head.returncode != 0:
+            return "unknown"
+        dirty = subprocess.run(
+            [git, "-C", str(kicad_dir), "status", "--porcelain", "--", "."], capture_output=True, text=True, timeout=30
+        )
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+    return head.stdout.strip() + ("+" if dirty.stdout.strip() else "")
+
+
+def stage_freeze(ctx: Context) -> str:
+    """The frozen project of ``--freeze``'s build next to the project folder."""
+    plan = ctx.plan
+    if ctx.scheme == "legacy":
+        raise ConfigError("A legacy-scheme project cannot be frozen.", "Its symbols carry their parts already.")
+    if ctx.catalog is None:
+        raise ConfigError("The freeze stage needs the part catalogs.", "Set passives, ics and other in [catalog].")
+    target = target_dir(plan.project.kicad_dir, plan.project.stem, ctx.freeze)
+    ctx.shown = f"{target.name}/"
+    lines = _resolve_lines(ctx, "bom-freeze.csv")
+    if lines is None:
+        return f"{ctx.freeze} build"
+    with ctx.spinner("Freezing the project"):
+        resolved = [resolve(ctx.catalog, line, ctx.freeze) for line in lines]
+        frozen = freeze_project(
+            plan.project.kicad_dir,
+            target,
+            build=ctx.freeze,
+            resolved=resolved,
+            catalog=ctx.catalog,
+            commit=_commit(plan.project.kicad_dir),
+            tool=f"{TOOL_NAME} {__version__}",
+        )
+    return frozen.note()
 
 
 def stage_gerbers(ctx: Context) -> str:
@@ -500,6 +578,14 @@ STAGES: tuple[Stage, ...] = (
     Stage("pinout", "Pinout", stage_pinout, lambda p: p.pinout_webp.name, needs_schematic=True),
     Stage("bom", "BOM", stage_bom, lambda p: p.bom_csv.name, needs_schematic=True),
     Stage("ibom", "iBOM", stage_ibom, lambda p: p.ibom_html.name, needs_schematic=True, opt_in=True),
+    Stage(
+        "freeze",
+        "Freeze",
+        stage_freeze,
+        lambda p: f"{p.project.stem}-frozen-<build>/",
+        needs_schematic=True,
+        opt_in=True,
+    ),
     Stage("gerbers", "Gerbers", stage_gerbers, lambda p: "gerber/"),
     Stage("drills", "Drills", stage_drills, lambda p: "drill/"),
     Stage("centroid", "Centroid", stage_centroid, lambda p: f"centroid/{p.centroid_pos.name}"),
@@ -509,9 +595,9 @@ STAGES: tuple[Stage, ...] = (
 STAGE_NAMES = tuple(s.name for s in STAGES)
 
 
-def select_stages(only: set[str], skip: set[str], *, ibom: bool, qr: bool) -> list[Stage]:
+def select_stages(only: set[str], skip: set[str], *, ibom: bool, qr: bool, freeze: bool = False) -> list[Stage]:
     """The stages of this run, in order. Opt-in stages run when asked for or named in ``--only``."""
-    wanted = {"ibom": ibom, "qr": qr}
+    wanted = {"ibom": ibom, "qr": qr, "freeze": freeze}
     out = []
     for s in STAGES:
         if only and s.name not in only:

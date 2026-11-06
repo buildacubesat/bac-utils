@@ -1,4 +1,6 @@
 # Build a CubeSat – example rules for a board schematic (bac-kicad-schfields).
+# Retired as the BAC workflow on 2026-11-05: the library is thin now and the part data lives in
+# bac-hardware/resources/catalog/. The file stays as an example of the rule syntax.
 # Fields and flags on placed symbols. `Reference` cannot be set here.
 title = "Board-level fields and flags"
 target = "schematic"

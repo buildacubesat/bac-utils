@@ -52,6 +52,73 @@
 	(net 0 "")
 	(net 1 "GND")
 	(net 2 "VCC")
+	(footprint "Package_TO_SOT_SMD:SOT-23-8"
+		(layer "F.Cu")
+		(uuid "aaaa0000-0000-4000-8000-000000000031")
+		(at 31 120)
+		(property "Reference" "U1"
+			(at 0 -1.5 0)
+			(layer "F.SilkS")
+			(uuid "aaaa0000-0000-4000-8000-000000000031a")
+			(effects
+				(font
+					(size 0.8 0.8)
+					(thickness 0.1)
+				)
+			)
+		)
+		(property "Value" "TI TCAN334G"
+			(at 0 1.5 0)
+			(layer "F.Fab")
+			(uuid "aaaa0000-0000-4000-8000-000000000031b")
+			(effects
+				(font
+					(size 0.8 0.8)
+					(thickness 0.1)
+				)
+			)
+		)
+		(attr smd)
+		(pad "1" smd rect
+			(at 0 0)
+			(size 1 1)
+			(layers "F.Cu" "F.Paste" "F.Mask")
+			(uuid "aaaa0000-0000-4000-8000-000000000031c")
+		)
+	)
+	(footprint "bac:EPS-Module-Landing-Pad"
+		(layer "F.Cu")
+		(uuid "aaaa0000-0000-4000-8000-000000000032")
+		(at 32 120)
+		(property "Reference" "J401"
+			(at 0 -1.5 0)
+			(layer "F.SilkS")
+			(uuid "aaaa0000-0000-4000-8000-000000000032a")
+			(effects
+				(font
+					(size 0.8 0.8)
+					(thickness 0.1)
+				)
+			)
+		)
+		(property "Value" "Landing pad"
+			(at 0 1.5 0)
+			(layer "F.Fab")
+			(uuid "aaaa0000-0000-4000-8000-000000000032b")
+			(effects
+				(font
+					(size 0.8 0.8)
+					(thickness 0.1)
+				)
+			)
+		)
+		(pad "1" smd rect
+			(at 0 0)
+			(size 1 1)
+			(layers "F.Cu" "F.Paste" "F.Mask")
+			(uuid "aaaa0000-0000-4000-8000-000000000032c")
+		)
+	)
 	(footprint "Resistor_SMD:R_0603_1608Metric"
 		(layer "F.Cu")
 		(uuid "aaaa0000-0000-4000-8000-000000000011")

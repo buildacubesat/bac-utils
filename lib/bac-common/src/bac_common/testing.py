@@ -28,7 +28,7 @@ from .cli import MainFn, run
 
 __all__ = ["Result", "invoke", "assert_standard_flags"]
 
-HELP_MAX_LINES = 24
+HELP_MAX_LINES = 48  # the guide's 24 became 48 for every help on 2026-11-05 (Mänu); the guide text follows in step 2g
 HELP_COLUMNS = 80
 """The terminal width ``--help`` is measured at: argparse and Click read ``COLUMNS``."""
 RICH_COLUMNS = 250

@@ -1,15 +1,25 @@
 # SPDX-License-Identifier: MIT
-"""The catalogs: values, packages and the resolution of a BOM line per grade."""
+"""The catalogs: values, packages, the resolution of a BOM line per grade, the checks and the README tables."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 import pytest
-from bac_kicad_generate_artifacts.catalog import BomLine, load_catalog, package_of, parse_value, resolve
-from genart_testkit import CATALOG
 
+from bac_common.catalog import (
+    BomLine,
+    check,
+    load_catalog,
+    package_of,
+    parse_value,
+    readme_version,
+    regenerate_readme,
+    resolve,
+)
 from bac_common.errors import ConfigError
+
+CATALOG = Path(__file__).resolve().parent / "catalog"
 
 R0603 = "Resistor_SMD:R_0603_1608Metric"
 C0402 = "Capacitor_SMD:C_0402_1005Metric"
@@ -77,7 +87,7 @@ def test_kind_from_the_first_reference():
 
 
 def test_example_catalog_loads(catalog):
-    assert len(catalog.passives) == 15 and len(catalog.ics) == 14 and catalog.parts == []
+    assert len(catalog.passives) == 15 and len(catalog.ics) == 15 and catalog.other == []
     assert all(r["_value"] is not None for r in catalog.passives)
     assert catalog.ic_by_mpn("tcan334gdcnr")["id"] == "can-xcvr-sot23-8.tcan334g"
 
@@ -187,9 +197,9 @@ def test_lines_the_catalogs_do_not_cover(catalog):
         resolve(catalog, BomLine("R1", 1, "4k7", R0603, ""), "proto")
 
 
-def test_parts_catalog(catalog):
-    full = load_catalog(CATALOG / "passives", CATALOG / "ics", CATALOG / "parts")
-    assert len(full.parts) == 6 and full.ic_by_mpn("dx07s016ja1r1500")["slot"] == "conn-usb-c-16p"
+def test_other_parts_catalog(catalog):
+    full = load_catalog(CATALOG / "passives", CATALOG / "ics", CATALOG / "other")
+    assert len(full.other) == 7 and full.ic_by_mpn("dx07s016ja1r1500")["slot"] == "conn-usb-c-16p"
     line = BomLine("J1", 1, "USB-C", "x", "DX07S016JA1R1500")
     assert resolve(catalog, line, "dev").reason == "DX07S016JA1R1500 is not in the IC catalog"
     r = resolve(full, line, "dev")
@@ -199,9 +209,13 @@ def test_parts_catalog(catalog):
     assert accepted.mpn == "DX07S016JA1R1500" and accepted.note == "accepted reference stays"
     led = resolve(full, BomLine("D1", 1, "LED W", "x", "150060WS75000"), "flight")
     assert led.row is None and led.reason == "no flight candidate in slot led-0603-white"  # commercial, no flight row
-    assert resolve(full, BomLine("J2", 1, "x", "y", "NOPE"), "dev").reason == "NOPE is not in the IC or parts catalog"
-    only_parts = load_catalog(None, None, CATALOG / "parts")
-    assert resolve(only_parts, line, "dev").row is not None and not only_parts.empty
+    assert (
+        resolve(full, BomLine("J2", 1, "x", "y", "NOPE"), "dev").reason
+        == "NOPE is not in the IC or other-parts catalog"
+    )
+    only_other = load_catalog(None, None, CATALOG / "other")
+    assert resolve(only_other, line, "dev").row is not None and not only_other.empty
+    assert full.counts() == "15 passives, 15 ICs, 7 other" and catalog.counts() == "15 passives, 15 ICs"
 
 
 def test_missing_files_and_columns_are_config_errors(tmp_path: Path):
@@ -209,9 +223,67 @@ def test_missing_files_and_columns_are_config_errors(tmp_path: Path):
         load_catalog(tmp_path, None)
     with pytest.raises(ConfigError, match="IC catalog file missing"):
         load_catalog(None, tmp_path)
-    with pytest.raises(ConfigError, match="Parts catalog file missing"):
+    with pytest.raises(ConfigError, match="Other-parts catalog file missing"):
         load_catalog(None, None, tmp_path)
+    (tmp_path / "bac-parts.csv").write_text("id,mpn\n")
+    with pytest.raises(ConfigError, match="Other-parts catalog file missing") as info:
+        load_catalog(None, None, tmp_path)
+    assert "rename it to bac-other.csv" in (info.value.detail or "")
     (tmp_path / "bac-ics.csv").write_text("id,mpn\nx,y\n")
     with pytest.raises(ConfigError, match="lacks the column"):
         load_catalog(None, tmp_path)
     assert load_catalog(None, None).empty
+
+
+def test_build_and_per_footprint_on_the_line():
+    both = BomLine("J1", 1, "x", "y", "")
+    assert both.fitted("dev") and both.fitted("flight") and both.per_footprint == 1
+    dev_only = BomLine("J401, J601", 2, "x", "y", "61300811821", build="dev", per_footprint=4)
+    assert dev_only.fitted("dev") and not dev_only.fitted("flight") and dev_only.reference_list == ["J401", "J601"]
+
+
+def test_readme_version(tmp_path: Path):
+    assert readme_version(tmp_path) == ""
+    (tmp_path / "README.md").write_text(
+        "# X\n\n## Version history\n\n| Version | Date | Change |\n| --- | --- | --- |\n| v0.5.1 | 2026-10-30 | a |\n| 0.5.0 | 2026-10-29 | b |\n"
+    )
+    assert readme_version(tmp_path) == "0.5.1"
+    full = load_catalog(CATALOG / "passives", CATALOG / "ics", CATALOG / "other")
+    assert full.versions == {"passives": "", "ics": "", "other": ""}  # the fixture folders carry no README
+
+
+def test_check_is_clean_on_the_fixture_and_names_what_is_wrong(tmp_path: Path):
+    full = load_catalog(CATALOG / "passives", CATALOG / "ics", CATALOG / "other")
+    assert check(full) == []
+    ics = (CATALOG / "ics" / "bac-ics.csv").read_text().splitlines()
+    bad = ics[1].replace("reference,reference", "reference,drop-in").replace("industrial", "military", 1)
+    (tmp_path / "bac-ics.csv").write_text("\n".join([ics[0], bad, ics[1], *ics[2:]]) + "\n")
+    findings = check(load_catalog(None, tmp_path))
+    details = sorted(f.detail for f in findings)
+    assert any("qualification 'military'" in d for d in details)
+    assert any("a reference row with compat 'drop-in'" in d for d in details)
+    assert any("id used 2 times" in d for d in details)
+    assert any("2 reference rows in the slot" in d for d in details)
+    assert any("mpn shared by" in d for d in details)
+    assert all(f.file == "bac-ics.csv" for f in findings)
+    res = (CATALOG / "passives" / "bac-passives-resistors.csv").read_text().splitlines()
+    (tmp_path / "bac-passives-capacitors.csv").write_text(
+        (CATALOG / "passives" / "bac-passives-capacitors.csv").read_text()
+    )
+    res = [line.replace(",0603,", ",0604,", 1) if line.startswith("r-0R-") else line for line in res]
+    res = [line.replace(",4k7,", ",4k7k,", 1) if line.startswith("r-4k7-0603-dev") else line for line in res]
+    (tmp_path / "bac-passives-resistors.csv").write_text("\n".join(res) + "\n")
+    details = [f.detail for f in check(load_catalog(tmp_path, None))]
+    assert any("not an imperial code" in d for d in details) and any("does not parse" in d for d in details)
+
+
+def test_regenerate_readme_rebuilds_the_two_sections():
+    full = load_catalog(None, CATALOG / "ics")
+    text = "# ICs\n\n## 3. Slots\n\nstale\n\n## 4. Catalog\n\nIntro line.\n\nstale\n\n## 5. Column reference\n\n| a |\n"
+    new = regenerate_readme(text, full.ics)
+    assert new is not None and new.startswith("# ICs\n\n## 3. Slots\n\n| Slot | Function |")
+    assert (
+        "### `can-xcvr-sot23-8` –" in new and "Intro line." in new and new.endswith("## 5. Column reference\n\n| a |\n")
+    )
+    assert "stale" not in new and regenerate_readme(new, full.ics) == new  # idempotent
+    assert regenerate_readme("# no sections\n", full.ics) is None

@@ -5,9 +5,9 @@ For every project folder given (the one holding the ``.kicad_pro``), the tool
 creates ``<root>/<prefix>-<subsystem>-<name>-<vXrY>/`` on the desktop (or ``--desktop``) and runs
 the stages in order: an optional QR code on a copy of the board, the 3D
 render, the schematic PDF, the pinout plot, the CSV BOM, the optional
-interactive BOM, Gerbers, drills, the centroid file, the STEP model, and
-the manufacturing ZIP with Gerbers, drills and centroid renamed to the
-``<prefix>-<subsystem>-<name>-<vXrY>-<layer>`` scheme.
+interactive BOM, the optional frozen project, Gerbers, drills, the centroid
+file, the STEP model, and the manufacturing ZIP with Gerbers, drills and
+centroid renamed to the ``<prefix>-<subsystem>-<name>-<vXrY>-<layer>`` scheme.
 
 A folder without a schematic is a panel: the schematic-derived stages are
 skipped, ``User.Comments`` (V-cut lines) joins the Gerber layers, and the
@@ -32,14 +32,14 @@ from pathlib import Path
 from bac_common import cli as bac_cli
 from bac_common import config as bac_config
 from bac_common import ui
+from bac_common.catalog import GRADES, Catalog, load_catalog
 from bac_common.errors import BacError, UsageError
 
 from . import TOOL_NAME, __version__
-from .catalog import Catalog, load_catalog
-from .config import Settings, config_template, desktop_dir, find_ibom_script, load_settings
+from .config import BOM_SCHEMES, Settings, config_template, desktop_dir, find_ibom_script, load_settings
 from .project import discover, make_plan
 from .runner import Runner, Tools, find_tools
-from .stages import STAGE_NAMES, Context, select_stages
+from .stages import STAGE_NAMES, Context, legacy_fields, select_stages
 
 DESCRIPTION = "Generate the release artifacts of a KiCad project, from render to ZIP."
 
@@ -56,6 +56,7 @@ def build_parser():
         examples=[
             f"{TOOL_NAME} ~/bac-hardware/inhibit/deployment-switch/kicad10",
             f"{TOOL_NAME} --ibom --qr '${{COMMENT4}}' dsw/kicad10",
+            f"{TOOL_NAME} --freeze flight --only freeze eps/kicad10",
         ],
         env_file=False,
     )
@@ -67,6 +68,8 @@ def build_parser():
     p.add_argument("--skip", metavar="STAGES", help="skip these stages")
     p.add_argument("--ibom", action="store_true", help="also build the interactive HTML BOM (plugin from --init)")
     p.add_argument("--qr", metavar="TEXT", help="replace QR_MARKER text boxes with a QR code of TEXT")
+    p.add_argument("--bom-scheme", metavar="SCHEME", choices=BOM_SCHEMES, help="thin (default) or legacy; see [bom]")
+    p.add_argument("--freeze", metavar="BUILD", choices=GRADES, help="also write <project>-frozen-BUILD (dev|flight)")
     p.add_argument("--patch", metavar="N", type=int, help="patch revision on the tags (v1r2 → v1r2.N)")
     p.add_argument("--open", action="store_true", help="open the output folder and GerbView when done")
     return p
@@ -109,6 +112,8 @@ class Run:
     skip: set[str]
     qr_text: str
     ibom: bool
+    scheme: str
+    freeze: str
     patch: int | None
     open: bool
     dry_run: bool
@@ -166,8 +171,10 @@ def process(kicad_dir: Path, run: Run) -> bool:
     ui.fields(rows)
     if project.panel:
         ui.warn("No schematic – a panel: schematic, pinout, BOM and iBOM are skipped, User.Comments joins the Gerbers.")
+    elif run.scheme == "thin" and legacy_fields(plan):
+        ui.warn("The sheets carry the legacy rating fields (C Class, R Rated Power); --bom-scheme legacy fits them.")
 
-    stages = select_stages(run.only, run.skip, ibom=run.ibom, qr=bool(run.qr_text))
+    stages = select_stages(run.only, run.skip, ibom=run.ibom, qr=bool(run.qr_text), freeze=bool(run.freeze))
     if not stages:
         ui.warn("No stages selected.")
         return True
@@ -181,6 +188,8 @@ def process(kicad_dir: Path, run: Run) -> bool:
         open=run.open,
         debug=debug,
         catalog=run.catalog,
+        scheme=run.scheme,
+        freeze=run.freeze,
         spinner=ui.spinner,
     )
     if not run.dry_run:
@@ -214,11 +223,12 @@ def process(kicad_dir: Path, run: Run) -> bool:
                 ctx.failed.add(stage.name)
                 ok = False
             else:
+                target = ui.path(ctx.shown) if ctx.shown else shown
                 if run.dry_run:
-                    ui.step(f"· {stage.label} → {shown}" + (f" ({ui.esc(note)})" if note else ""))
+                    ui.step(f"· {stage.label} → {target}" + (f" ({ui.esc(note)})" if note else ""))
                 else:
                     detail = ", ".join(x for x in (note, f"{time.perf_counter() - t0:.1f} s") if x)
-                    ui.ok(f"{stage.label} → {ui.path(ctx.shown) if ctx.shown else shown} ({ui.esc(detail)})")
+                    ui.ok(f"{stage.label} → {target} ({ui.esc(detail)})")
             if debug:
                 for cmd in runner.commands[seen:]:
                     ui.dim("$ " + ui.esc(shlex.join(cmd)))
@@ -238,8 +248,18 @@ def _main(argv: list[str], debug: bool) -> int:
     if not args.kicad_dirs:
         raise UsageError("Give at least one KiCad project folder.", f"See `{TOOL_NAME} --help`.")
     only, skip = parse_stage_list(args.only), parse_stage_list(args.skip)
+    if "freeze" in only and not args.freeze:
+        raise UsageError("--only freeze needs the build.", "Pass --freeze dev or --freeze flight.")
     settings = load_settings(args.config)
-    catalog = load_catalog(settings.catalog_passives, settings.catalog_ics, settings.catalog_parts)
+    scheme = args.bom_scheme or settings.bom_scheme
+    if scheme == "legacy":
+        catalog = Catalog()  # a legacy project carries its parts; the catalogs are not read
+        if args.freeze:
+            raise UsageError("A legacy-scheme project cannot be frozen.", "Its symbols carry their parts already.")
+    else:
+        catalog = load_catalog(settings.catalog_passives, settings.catalog_ics, settings.catalog_other)
+        if args.freeze and catalog.empty:
+            raise UsageError("--freeze needs the part catalogs.", "Set passives, ics and other in [catalog].")
     # Absolute: the iBOM plugin resolves a relative --dest-dir against the board's folder, not the cwd.
     root = (Path(args.desktop).expanduser() if args.desktop else (settings.output_root or desktop_dir())).resolve()
     run = Run(
@@ -252,6 +272,8 @@ def _main(argv: list[str], debug: bool) -> int:
         skip=skip,
         qr_text=args.qr if args.qr is not None else settings.qr_text,
         ibom=args.ibom,
+        scheme=scheme,
+        freeze=args.freeze or "",
         patch=args.patch,
         open=args.open,
         dry_run=args.dry_run,
@@ -261,9 +283,14 @@ def _main(argv: list[str], debug: bool) -> int:
     ui.opening(TOOL_NAME, __version__, DESCRIPTION)
     if settings.source:
         ui.dim(f"config {ui.path(settings.source)}")
-    if run.catalog:
-        counts = f"catalog {len(run.catalog.passives)} passives, {len(run.catalog.ics)} ICs"
-        ui.dim(counts + (f", {len(run.catalog.parts)} parts" if run.catalog.parts else ""))
+    for note in settings.deprecations:
+        ui.warn(ui.esc(f"Config: {note}."))
+    if run.freeze and ("freeze" in skip or (only and "freeze" not in only)):
+        ui.warn(f"--freeze {run.freeze} given, but the freeze stage is not in this run's stages.")
+    if scheme == "legacy":
+        ui.dim("bom scheme legacy – the symbols' own fields, no catalog resolution")
+    elif run.catalog:
+        ui.dim(f"catalog {run.catalog.counts()}")
     if not args.dry_run:
         root.mkdir(parents=True, exist_ok=True)
     done = failed = 0

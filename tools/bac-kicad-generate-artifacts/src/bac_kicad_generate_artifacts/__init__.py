@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
 """bac-kicad-generate-artifacts – the release bundle of a KiCad project from one command."""
 
-__version__ = "0.7.2"
+__version__ = "0.8.0"
 TOOL_NAME = "bac-kicad-generate-artifacts"

@@ -1,6 +1,6 @@
 [project]
 name = "bac-kicad-schfields"
-version = "0.2.0"
+version = "0.2.1"
 description = "Bulk-edit symbol fields and flags across a KiCad schematic hierarchy from TOML rules, editing files by span."
 readme = "README.md"
 license = { text = "MIT" }

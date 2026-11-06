@@ -210,6 +210,6 @@ def run_typer(app: Callable[..., object], argv: Sequence[str], tool: str) -> int
 
 
 def help_text(parser: argparse.ArgumentParser, width: int = 80) -> str:
-    """The ``--help`` output at a fixed width, for tests asserting the ≤24-line rule."""
+    """The ``--help`` output at a fixed width, for tests asserting the ≤48-line rule."""
     parser.formatter_class = lambda prog: _Formatter(prog, width=width)  # type: ignore[assignment]
     return parser.format_help()

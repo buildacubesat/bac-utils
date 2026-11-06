@@ -4,7 +4,7 @@
 Everything has a default, so the tool runs without a config file. The file
 is where a project records what is specific to it: the output root, the
 asset prefix and hardware repository name, author and organisation for the
-STEP header, the BOM field list, the part catalogs, the iBOM plugin path and
+STEP header, the BOM scheme and field list, the part catalogs, the iBOM plugin path and
 the QR marker.
 """
 
@@ -22,18 +22,32 @@ from . import TOOL_NAME
 
 __all__ = ["Settings", "load_settings", "config_template", "find_ibom_script", "desktop_dir"]
 
-BOM_FIELDS = (
-    "${ITEM_NUMBER},Reference,${QUANTITY},Manufacturer,Manufacturer PN,Value,Package,Tolerance,"
-    "R Rated Power,C Class,C D Rated Voltage,Notes,${DNP},Alternative parts,Digikey URL"
-)
-BOM_LABELS = (
-    "#,Designator,Qty,Manufacturer,Manufacturer PN,Value,Package,Tolerance,R Rated Power,C Class,"
-    "C D Rated Voltage,Notes,DNP,Alternative parts,Digikey URL"
-)
-BOM_GROUP_BY = (
-    "Value,Package,Manufacturer,Manufacturer PN,Tolerance,R Rated Power,C Class,C D Rated Voltage,Notes,${DNP},"
-    "Alternative parts,Digikey URL"
-)
+BOM_SCHEMES = ("thin", "legacy")
+# The plain export's columns per scheme: the thin schematic (the templates' BOM preset plus Build) and the
+# 0.7-era field vocabulary of projects that carry their part data on the symbols.
+BOM_FIELDS = {
+    "thin": "Reference,${QUANTITY},Value,Footprint,Manufacturer PN,${DNP},Build,Datasheet",
+    "legacy": (
+        "${ITEM_NUMBER},Reference,${QUANTITY},Manufacturer,Manufacturer PN,Value,Package,Tolerance,"
+        "R Rated Power,C Class,C D Rated Voltage,Notes,${DNP},Digikey URL"
+    ),
+}
+BOM_LABELS = {
+    "thin": "Reference,Qty,Value,Footprint,Manufacturer PN,DNP,Build,Datasheet",
+    "legacy": (
+        "#,Designator,Qty,Manufacturer,Manufacturer PN,Value,Package,Tolerance,R Rated Power,C Class,"
+        "C D Rated Voltage,Notes,DNP,Digikey URL"
+    ),
+}
+BOM_GROUP_BY = {
+    "thin": "Value,Footprint,Manufacturer PN,${DNP},Build",
+    "legacy": (
+        "Value,Package,Manufacturer,Manufacturer PN,Tolerance,R Rated Power,C Class,C D Rated Voltage,Notes,${DNP},"
+        "Digikey URL"
+    ),
+}
+# Symbol fields only a legacy schematic carries; a thin-scheme run that meets them on a project gets a hint.
+LEGACY_FIELDS = ("C Class", "R Rated Power", "C D Rated Voltage")
 
 # Relative to the home directory: where KiCad's plugin manager installs plugins on Linux, Windows and macOS.
 IBOM_GLOBS = (
@@ -51,18 +65,28 @@ class Settings:
     hardware_root: str = "bac-hardware"
     author: str = ""
     organization: str = ""
-    bom_fields: str = BOM_FIELDS
-    bom_labels: str = BOM_LABELS
-    bom_group_by: str = BOM_GROUP_BY
+    bom_scheme: str = "thin"
+    bom_fields: str = ""  # empty: the scheme's columns
+    bom_labels: str = ""
+    bom_group_by: str = ""
     catalog_passives: Path | None = None  # folder with bac-passives-capacitors.csv and -resistors.csv
     catalog_ics: Path | None = None  # folder with bac-ics.csv
-    catalog_parts: Path | None = None  # folder with bac-parts.csv (connectors, switches, LEDs – the ICs' columns)
+    catalog_other: Path | None = None  # folder with bac-other.csv (connectors, switches, LEDs – the ICs' columns)
+    deprecations: tuple[str, ...] = ()  # keys the config still uses under an old name
     ibom_script: Path | None = None
     ibom_python: str | None = None
     qr_marker: str = "QR_MARKER"
     qr_text: str = ""
     timeout: float = 600.0
     source: Path | None = field(default=None, compare=False)
+
+    def bom_columns(self, scheme: str) -> tuple[str, str, str]:
+        """Fields, labels and grouping of the plain export: the config's when set, else ``scheme``'s."""
+        return (
+            self.bom_fields or BOM_FIELDS[scheme],
+            self.bom_labels or BOM_LABELS[scheme],
+            self.bom_group_by or BOM_GROUP_BY[scheme],
+        )
 
 
 def desktop_dir() -> Path:
@@ -106,7 +130,14 @@ def load_settings(config_path: str | os.PathLike[str] | None) -> Settings:
     catalog = _table(data, "catalog")
     root = _text(output, "root", "")
     passives, ics = _text(catalog, "passives", ""), _text(catalog, "ics", "")
-    parts = _text(catalog, "parts", "")
+    other, parts = _text(catalog, "other", ""), _text(catalog, "parts", "")
+    deprecations = []
+    if parts and not other:
+        other = parts
+        deprecations.append("parts in [catalog] is now other (the folder resources/catalog/other/ with bac-other.csv)")
+    scheme = _text(bom, "scheme", "thin")
+    if scheme not in BOM_SCHEMES:
+        raise ConfigError(f"scheme in [bom] must be one of {', '.join(BOM_SCHEMES)}, not {scheme!r}.")
     script = _text(ibom, "script", "")
     timeout = output.get("timeout_s", 600)
     if not isinstance(timeout, (int, float)) or timeout <= 0:
@@ -118,12 +149,14 @@ def load_settings(config_path: str | os.PathLike[str] | None) -> Settings:
         hardware_root=_text(naming, "hardware_root", "bac-hardware"),
         author=_text(meta, "author", ""),
         organization=_text(meta, "organization", ""),
-        bom_fields=_text(bom, "fields", BOM_FIELDS),
-        bom_labels=_text(bom, "labels", BOM_LABELS),
-        bom_group_by=_text(bom, "group_by", BOM_GROUP_BY),
+        bom_scheme=scheme,
+        bom_fields=_text(bom, "fields", ""),
+        bom_labels=_text(bom, "labels", ""),
+        bom_group_by=_text(bom, "group_by", ""),
         catalog_passives=Path(passives).expanduser() if passives else None,
         catalog_ics=Path(ics).expanduser() if ics else None,
-        catalog_parts=Path(parts).expanduser() if parts else None,
+        catalog_other=Path(other).expanduser() if other else None,
+        deprecations=tuple(deprecations),
         ibom_script=Path(script).expanduser() if script else None,
         ibom_python=_text(ibom, "python", "") or None,
         qr_marker=_text(qr, "marker", "QR_MARKER") or "QR_MARKER",
@@ -157,19 +190,24 @@ author = ""
 organization = ""
 
 [bom]
-# kicad-cli sch export bom --fields / --labels / --group-by. ${{...}} are KiCad's built-in fields.
-fields = "{BOM_FIELDS}"
-labels = "{BOM_LABELS}"
-group_by = "{BOM_GROUP_BY}"
+# "thin": the schematic carries Value, Footprint and Manufacturer PN and the catalogs supply the rest
+# (README §5). "legacy": the symbols carry Manufacturer, Package, Tolerance and the rating fields
+# themselves; no catalog resolution. --bom-scheme overrides per run.
+scheme = "thin"
+# kicad-cli sch export bom --fields / --labels / --group-by. Empty: the scheme's columns.
+# ${{...}} are KiCad's built-in fields.
+fields = ""
+labels = ""
+group_by = ""
 
 [catalog]
-# The part catalogs the bom stage resolves the schematic against (README §4): the folder with
+# The part catalogs the bom stage resolves the schematic against (README §5): the folder with
 # bac-passives-capacitors.csv and bac-passives-resistors.csv, the folder with bac-ics.csv, and the
-# folder with bac-parts.csv (connectors, switches, LEDs, holders – the ICs' columns). Empty: the
+# folder with bac-other.csv (connectors, switches, LEDs, holders – the ICs' columns). Empty: the
 # stage writes the plain export only.
 passives = ""
 ics = ""
-parts = ""
+other = ""
 
 [ibom]
 # The InteractiveHtmlBom plugin's generate_interactive_bom.py (--ibom runs it with a python that imports pcbnew).
