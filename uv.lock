@@ -628,7 +628,7 @@ dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "bac-kicad-maintain"
-version = "1.4.0"
+version = "1.4.1"
 source = { editable = "tools/bac-kicad-maintain" }
 dependencies = [
     { name = "bac-common" },

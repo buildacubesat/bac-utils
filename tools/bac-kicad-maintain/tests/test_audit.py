@@ -28,7 +28,7 @@ def footprint(name: str, model: str | None = None, extra: str = "", datasheet: s
     )
 
 
-def symbol(name: str, fp: str, datasheet: str = "", description: str = "") -> str:
+def symbol(name: str, fp: str, datasheet: str = "", description: str = "", mpn: str = "") -> str:
     return (
         f'  (symbol "{name}" (in_bom yes) (on_board yes)\n'
         f'    (property "Reference" "U" (at 0 0 0))\n'
@@ -36,6 +36,7 @@ def symbol(name: str, fp: str, datasheet: str = "", description: str = "") -> st
         f'    (property "Footprint" "{fp}" (at 0 0 0))\n'
         f'    (property "Datasheet" "{datasheet}" (at 0 0 0))\n'
         f'    (property "Description" "{description}" (at 0 0 0))\n'
+        f'    (property "Manufacturer PN" "{mpn}" (at 0 0 0))\n'
         f'    (symbol "{name}_0_1" (rectangle (start 0 0) (end 1 1))))\n'
     )
 
@@ -72,12 +73,13 @@ def make_repo(root: Path) -> Path:
         root,
         SYMBOLS,
         "(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)\n"
-        + symbol("Live A", "lib:A", datasheet="ds-a", description="A part")
+        + symbol("Live A", "lib:A", datasheet="ds-a", description="The A part", mpn="A-1")
         + symbol("#unused Dead B", "lib:B")
         + symbol("Live C", "lib:Missing")
         + symbol("Live Shared", "lib:R", description="a resistor")
         + symbol("Live Shared2", "lib:R", description="another resistor")
         + symbol("Orphan", "lib:K", datasheet="ds-k")
+        + symbol("Catalog Part", "lib:K", mpn="x1")  # unplaced, but a catalog row names its part (case aside)
         + symbol("#unused Twin", "lib:H")
         + ")\n",
     )
@@ -152,8 +154,10 @@ def test_usage_rule_and_findings(tmp_path):
     fields = kinds(report.field_mismatches)
     assert fields["nonstandard field"] == ["E"]
     assert fields["Datasheet"] == ["K"]  # Orphan says ds-k, the footprint says nothing
-    assert "Description" not in fields  # R is shared by two live symbols: the package description is its own
-    assert kinds(report.symbols)["symbol not placed"] == ["Live C", "Orphan"]
+    # R is shared by two live symbols and Orphan names no part: the package description is its own.
+    # A names a part, so its footprint should describe that part.
+    assert fields["Description"] == ["A"]
+    assert kinds(report.symbols)["symbol not placed"] == ["Live C", "Orphan"]  # not Catalog Part
     assert kinds(report.libraries)["library missing"] == ["gone"]
     assert report.libraries[0].where == "boards/x" and "sym-lib-table points at" in report.libraries[0].detail
     assert report.counts["boards"] == 1 and report.counts["sheets"] == 1 and report.counts["catalog files"] == 1
