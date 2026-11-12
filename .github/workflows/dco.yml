@@ -1,0 +1,63 @@
+name: DCO
+
+# Every commit in a pull request needs a Signed-off-by line that matches its
+# author (CONTRIBUTING.md, Project & Tooling Guide §2.12). Merge commits and
+# bot commits are skipped. Only commit objects are fetched, so the size of the
+# repository doesn't matter. TOKEN is set on GitHub so private repositories
+# work too; the public Codeberg repositories fetch without it.
+
+on:
+  pull_request:
+
+jobs:
+  sign-off:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check sign-off
+        env:
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR: ${{ github.event.pull_request.number }}
+          TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          git init -q --bare dco.git
+          cd dco.git
+          git remote add origin "$REPO_URL"
+          if [ -n "${TOKEN:-}" ]; then
+            auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+            git config http.extraHeader "Authorization: basic $auth"
+          fi
+          git fetch -q --no-tags --filter=tree:0 origin \
+            "+refs/heads/$BASE_REF:refs/dco/base" "+refs/pull/$PR/head:refs/dco/head"
+          fail=0
+          count=0
+          for commit in $(git rev-list --no-merges --reverse refs/dco/base..refs/dco/head); do
+            count=$((count + 1))
+            author=$(git log -1 --format='%ae' "$commit")
+            line=$(git log -1 --format='%h %s' "$commit")
+            case "$author" in
+              *'[bot]'*)
+                echo "· $line (bot, skipped)"
+                continue
+                ;;
+            esac
+            if git log -1 --format='%(trailers:key=Signed-off-by,valueonly)' "$commit" \
+              | grep -qiF "<$author>"; then
+              echo "✓ $line"
+            else
+              echo "✗ $line – no Signed-off-by for $author"
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo
+            echo "Every commit needs a Signed-off-by line that matches its author (see CONTRIBUTING.md)."
+            echo "To sign off the whole branch, run:"
+            echo "  git rebase --signoff <base>    (the branch the pull request targets, e.g. origin/main)"
+            echo "  git push --force-with-lease"
+            exit 1
+          fi
+          echo "$count commits checked, all signed off"
