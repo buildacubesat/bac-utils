@@ -103,10 +103,15 @@ Software in this repository is licensed MIT (see `LICENSE`); documentation CC BY
 
 Run `<tool> --init`. It asks for the paths, identifiers and endpoints the tool needs, writes `~/.config/bac/<tool>.toml`, and where secrets are involved, a `.env` next to your working directory with empty values to fill in. Tools that consume data files take a data directory from that config; the copies under each tool's `examples/` show the expected shape and can be copied as a starting point. Nothing in the repository needs editing to point a tool at your own project.
 
-## 7. Version history
+## 7. Contributing
+
+Contributions are welcome – see [CONTRIBUTING.md](CONTRIBUTING.md) for how changes land and the sign-off every commit needs. Everyone in BAC's spaces follows the [BAC Code of Conduct](https://bac.page/conduct).
+
+## 8. Version history
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.24.2 | 2026-11-14 | README §7 Contributing: a short section that points to `CONTRIBUTING.md` and the sign-off every commit needs (`git commit -s`, checked on `main` since 2026-11-13) and to the BAC Code of Conduct; the version history moves to §8. |
 | 0.24.1 | 2026-11-06 | `bac-kicad-maintain` v1.4.1: the audit compares `Description` only for symbols that name a part, and a live symbol nothing places is not reported when a catalog row names its part. |
 | 0.24.0 | 2026-11-05 | `bac-kicad-generate-artifacts` v0.8.0: the BOM scheme (`thin` default, `legacy` for projects whose symbols carry their part data – no catalog, `--bom-scheme`), the `Build` and `Qty per footprint` fields, the `freeze` stage (`--freeze dev|flight` writes `<project>-frozen-<build>/` with the resolved part numbers in every symbol and footprint, DNP on build-excluded parts, `FROZEN.md`), the iBOM on KiCad's DNP attribute. `bac-common` v0.5.0: `bac_common.catalog` (the reader and resolver moved from the artifacts tool, the third collection named `other`, `check()` and the README tables) and the help limit at 48 lines. `bac-kicad-maintain` v1.4.0: `check`/`apply --catalog` (findings on the catalog CSVs, the ICs-shaped READMEs regenerated), `[audit] catalogs` on `resources/catalog/`. `bac-kicad-symfields` v0.3.1 and `bac-kicad-schfields` v0.2.1: the example rules retired as the BAC workflow. |
 | 0.23.0 | 2026-11-05 | `bac-kicad-maintain` v1.3.0: the library audit as `check`/`apply --audit` over a repository root – the central library, every board, sheet, template and design block, the catalog CSVs – reporting unused footprints and 3D models (the usage rule of 2026-10-29), broken links with `#unused` hints, field mismatches and unplaced symbols; `apply` prefixes unused files `#unused-` and lets the references in unused symbols and footprints follow. `--titleblock` sets the title block's company (`nihil.space GmbH`) on boards and sheets. `uv.lock` caught up with `bac-reference-gallery` 0.5.2. |
