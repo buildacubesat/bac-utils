@@ -44,6 +44,9 @@ class Settings:
     titleblock_company: str = "nihil.space GmbH"
     audit_library: str = "resources/kicad-libraries"
     audit_catalogs: tuple[str, ...] = ("resources/catalog/passives", "resources/catalog/ics", "resources/catalog/other")
+    showcase_kicad_footprints: str = "/usr/share/kicad/footprints"
+    showcase_symbol_library: str = "bac Library Symbols v1"
+    showcase_footprint_library: str = "bac KiCad Library Footprints v1"
     exclude: tuple[str, ...] = ()
 
     def enabled(self) -> set[str]:
@@ -105,6 +108,14 @@ library = "{DEFAULTS.audit_library}"
 # checks the CSVs and the README tables generated from them.
 catalogs = [{", ".join(f'"{c}"' for c in DEFAULTS.audit_catalogs)}]
 
+[showcase]
+# `showcase ROOT` writes one KiCad project per catalog into <catalog folder>/showcase/.
+# KiCad's own footprint libraries, for catalog rows that name one (Package_TO_SOT_SMD:SOT-23-8).
+kicad_footprints = "{DEFAULTS.showcase_kicad_footprints}"
+# The nicknames the generated lib tables give the central library.
+symbol_library = "{DEFAULTS.showcase_symbol_library}"
+footprint_library = "{DEFAULTS.showcase_footprint_library}"
+
 [files]
 # Glob patterns matched against each file's path relative to the directory
 # given, or against its name. Example: exclude = ["vendor/*", "generated/*"]
@@ -128,19 +139,20 @@ def number(value: object) -> Decimal:
 def load_settings(config_path: str | None) -> Settings:
     """The config file merged over the defaults; a missing default file means defaults."""
     data = load_toml(TOOL, config_path)
-    known = {"text", "courtyards", "vias", "labels", "titleblock", "audit", "files"}
+    known = {"text", "courtyards", "vias", "labels", "titleblock", "audit", "showcase", "files"}
     for section in data:
         if section not in known:
             raise ConfigError(f"Unknown config section [{section}].", "Known: " + ", ".join(sorted(known)) + ".")
     text, courtyards = _table(data, "text"), _table(data, "courtyards")
     vias, labels, files = _table(data, "vias"), _table(data, "labels"), _table(data, "files")
-    titleblock, audit = _table(data, "titleblock"), _table(data, "audit")
+    titleblock, audit, showcase = _table(data, "titleblock"), _table(data, "audit"), _table(data, "showcase")
     _known_keys(text, "text", ("enabled", "width", "height", "thickness", "center", "keep_upright", "layers"))
     _known_keys(courtyards, "courtyards", ("enabled", "width"))
     _known_keys(vias, "vias", ("enabled", "diameter", "drill", "preserve_nets", "types"))
     _known_keys(labels, "labels", ("enabled", "size_mil"))
     _known_keys(titleblock, "titleblock", ("enabled", "company"))
     _known_keys(audit, "audit", ("library", "catalogs"))
+    _known_keys(showcase, "showcase", ("kicad_footprints", "symbol_library", "footprint_library"))
     _known_keys(files, "files", ("exclude",))
     settings = Settings(
         text=_flag(text, "enabled", DEFAULTS.text),
@@ -163,6 +175,9 @@ def load_settings(config_path: str | None) -> Settings:
         titleblock_company=_string(titleblock, "company", DEFAULTS.titleblock_company),
         audit_library=_string(audit, "library", DEFAULTS.audit_library),
         audit_catalogs=_strings(audit, "catalogs", DEFAULTS.audit_catalogs),
+        showcase_kicad_footprints=_string(showcase, "kicad_footprints", DEFAULTS.showcase_kicad_footprints),
+        showcase_symbol_library=_string(showcase, "symbol_library", DEFAULTS.showcase_symbol_library),
+        showcase_footprint_library=_string(showcase, "footprint_library", DEFAULTS.showcase_footprint_library),
         exclude=_strings(files, "exclude", DEFAULTS.exclude),
     )
     validate(settings)
@@ -187,6 +202,10 @@ def validate(settings: Settings) -> None:
         raise ConfigError("titleblock.company must be a non-empty line of text.")
     if not settings.audit_library.strip():
         raise ConfigError("audit.library must name the library folder.")
+    for key in ("showcase_symbol_library", "showcase_footprint_library"):
+        value = getattr(settings, key)
+        if not value.strip() or ":" in value or any(ord(c) < 32 for c in value):
+            raise ConfigError(f"showcase.{key[9:]} must be a library nickname: not empty, no colon.")
 
 
 def _table(data: dict, key: str) -> dict:

@@ -310,10 +310,17 @@ def test_non_numeric_size_in_a_file(tmp_path):
 
 def test_subcommand_help_fits(tmp_path):
     # Every help within 48 lines (the guide's 24 became 48 on 2026-11-05); the small ones still fit 24.
-    for command, limit in (("check", 48), ("apply", 48), ("stats", 24), ("rename-library", 24), ("init", 24)):
+    for command, limit in (
+        ("check", 48),
+        ("apply", 48),
+        ("showcase", 24),
+        ("stats", 24),
+        ("rename-library", 24),
+        ("init", 24),
+    ):
         r = call(command, "--help")
         assert r.exit_code == 0
         lines = r.stdout.rstrip("\n").splitlines()
         assert len(lines) <= limit and all(len(line) <= 80 for line in lines), (command, lines)
     r = call("--help")
-    assert len(r.stdout.rstrip("\n").splitlines()) <= 24  # the root help still fits the old limit
+    assert len(r.stdout.rstrip("\n").splitlines()) <= 48  # 26 lines with the showcase command and example
