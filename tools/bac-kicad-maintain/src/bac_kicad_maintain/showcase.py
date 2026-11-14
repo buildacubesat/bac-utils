@@ -1260,10 +1260,15 @@ def _board_footprint(show: Showcase, sheet: Sheet, placement: Placement, x: floa
     ]
     after = last_property.end if last_property is not None else anchor
     edits.append((after, after, "\n" + "\n".join(extra)))
-    for zone in root.children("zone"):  # a footprint saved by KiCad 9 numbers its keepout's net; KiCad 10 names none
-        for stale in ("net", "net_name"):
+    for zone in root.children("zone"):
+        for stale in ("net", "net_name"):  # a footprint saved by KiCad 9 numbers its keepout's net; KiCad 10 names none
             for child in zone.children(stale):
                 edits.append((*_whole_line(text, child), ""))
+        # A board keeps a footprint's zones in board coordinates, unlike its pads and graphics: move the outline along.
+        for node in zone.walk():
+            if node.head in ("xy", "start", "mid", "end") and len(_numbers(node, 2)) == 2:
+                px, py = _numbers(node, 2)
+                edits.append((node.start, node.end, f"({node.head} {_n(px + x)} {_n(py + y)})"))
     ordinal = 0
     for node in root.walk():
         if node.head == "uuid" and node is not root.child("uuid"):
