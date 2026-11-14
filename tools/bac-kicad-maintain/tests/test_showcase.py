@@ -604,13 +604,18 @@ def test_every_symbol_of_a_part_number_is_placed(tmp_path):
     assert kinds(show)["further symbol"] == ["spacer-m2.5-2.5mm.9774025151r"]
 
 
-def test_a_footprint_saved_by_kicad_9_loses_its_numbered_zone_net(tmp_path):
+def test_a_footprint_zone_moves_with_its_footprint_and_loses_a_numbered_net(tmp_path):
     lib, shows = sc.build(make_root(tmp_path), settings(tmp_path), ["other"])
     board = parse(text_of(shows[0], f"{shows[0].project}.kicad_pcb"))
     fp = next(f for f in board.children("footprint") if f.value(1).endswith(":bac-M.2-Key-M-bacBus-Connector"))
     zone = fp.child("zone")
     assert zone is not None and zone.child("net") is None and zone.child("net_name") is None
     assert zone.child("keepout") is not None and fp.child("version") is None
+    # The outline (-1,-1) (1,-1) (1,1) of the library file sits around the footprint's position on the board.
+    x, y = (float(a.value) for a in fp.child("at").atoms()[1:3])
+    outline = [tuple(float(a.value) for a in n.atoms()[1:3]) for n in zone.find_all("xy")]
+    assert outline == [pytest.approx((x - 1, y - 1)), pytest.approx((x + 1, y - 1)), pytest.approx((x + 1, y + 1))]
+    assert x > 20 and y > 20
 
 
 def test_crlf_inputs_stay_consistent(tmp_path):
