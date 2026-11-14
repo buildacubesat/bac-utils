@@ -15,8 +15,8 @@ footprints that follow.
 The rule for "used" (decided 2026-10-29): a footprint is used when anything
 live references it – a library symbol without the ``#unused`` prefix (its
 default ``Footprint``), a placed symbol or a board footprint anywhere in the
-repository, a design block, or a catalog row. ``ki_fp_filters`` patterns do
-not count. A model is used when a used footprint, or a footprint embedded in
+repository (the catalog showcase projects included), a design block, or a
+catalog row. ``ki_fp_filters`` patterns do not count. A model is used when a used footprint, or a footprint embedded in
 a board, points at it.
 """
 
@@ -50,6 +50,7 @@ __all__ = [
 
 UNUSED_SYMBOL = "#unused "
 UNUSED_FILE = "#unused-"
+PLACEHOLDER_NAME = "bac Catalog Placeholder"  # placed by the showcase projects (showcase.py)
 LIB_VAR = "BAC_LIB_DIR"
 COMPARED_FIELDS = ("Datasheet", "Description")
 STANDARD_FOOTPRINT_FIELDS = {"Reference", "Value", "Datasheet", "Description", "Footprint"}
@@ -123,7 +124,6 @@ class Repository:
     documents: list[Document]
     catalog_footprints: dict[str, list[str]]  # footprint reference -> catalog row ids
     catalogs: list[Path]
-    catalog_mpns: set[str] = field(default_factory=set)  # every mpn a catalog row names, casefolded
     footprint_libs: set[str] = field(default_factory=set)  # every nickname some project resolves to the .pretty
     symbol_libs: set[str] = field(default_factory=set)  # … to the symbol library
     symbol_text: str = ""
@@ -268,10 +268,9 @@ def _read_table(path: Path, library: Path, target: Path | None) -> tuple[set[str
     return central, missing
 
 
-def _read_catalogs(paths: list[Path]) -> tuple[dict[str, list[str]], set[str], list[Path]]:
-    """The ``footprint`` references and the ``mpn`` values of every catalog CSV under ``paths``."""
+def _read_catalogs(paths: list[Path]) -> tuple[dict[str, list[str]], list[Path]]:
+    """The ``footprint`` references of every catalog CSV under ``paths``."""
     refs: dict[str, list[str]] = defaultdict(list)
-    mpns: set[str] = set()
     files: list[Path] = []
     for folder in paths:
         if not folder.is_dir():
@@ -287,12 +286,9 @@ def _read_catalogs(paths: list[Path]) -> tuple[dict[str, list[str]], set[str], l
                         ref = (row.get("footprint") or "").strip()
                         if ref:
                             refs[ref].append(f"{path.name}:{row.get('id') or '?'}")
-                        mpn = (row.get("mpn") or "").strip()
-                        if mpn:
-                            mpns.add(mpn.casefold())
             except (OSError, csv.Error) as exc:
                 raise AuditError(f"{path}: {exc}") from None
-    return dict(refs), mpns, files
+    return dict(refs), files
 
 
 def load_repository(root: Path, library: Path, catalogs: list[Path]) -> Repository:
@@ -361,7 +357,7 @@ def load_repository(root: Path, library: Path, catalogs: list[Path]) -> Reposito
             raise AuditError(f"{path}: {exc.message}") from None
         documents.append(Document(path, node, kind, project, set(fp_libs), set(sym_libs), list(missing)))
 
-    catalog_refs, catalog_mpns, catalog_files = _read_catalogs(catalogs)
+    catalog_refs, catalog_files = _read_catalogs(catalogs)
     return Repository(
         root=root,
         library=library,
@@ -373,7 +369,6 @@ def load_repository(root: Path, library: Path, catalogs: list[Path]) -> Reposito
         documents=documents,
         catalog_footprints=catalog_refs,
         catalogs=catalog_files,
-        catalog_mpns=catalog_mpns,
         footprint_libs=union_fp,
         symbol_libs=union_sym,
         symbol_text=symbol_text,
@@ -576,15 +571,15 @@ def audit(repo: Repository) -> Report:
         if key not in model_users and not Path(key).name.startswith(UNUSED_FILE):
             report.unused_models.append(Finding("unused model", key, "no used footprint or board points at it", ""))
 
-    # Symbols whose prefix disagrees with their placements. A live symbol nothing places is kept
-    # when a catalog row names its part: the catalog's reference part waits for a board.
+    # Symbols whose prefix disagrees with their placements. The catalog showcase projects place
+    # every catalog part, so a catalog row is no longer a placement by itself (1.4.1's rule); the
+    # showcase's placeholder symbol stays live for the next row without a symbol.
     for sym in sorted(repo.symbols.values(), key=lambda s: s.name):
         placed = sym_placed.get(sym.name, [])
         if sym.unused and placed:
             report.symbols.append(Finding("#unused symbol placed", sym.name, "placed on " + ", ".join(placed[:4]), ""))
         elif not sym.unused and not placed:
-            mpn = sym.properties.get("Manufacturer PN", "").strip().casefold()
-            if mpn and mpn in repo.catalog_mpns:
+            if sym.name == PLACEHOLDER_NAME:
                 continue
             report.symbols.append(
                 Finding("symbol not placed", sym.name, "no sheet, template or design block places it", "")

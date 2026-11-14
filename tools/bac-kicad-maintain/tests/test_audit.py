@@ -79,7 +79,7 @@ def make_repo(root: Path) -> Path:
         + symbol("Live Shared", "lib:R", description="a resistor")
         + symbol("Live Shared2", "lib:R", description="another resistor")
         + symbol("Orphan", "lib:K", datasheet="ds-k")
-        + symbol("Catalog Part", "lib:K", mpn="x1")  # unplaced, but a catalog row names its part (case aside)
+        + symbol("Catalog Part", "lib:K", mpn="x1")  # unplaced: a catalog row naming its part is no placement (1.5.0)
         + symbol("#unused Twin", "lib:H")
         + ")\n",
     )
@@ -157,7 +157,7 @@ def test_usage_rule_and_findings(tmp_path):
     # R is shared by two live symbols and Orphan names no part: the package description is its own.
     # A names a part, so its footprint should describe that part.
     assert fields["Description"] == ["A"]
-    assert kinds(report.symbols)["symbol not placed"] == ["Live C", "Orphan"]  # not Catalog Part
+    assert kinds(report.symbols)["symbol not placed"] == ["Catalog Part", "Live C", "Orphan"]
     assert kinds(report.libraries)["library missing"] == ["gone"]
     assert report.libraries[0].where == "boards/x" and "sym-lib-table points at" in report.libraries[0].detail
     assert report.counts["boards"] == 1 and report.counts["sheets"] == 1 and report.counts["catalog files"] == 1

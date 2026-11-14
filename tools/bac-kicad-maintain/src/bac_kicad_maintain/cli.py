@@ -7,15 +7,17 @@ sizes on schematics and the title block's company on both; ``--audit``
 reads a repository and reports unused footprints and models, broken links
 and field mismatches, and ``apply`` prefixes the unused files ``#unused-``;
 ``--catalog`` checks the part catalogs as data and regenerates the slot
-tables of their READMEs; ``stats`` lists the sizes a file uses; ``rename-library`` moves a
-schematic's symbols to another library nickname, cached copies included.
+tables of their READMEs; ``showcase`` writes one generated KiCad project per
+catalog that places every row once; ``stats`` lists the sizes a file uses;
+``rename-library`` moves a schematic's symbols to another library nickname,
+cached copies included.
 Files are edited by span, so a diff shows only the intended tokens. Nothing
 is written without confirmation (``--yes`` in scripts), a ``.bak`` keeps the
 previous content unless ``--no-backup``, and ``--dry-run`` only reports.
 
 Exit codes: 0 done (``check``: nothing to change, no audit or catalog
 findings), 1 ``check`` found changes or findings, a file could not be read or a write or
-rename failed, 2 bad arguments.
+rename failed, 2 bad arguments. ``showcase`` exits 0 whatever its report lists.
 """
 
 from __future__ import annotations
@@ -42,6 +44,7 @@ from .audit import Rename, Report, Repository, audit, load_repository, plan_rena
 from .catalogs import CatalogReport, inspect
 from .config import CONFIG_TEMPLATE, OPERATIONS, TOOL, Settings, load_settings, number, validate
 from .maintain import Outcome, discover, suffixes_for, transform
+from .showcase import LABELS, PLACEHOLDER, FileOp, Library, Showcase, build, ensure_placeholder
 
 app = typer.Typer(
     add_completion=False,
@@ -49,7 +52,8 @@ app = typer.Typer(
     pretty_exceptions_enable=False,
     help=(
         "Build a CubeSat – text, courtyard, via, label and title-block conventions on KiCad "
-        "boards and schematics, the library audit, the catalog check, and symbol-library renames, by span."
+        "boards and schematics, the library audit, the catalog check and showcase projects, and "
+        "symbol-library renames, by span."
     ),
     epilog=(
         "\b\n"
@@ -58,6 +62,7 @@ app = typer.Typer(
         "  bac-kicad-maintain apply board.kicad_pcb --vias --yes\n"
         "  bac-kicad-maintain check ~/bac/bac-hardware --audit\n"
         "  bac-kicad-maintain apply ~/bac/bac-hardware --catalog\n"
+        "  bac-kicad-maintain showcase ~/bac/bac-hardware --dry-run\n"
         "  bac-kicad-maintain rename-library . --from 'bac Library v1' --to 'bac v2'"
     ),
 )
@@ -294,6 +299,57 @@ def rename_library(
     written = _write_all(plans, dry_run=dry_run, yes=yes, backup=not no_backup, as_json=as_json)
     _summary(plans, command="rename-library", as_json=as_json, dry_run=dry_run)
     if not dry_run and written < sum(p.changed for p in plans):
+        raise typer.Exit(1)
+
+
+@app.command("showcase")
+def showcase(
+    ctx: typer.Context,
+    root: Path = typer.Argument(..., metavar="ROOT", help="The repository root with the catalogs and the library."),
+    catalog: list[str] | None = typer.Option(
+        None, "--catalog", metavar="NAME", help="Only this catalog: passives, ics or other; repeatable."
+    ),
+    as_json: bool = Json,
+    dry_run: bool = DryRun,
+    yes: bool = Yes,
+    no_backup: bool = NoBackup,
+) -> None:
+    """Write the catalog showcase projects: every catalog row placed once."""
+    settings = load_settings(ctx.obj.config)
+    root = root.expanduser()
+    if not root.is_dir():
+        raise UsageError("showcase takes one directory: the repository root.", "Example: showcase ~/bac/bac-hardware")
+    names = [n.strip() for value in catalog or [] for n in value.split(",") if n.strip()]
+    _opening(as_json, f"Generating the catalog showcase projects under {root}.")
+    with ui.spinner("Reading the catalogs and the library…") if not as_json else _quiet():
+        library, shows = build(root, settings, names or None)
+        needed = any(p.symbol.name == PLACEHOLDER for s in shows for p in s.placements)
+        symbols = ensure_placeholder(library) if needed else None
+    if as_json:
+        if not dry_run and not yes:
+            raise UsageError("--json writes only with --yes; there is no prompt in a report.")
+    else:
+        _showcase_show(root, library, shows, symbols is not None)
+    pending = sum(len(s.pending) for s in shows) + (symbols is not None)
+    written = failed = 0
+    if pending and not dry_run:
+        for op in (op for s in shows for op in s.pending):
+            _check_lock(op.path)  # an open project stops the run before anything is written
+        if not as_json:
+            confirm(f"Write or remove {pending} file(s)?", yes=yes)
+        written, failed = _showcase_write(root, library, shows, symbols, backup=not no_backup, as_json=as_json)
+    elif not pending and not as_json:
+        ui.dim("nothing to write")
+    if as_json:
+        _showcase_json(root, shows, symbols is not None, dry_run, written, failed)
+    else:
+        rows: list[tuple[str, int | str]] = [
+            (f"{LABELS[s.catalog]} rows placed", s.counts["Placed in the schematic"]) for s in shows
+        ]
+        rows.append(("Report lines", sum(len(s.findings) for s in shows)))
+        rows.append(("Files to write or remove", pending) if dry_run else ("Files written or removed", written))
+        ui.summary(rows, dry_run=dry_run)
+    if failed:
         raise typer.Exit(1)
 
 
@@ -623,6 +679,120 @@ def _catalog_write(report: CatalogReport, *, dry_run: bool, yes: bool, backup: b
             note = f" [dim](backup {ui.esc(saved.name)})[/]" if saved else ""
             ui.ok(f"Wrote {ui.path(rel_root(report.root, plan.path))}{note}")
     return done
+
+
+# ---------------------------------------------------------------------------
+# The showcase projects
+# ---------------------------------------------------------------------------
+
+
+def _showcase_show(root: Path, library: Library, shows: list[Showcase], add_symbol: bool) -> None:
+    for show in shows:
+        c = show.counts
+        version = f"v{show.version}, {show.date}" if show.version else "no version history"
+        ui.rule(f"{LABELS[show.catalog]} ({version})")
+        slot = c["With the slot reference's symbol"]
+        ui.step(
+            f"  {c['Catalog rows']} rows on {len(show.sheets)} sheet(s): {c['With their own library symbol']} own, "
+            f"{slot} slot symbol, {c['As placeholder']} placeholder; "
+            f"{c['On the board']} on the board, {c['Schematic only']} schematic only"
+        )
+        for f in show.findings:
+            ui.step(f"  [dim]{ui.esc(f.kind)}[/]  {ui.path(f.row)}  {ui.esc(f.detail)}")
+        quiet = sum(f.state in ("unchanged", "kept") for f in show.files)
+        for op in show.pending:
+            ui.step(f"  [dim]{op.state}[/]  {ui.path(rel_root(root, op.path))}")
+        if quiet:
+            ui.dim(f"  {quiet} file(s) unchanged")
+    if add_symbol:
+        ui.step(
+            f"  [dim]changed[/]  {ui.path(rel_root(root, library.symbol_file))}  [dim]adds {ui.esc(PLACEHOLDER)}[/]"
+        )
+
+
+def _showcase_json(
+    root: Path, shows: list[Showcase], add_symbol: bool, dry_run: bool, written: int, failed: int
+) -> None:
+    out = {
+        "tool": TOOL,
+        "version": __version__,
+        "command": "showcase",
+        "dry_run": dry_run,
+        "root": str(root),
+        "symbol_library_changes": add_symbol,
+        "written_files": written,
+        "failed_files": failed,
+        "catalogs": [
+            {
+                "catalog": s.catalog,
+                "folder": str(s.folder),
+                "catalog_version": s.version,
+                "catalog_date": s.date,
+                "counts": s.counts,
+                "sheets": [{"name": sheet.name, "file": sheet.file, "rows": len(sheet.items)} for sheet in s.sheets],
+                "findings": [f.as_dict() for f in s.findings],
+                "files": [{"path": str(op.path), "state": op.state, "done": op.done} for op in s.files],
+            }
+            for s in shows
+        ],
+    }
+    typer.echo(json.dumps(out, indent=2))
+
+
+def _showcase_perform(op: FileOp, *, backup: bool) -> Path | None:
+    """Write or remove one planned file; a README keeps a ``.bak``, a generated file does not (git has it)."""
+    try:
+        if op.state == "remove":
+            op.path.unlink()
+            return None
+        assert op.text is not None
+        if op.original is not None:
+            _unchanged(op.path, op.original)
+            if op.path.name == "README.md":
+                return write_back(op.path, op.text, backup=backup)
+        op.path.parent.mkdir(parents=True, exist_ok=True)
+        with op.path.open("w", encoding="utf-8", newline="") as f:
+            f.write(op.text)
+    except OSError as exc:
+        raise BacError(f"Cannot write {op.path}", exc.strerror or str(exc)) from exc
+    return None
+
+
+def _showcase_write(
+    root: Path, library: Library, shows: list[Showcase], symbols: str | None, *, backup: bool, as_json: bool
+) -> tuple[int, int]:
+    """The symbol library first (the projects name the placeholder), then every project. Returns (written, failed)."""
+    written = failed = 0
+    if symbols is not None:
+        try:
+            _check_lock(library.symbol_file)
+            _unchanged(library.symbol_file, library.symbol_text)
+            saved = write_back(library.symbol_file, symbols, backup=backup)
+        except BacError as exc:
+            if not as_json:
+                ui.fail(f"{ui.path(rel_root(root, library.symbol_file))}: {ui.esc(exc.message)}")
+                ui.dim("nothing else was written: the projects need the placeholder symbol in the library")
+            return 0, 1
+        written += 1
+        if not as_json:
+            note = f" [dim](backup {ui.esc(saved.name)})[/]" if saved else ""
+            ui.ok(f"Wrote {ui.path(rel_root(root, library.symbol_file))}{note}")
+    for show in shows:
+        for op in show.pending:
+            try:
+                saved = _showcase_perform(op, backup=backup)
+            except BacError as exc:
+                failed += 1
+                if not as_json:
+                    ui.fail(f"{ui.path(rel_root(root, op.path))}: {ui.esc(exc.message)}")
+                continue
+            written += 1
+            op.done = True
+            if not as_json:
+                note = f" [dim](backup {ui.esc(saved.name)})[/]" if saved else ""
+                verb = "Removed" if op.state == "remove" else "Wrote"
+                ui.ok(f"{verb} {ui.path(rel_root(root, op.path))}{note}")
+    return written, failed
 
 
 # ---------------------------------------------------------------------------
