@@ -1,4 +1,4 @@
-# bac-brand-assets v0.3.0
+# bac-brand-assets v0.4.0
 
 Build a CubeSat – the construction of the BAC marks and the generator that writes them. The symbol, the wordmark and the logo described in the BAC Identity Guide §8 are defined here as geometry and type settings, and written as SVG into the `assets/` folder of the bac-design checkout, so every file is reproducible from a handful of numbers and nobody edits a mark by hand.
 
@@ -15,7 +15,7 @@ No `--init` and no config: the tool finds the bac-design checkout as a sibling o
 
 ## 2. What It Writes
 
-28 SVG files, versioned like hardware (Project & Tooling Guide §2.2) with the version in the file name:
+33 SVG files, versioned like hardware (Project & Tooling Guide §2.2) with the version in the file name:
 
 | File | What it is |
 | :-- | :-- |
@@ -23,10 +23,11 @@ No `--init` and no config: the tool finds the bac-design checkout as a sibling o
 | `bac-wordmark-{black,white,currentcolor}-v4r1.svg` | BUILD A / CUBESAT in Nunito, outlined |
 | `bac-logo-{black,white,currentcolor}-v4r1.svg` | The horizontal lockup of the two |
 | `bac-logo-tagline-{black,white,currentcolor}-v4r1.svg` | The logo with SPACE FOR EVERYONE under the wordmark, in mono between two rules |
-| `bac-symbol-badge-{light,dark}-v4r1.svg`, `bac-logo-badge-{light,dark}-v4r1.svg` | The symbol on a filled, rounded hexagonal badge, and the logo on that badge merged with a rounded rectangle around the wordmark – for stickers, avatars and busy backgrounds; light is white with a `--border-strong` hairline, dark is `--bg` dark with its hairline |
+| `bac-logo-stacked-{black,white,currentcolor}-v4r1.svg` | The stacked lockup: the symbol centered above the wordmark, for narrow and square placements |
+| `bac-symbol-badge-{light,dark}-v4r1.svg`, `bac-logo-badge-{light,dark}-v4r1.svg`, `bac-logo-stacked-badge-{light,dark}-v4r1.svg` | The symbol on a filled, rounded hexagonal badge, and the logo and the stacked logo on that badge merged with a rounded rectangle around the wordmark – for stickers, avatars and busy backgrounds; light is white with a `--border-strong` hairline, dark is `--bg` dark with its hairline |
 | `rocinante-{symbol,wordmark,logo}-{black,white,currentcolor,color}-v2r1.svg` | The Rocinante marks (the flight software stack): the horse in its ring, ROCINANTE over "CUBESAT SOFTWARE STACK", and the stacked lockup; `color` is the two-tone in brand colors |
 
-Every colored SVG is also rendered to `png/` and `webp/` at 512 and 2048 px on the longest side (`bac-logo-black-v4r1-2048.png`), transparent, the WebP lossless – 84 files for the places that cannot take an SVG. A rendering counts as current when it exists, since encoders differ between machines; delete one to have it redone. The `currentcolor` files take the color of the surrounding text when inlined in HTML, which is how the gallery and the docs site use the symbol; the black and white files are for everything that cannot inherit a color. Every file carries a `<title>`, a `<desc>` with the construction and the trademark notice, and Dublin Core metadata naming nihil.space GmbH; none carries a `width` or `height`, only the `viewBox`.
+Every colored SVG is also rendered to `png/` and `webp/` at 512 and 2048 px on the longest side (`bac-logo-black-v4r1-2048.png`), transparent, the WebP lossless – 100 files for the places that cannot take an SVG. A rendering counts as current when it exists, since encoders differ between machines; delete one to have it redone. The `currentcolor` files take the color of the surrounding text when inlined in HTML, which is how the gallery and the docs site use the symbol; the black and white files are for everything that cannot inherit a color. Every file carries a `<title>`, a `<desc>` with the construction and the trademark notice, and Dublin Core metadata naming nihil.space GmbH; none carries a `width` or `height`, only the `viewBox`.
 
 ## 3. The Construction
 
@@ -37,8 +38,9 @@ All values live at the top of `src/bac_brand_assets/assets.py`; the Identity Gui
 | Symbol | A 1 × 1 × 2 box in true 30° isometric projection, cube edge 200: 346.41 wide, 600 tall, centered on the 400 × 650 canvas. One hexagonal outline with its six corners rounded 5 from the vertex, the inner edges (the top face's lower edges, the center vertical, the lower cube's top face) as a second path ending on the rounded corners, and a dot at the center of the top face – an ellipse 60 × 34.64, the 1:√3 ratio a circle takes in isometric projection. Stroke 15, round joins and caps, no fill. |
 | Wordmark | Nunito at weight 350, uppercase, tracking −0.03 em; cap height 100, 150 from baseline to baseline, "BUILD A" justified to the width of "CUBESAT"; 25 of margin. Outlined with fontTools so the files have no font dependency. |
 | Logo | The symbol on its own canvas; the wordmark to its right, 70 from the canvas edge, scaled so its two-line block is 70 % of the cube height and centered on the cube. At that size the letter stems are ~15, the same as the cube stroke. |
+| Stacked logo | The symbol on its own canvas, centered above the wordmark; the wordmark's two-line block is 52.5 % of the cube height (three quarters of the logo's) and set in Nunito 500 instead of 350, so the smaller letters keep their weight against the cube stroke; 100 from the cube's lowest point, stroke included, to the cap height; 25 of margin at the sides and below. |
 | Tagline | "SPACE FOR EVERYONE" in IBM Plex Mono with 0.286 em tracking (the Rocinante subtitle's), sized so the text takes 72 % of the wordmark's width, centered under it 2.34 tagline sizes below the baseline; a rule either side fills the rest of the width. The wordmark-and-tagline block is centered on the cube. |
-| Badge | The cube's hexagon grown by 70, corners rounded 60 from the vertex, a 2-unit hairline. The logo badge merges that hexagon with a rectangle grown by the same 70 around the wordmark and reaching left to the cube's center line, so the two meet on the hexagon's diagonals; the merged outline is rounded 60, the two concave corners where they meet 30. Light: white on `#D0D0D0`; dark: `#1F1E1D` on `#3F3E3D`. |
+| Badge | The cube's hexagon grown by 60, corners rounded 60 from the vertex, a 2-unit hairline. The logo badge merges that hexagon with a rectangle grown by the same 60 around the wordmark and reaching left to the cube's center line, so the two meet on the hexagon's diagonals; the merged outline is rounded 60, the two concave corners where they meet 30. The stacked logo badge merges the hexagon with a rectangle grown by the same offset around the wordmark and reaching up to the hexagon's lower side corners, so the two meet on its vertical sides – a wide join instead of a neck at the cube's lowest point. Light: white on `#D0D0D0`; dark: `#1F1E1D` on `#3F3E3D`. |
 | Rocinante | The head, eye and ear are the vector paths of the original Krita artwork (`Rocinante_Logo.kra`), scaled 5× onto a 550 × 550 canvas with the ring's center at the center. The ring is a true circle, center-line radius 241.35, stroke 11, with three gaps (at −80…−56°, 97…117°, 155…167°) where the ears and the neck cross it. ROCINANTE in Nunito 350 at 120 with 15 tracking; the subtitle in IBM Plex Mono 400 at 35 with 10 tracking and a 54-unit rule either side; the logo stacks the wordmark 160 under the ring. Two-tone in brand colors: `--text-strong` `#1F1F1F` for head and word, `--bac-blue` `#004C8B` for ring and subtitle. |
 
 The coordinates are written with two decimals, which is below anything a renderer can show at any size and keeps the files small (1.5 KB for the symbol, 8 KB for the wordmark).
@@ -67,6 +69,7 @@ The code is MIT. The files it writes are BAC Marks of nihil.space GmbH: not cove
 
 | Version | Date | Change |
 | :-- | :-- | :-- |
+| 0.4.0 | 2026-11-19 | The stacked logo (`bac-logo-stacked-*`): the symbol above the wordmark at 52.5 % of the cube height in Nunito 500, gap 100; the stacked logo badge, light and dark, with the rectangle reaching up to the hexagon's lower corners. 33 SVG and 100 raster files; the existing marks are byte-identical. The badge offset documented as 60, matching `BADGE_OFFSET`. |
 | 0.3.0 | 2026-10-29 | American spelling in the outputs: the Rocinante two-tone variant is `color` (`rocinante-*-color-v2r1.svg`, replacing `-colour-`), and the SVG descriptions say license, centered, colors. Same marks, same geometry. |
 | 0.2.0 | 2026-10-27 | The logo with tagline; the symbol and logo badges (light, dark); the Rocinante marks at v2r1 from the Krita vector layers, monochrome and two-tone in brand colors; the subtitle-with-rules setting shared by the Rocinante wordmark and the BAC tagline; PNG and WebP renderings at 512 and 2048 px. 28 SVG and 84 raster files. |
 | 0.1.0 | 2026-10-27 | First release with the marks at v4r1: the symbol reconstructed from exact isometric geometry (the v3r1 file was a bitmap trace), the wordmark reset in Nunito, replacing the legacy wordmark face, the horizontal logo as the one lockup; black, white and currentColor files with title, desc and Dublin Core metadata; `--check` for CI. |

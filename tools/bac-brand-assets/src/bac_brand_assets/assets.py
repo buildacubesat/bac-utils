@@ -3,8 +3,8 @@
 
 Every number here is the Identity Guide §8 description made executable: the symbol is a
 2U cube in true 30° isometric projection, the wordmark is Nunito set in two justified lines,
-the logo places the wordmark beside the symbol. Change a value here and in the guide in the
-same change.
+the logo places the wordmark beside the symbol, the stacked logo under it. Change a value here
+and in the guide in the same change.
 """
 
 from __future__ import annotations
@@ -38,6 +38,11 @@ PAD = 25  # canvas margin around the wordmark
 TEXT_FRACTION = 0.70  # wordmark block height relative to the cube height
 GAP = 70  # symbol canvas edge to wordmark
 
+# Stacked logo – the symbol above the wordmark, for narrow and square placements
+STACKED_TEXT_FRACTION = 0.525  # three quarters of the horizontal logo's wordmark
+STACKED_FONT_WEIGHT = 500  # heavier, so the smaller letters keep their weight against the cube stroke
+STACKED_GAP = 100  # the cube's lowest point (stroke included) to the cap height
+
 # Tagline – under the wordmark in the logo-with-tagline, set like the Rocinante subtitle
 TAGLINE = "SPACE FOR EVERYONE"
 TAGLINE_FILL = 0.72  # the text takes this share of the wordmark's width; the rules fill the rest
@@ -55,7 +60,8 @@ BADGES = {  # fill, mark, hairline (--border-strong light / dark)
 }
 
 COLORS = {"black": "#000000", "white": "#ffffff", "currentcolor": "currentColor"}
-KINDS = ("symbol", "wordmark", "logo", "logo-tagline")
+KINDS = ("symbol", "wordmark", "logo", "logo-tagline", "logo-stacked")
+BADGE_KINDS = ("symbol-badge", "logo-badge", "logo-stacked-badge")
 
 
 def _f(v: float) -> str:
@@ -175,10 +181,10 @@ def symbol_group(color: str, ox: float = 0, oy: float = 0) -> str:
 
 
 def wordmark_group(
-    fonts_dir: Path, color: str, ox: float = 0, oy: float = 0, scale: float = 1
+    fonts_dir: Path, color: str, ox: float = 0, oy: float = 0, scale: float = 1, weight: float = FONT_WEIGHT
 ) -> tuple[str, float, float]:
     """The two outlined lines; returns (group, width, height) with (ox, oy) the top-left of the cap box."""
-    font = wordmark.load(fonts_dir, FONT_WEIGHT)
+    font = wordmark.load(fonts_dir, weight)
     cap, leading = CAP * scale, LEADING * scale
     size = cap * font["head"].unitsPerEm / font["OS/2"].sCapHeight
     tracking = TRACKING * size
@@ -243,27 +249,90 @@ def logo_svg(fonts_dir: Path, color: str, tagline: bool = False) -> str:
     return wrap("logo-tagline" if tagline else "logo", body, w, h, construction)
 
 
-def badge_path(cx: float, top: float, text_box: tuple[float, float, float, float] | None = None) -> str:
-    """The badge: the cube's hexagon grown by BADGE_OFFSET, corners rounded.
+def stacked_parts(fonts_dir: Path, color: str) -> tuple[str, float, float, str, tuple[float, float, float, float]]:
+    """The symbol centered above the wordmark: (body, width, height, construction, text box x, y, w, h)."""
+    sym_w, sym_h = SYMBOL_CANVAS
+    half = EDGE * math.sqrt(3) / 2
+    scale = 3 * EDGE * STACKED_TEXT_FRACTION / (CAP + LEADING)
+    _, text_w, block = wordmark_group(fonts_dir, color, 0, 0, scale, STACKED_FONT_WEIGHT)
+    width = max(text_w, 2 * half + STROKE) + 2 * PAD
+    cube_bottom = (sym_h + 3 * EDGE) / 2 + STROKE / 2
+    text_box = ((width - text_w) / 2, cube_bottom + STACKED_GAP, text_w, block)
+    group, _, _ = wordmark_group(fonts_dir, color, text_box[0], text_box[1], scale, STACKED_FONT_WEIGHT)
+    body = symbol_group(color, (width - sym_w) / 2) + group
+    construction = (
+        f"Stacked lockup: symbol centered above the wordmark at {STACKED_TEXT_FRACTION:.1%} of the cube height,"
+        f" gap {STACKED_GAP}; Nunito {STACKED_FONT_WEIGHT}, tracking {TRACKING} em, outlined."
+    )
+    return body, width, text_box[1] + block + PAD, construction, text_box
 
-    With ``text_box`` (x, y, width, height of the wordmark) the hexagon is merged with a rectangle
-    grown by the same offset around the text and reaching left to the cube's centre line, so the
-    two meet on the hexagon's diagonals; the merged outline is rounded, the two concave corners
-    where they meet with a smaller fillet.
-    """
+
+def stacked_svg(fonts_dir: Path, color: str) -> str:
+    body, w, h, construction, _ = stacked_parts(fonts_dir, color)
+    return wrap("logo-stacked", body, w, h, construction)
+
+
+def badge_outline(
+    cx: float, top: float, text_box: tuple[float, float, float, float] | None = None, stacked: bool = False
+) -> list[Point]:
+    """The badge's polygon before rounding, clockwise; see badge_path."""
     hexagon = cube_hexagon(cx, top, BADGE_OFFSET)
     if text_box is None:
-        return rounded(hexagon, BADGE_CORNER)[0]
+        return hexagon
     from shapely.geometry import Polygon, box
     from shapely.ops import unary_union
 
     x, y, w, h = text_box
     o = BADGE_OFFSET
-    merged = unary_union([Polygon(hexagon), box(cx, y - o, x + w + o, y + h + o)])
+    if stacked:  # up to the hexagon's lower side corners, so the two meet on its vertical sides
+        rect = box(x - o, hexagon[2][1], x + w + o, y + h + o)
+    else:  # left to the cube's centre line, so the two meet on the hexagon's diagonals
+        rect = box(cx, y - o, x + w + o, y + h + o)
+    merged = unary_union([Polygon(hexagon), rect])
     outline = [(px, py) for px, py in merged.exterior.coords[:-1]]
     if merged.exterior.is_ccw:  # keep the clockwise order the hexagon has (y grows downwards)
         outline.reverse()
+    return outline
+
+
+def badge_path(
+    cx: float, top: float, text_box: tuple[float, float, float, float] | None = None, stacked: bool = False
+) -> str:
+    """The badge: the cube's hexagon grown by BADGE_OFFSET, corners rounded.
+
+    With ``text_box`` (x, y, width, height of the wordmark) the hexagon is merged with a rectangle
+    grown by the same offset around the text. Beside the cube it reaches left to the cube's centre
+    line, so the two meet on the hexagon's diagonals; under the cube (``stacked``) it reaches up to
+    the hexagon's lower side corners, so the two meet on its vertical sides with a wide join rather
+    than a neck at the lowest point. The merged outline is rounded, the concave corners where the
+    two meet with a smaller fillet.
+    """
+    outline = badge_outline(cx, top, text_box, stacked)
+    if text_box is None:
+        return rounded(outline, BADGE_CORNER)[0]
     return rounded(outline, BADGE_CORNER, BADGE_MERGE_FILLET)[0]
+
+
+def stacked_badge_svg(fonts_dir: Path, variant: str) -> str:
+    """The stacked logo on a filled badge: hexagon on a rectangle, the canvas fitted to the badge."""
+    fill, mark, hairline = BADGES[variant]
+    body, w, _, construction, text_box = stacked_parts(fonts_dir, mark)
+    cx, top = w / 2, (SYMBOL_CANVAS[1] - 3 * EDGE) / 2
+    outline = badge_outline(cx, top, text_box, stacked=True)
+    margin = BADGE_HAIRLINE + 10  # canvas edge to badge, as the symbol badge's tightest side
+    dx = margin - min(p[0] for p in outline)
+    dy = margin - min(p[1] for p in outline)
+    canvas_w = max(p[0] for p in outline) + dx + margin
+    canvas_h = max(p[1] for p in outline) + dy + margin
+    shape = rounded([(px + dx, py + dy) for px, py in outline], BADGE_CORNER, BADGE_MERGE_FILLET)[0]
+    badge = f'  <path id="badge" d="{shape}" fill="{fill}" stroke="{hairline}" stroke-width="{BADGE_HAIRLINE}"/>\n'
+    body = badge + f'  <g transform="translate({_f(dx)} {_f(dy)})">\n' + body + "  </g>\n"
+    construction += (
+        f" On a {variant} badge: the cube's hexagon grown by {BADGE_OFFSET} merged with a rectangle grown by the"
+        f" same offset around the wordmark and reaching up to the hexagon's lower corners, the merge filleted"
+        f" {BADGE_MERGE_FILLET}, corners rounded {BADGE_CORNER}, hairline {BADGE_HAIRLINE}."
+    )
+    return wrap("logo-stacked-badge", body, canvas_w, canvas_h, construction)
 
 
 def badge_svg(fonts_dir: Path, variant: str, logo: bool) -> str:
@@ -318,6 +387,8 @@ class Asset:
             if part == "wordmark":
                 return rocinante.wordmark_svg(fonts_dir, self.color, wrap)
             return rocinante.logo_svg(fonts_dir, self.color, wrap)
+        if self.kind == "logo-stacked-badge":
+            return stacked_badge_svg(fonts_dir, self.color)
         if self.kind.endswith("-badge"):
             return badge_svg(fonts_dir, self.color, logo=self.kind == "logo-badge")
         hex_ = COLORS[self.color]
@@ -325,6 +396,8 @@ class Asset:
             return symbol_svg(hex_)
         if self.kind == "wordmark":
             return wordmark_svg(fonts_dir, hex_)
+        if self.kind == "logo-stacked":
+            return stacked_svg(fonts_dir, hex_)
         return logo_svg(fonts_dir, hex_, tagline=self.kind == "logo-tagline")
 
 
@@ -333,7 +406,7 @@ def assets() -> Iterator[Asset]:
     for kind in KINDS:
         for color in COLORS:
             yield Asset(kind, color, f"bac-{kind}-{color}-{VERSION}.svg")
-    for kind in ("symbol-badge", "logo-badge"):
+    for kind in BADGE_KINDS:
         for variant in BADGES:
             yield Asset(kind, variant, f"bac-{kind}-{variant}-{VERSION}.svg")
     for part in ("symbol", "wordmark", "logo"):

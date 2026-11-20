@@ -30,14 +30,14 @@ def test_list_prints_every_asset_once():
     names = r.stdout.split()
     svgs = [n for n in names if n.endswith(".svg")]
     assert svgs == [a.name for a in assets.assets()]
-    assert len(names) == len(set(names)) == 28 + 84  # 21 colored SVGs × two sizes × PNG and WebP
+    assert len(names) == len(set(names)) == 33 + 100  # 25 colored SVGs × two sizes × PNG and WebP
     assert all(
-        re.fullmatch(r"(png|webp)/(bac|rocinante)-[a-z-]+-v\d+r\d+-(512|2048)\.(png|webp)", n) for n in names[28:]
+        re.fullmatch(r"(png|webp)/(bac|rocinante)-[a-z-]+-v\d+r\d+-(512|2048)\.(png|webp)", n) for n in names[33:]
     )
     names = svgs
     pattern = (
-        r"bac-(symbol|wordmark|logo|logo-tagline)-(black|white|currentcolor)-v\d+r\d+\.svg"
-        r"|bac-(symbol|logo)-badge-(light|dark)-v\d+r\d+\.svg"
+        r"bac-(symbol|wordmark|logo|logo-tagline|logo-stacked)-(black|white|currentcolor)-v\d+r\d+\.svg"
+        r"|bac-(symbol|logo|logo-stacked)-badge-(light|dark)-v\d+r\d+\.svg"
         r"|rocinante-(symbol|wordmark|logo)-(black|white|currentcolor|color)-v\d+r\d+\.svg"
     )
     assert all(re.fullmatch(pattern, n) for n in names), names
@@ -89,7 +89,7 @@ def test_wordmark_lines_are_justified_to_the_same_width():
 def test_the_written_files_are_current_and_check_reports_a_stale_one(tmp_path):
     out = tmp_path / "assets"
     r = invoke(cli._main, ["--design", str(DESIGN), "-o", str(out), "--no-raster"])
-    assert r.exit_code == 0 and r.output.count("Written") == 29
+    assert r.exit_code == 0 and r.output.count("Written") == 34
     r = invoke(cli._main, ["--design", str(DESIGN), "-o", str(out), "--check", "--no-raster"])
     assert r.exit_code == 0 and "Stale: " not in r.output
     stale = out / "bac-logo-black-v4r1.svg"
@@ -98,6 +98,18 @@ def test_the_written_files_are_current_and_check_reports_a_stale_one(tmp_path):
     assert r.exit_code == 1 and "Stale: bac-logo-black-v4r1.svg" in r.output
     r = invoke(cli._main, ["--design", str(DESIGN), "-o", str(out), "--dry-run", "--no-raster"])
     assert r.exit_code == 0 and "Would write" in r.output and "#111111" in stale.read_text(encoding="utf-8")
+
+
+@needs_font
+def test_stacked_logo_centers_the_wordmark_under_the_cube():
+    body, width, height, construction, (x, y, w, h) = assets.stacked_parts(DESIGN / "fonts", "#000000")
+    assert abs(x + w / 2 - width / 2) < 0.01  # wordmark centered on the canvas, as the symbol is
+    assert y == 625 + assets.STROKE / 2 + assets.STACKED_GAP  # gap from the cube's lowest point
+    assert abs(h - 3 * assets.EDGE * assets.STACKED_TEXT_FRACTION) < 0.01
+    assert abs(height - (y + h + assets.PAD)) < 0.01
+    assert f"Nunito {assets.STACKED_FONT_WEIGHT}" in construction and 'id="symbol"' in body
+    badge = assets.stacked_badge_svg(DESIGN / "fonts", "dark")
+    assert "Build a CubeSat Logo Stacked Badge v4r1" in badge and "#1F1E1D" in badge
 
 
 def test_badge_encloses_the_symbol_and_rocinante_ring_has_three_gaps():
