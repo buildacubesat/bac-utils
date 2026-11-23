@@ -21,7 +21,9 @@ The rules (decided 2026-11-14):
   from its package (``R-0603``); where the library has none, the catalog's
   own footprint and a report line.
 * An IC or other part places the live library symbol whose
-  ``Manufacturer PN`` is the row's; else the symbol of the slot's reference
+  ``Manufacturer PN`` is the row's; else the symbol a board's sheet draws
+  that part number with (often a KiCad stock symbol), taken from the sheet's
+  cache; else the symbol of the slot's reference
   row when the row is a drop-in; else ``bac Catalog Placeholder``. The row's
   part number is written into the instance. Further live symbols carrying
   the same part number are placed next to it.
@@ -35,7 +37,7 @@ import math
 import re
 import uuid
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from bac_common.catalog import IC_FILE, OTHER_FILE, PASSIVE_FILES, load_catalog
@@ -281,6 +283,9 @@ class LibSymbol:
     flags: dict[str, str]
     units: dict[int, list[Pin]]
     boxes: dict[int, tuple[float, float, float, float]]  # unit -> (min x, min y, max x, max y) in sheet orientation
+    nickname: str = ""  # the library of a symbol taken from a board's sheet; empty: the central library
+    source: str = ""  # that sheet, relative to the repository root
+    footprint: str = ""  # the footprint the board gives it
 
     def value(self, name: str) -> str:
         return next((v for n, v, _ in self.properties if n == name), "")
@@ -501,7 +506,7 @@ def read_symbol(name: str, raw: str) -> LibSymbol:
     properties = []
     for prop in node.children("property"):
         atoms = prop.atoms()
-        if len(atoms) >= 3:
+        if len(atoms) >= 3 and atoms[1].quoted:  # not KiCad's (property private "KLC_…" …)
             properties.append((atoms[1].value, atoms[2].value, raw[prop.start : prop.end]))
     flags = {}
     for key in ("exclude_from_sim", "in_bom", "on_board", "in_pos_files"):
@@ -577,6 +582,7 @@ class Library:
     raw: dict[str, str]  # symbol name -> node text
     by_mpn: dict[str, list[str]]
     models: set[str]
+    board: dict[str, LibSymbol] = field(default_factory=dict)  # part number (casefolded) -> the symbol a board uses
     _symbols: dict[str, LibSymbol] = field(default_factory=dict)
     _footprints: dict[str, LibFootprint | None] = field(default_factory=dict)
 
@@ -650,6 +656,89 @@ def load_library(root: Path, settings: Settings) -> Library:
     )
 
 
+def load_board_symbols(root: Path, lib: Library, skip: tuple[Path, ...] = ()) -> dict[str, LibSymbol]:
+    """The symbol each part number is drawn with on the repository's own sheets.
+
+    Many catalog parts have no symbol in the central library: a board draws them with a KiCad stock symbol and
+    writes the part number into the instance. Every sheet under ``root`` is read – not the showcase projects
+    themselves (the folders in ``skip``, and any sheet this tool generated), not frozen copies – and a placed
+    symbol with a ``Manufacturer PN`` yields that symbol from a sheet's cache, so no stock library has to be
+    installed. Of several symbols for one part number the one placed most often wins (first units counted),
+    then the first by name. A symbol's text is the cache entry of the first sheet by path that has it, the same
+    for every part number drawn with it; the footprint is the one most of its instances carry.
+
+    Left out: the placeholder, a symbol KiCad cached as a modified copy (``lib_name``), and a central-library
+    name that is not a live symbol there – a parked or renamed one stays a finding for a person.
+    """
+    marker = f"(generator {quoted(GENERATOR)})"
+    skipped = [Path(folder).resolve() for folder in skip]
+    seen: dict[str, dict[str, list[tuple[str, str]]]] = defaultdict(lambda: defaultdict(list))
+    texts: dict[str, tuple[str, str]] = {}
+    for path in _walk_files(root, (".kicad_sch",)):
+        rel = path.relative_to(root)
+        if any("-frozen-" in part for part in rel.parts[:-1]):
+            continue
+        if any(path.resolve().is_relative_to(folder) for folder in skipped):
+            continue
+        text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
+        if marker in text[:400]:
+            continue
+        sheet = parse(text, where=str(path))
+        cache = sheet.child("lib_symbols")
+        cached = {s.value(1): s for s in cache.children("symbol")} if cache is not None else {}
+        for instance in sheet.children("symbol"):
+            lib_id = instance.child("lib_id")
+            if lib_id is None or lib_id.value(1) not in cached or instance.child("lib_name") is not None:
+                continue
+            key = lib_id.value(1)
+            nickname, _, name = key.partition(":")
+            if not name or name == PLACEHOLDER:
+                continue
+            if nickname == lib.symbol_nickname and (name not in lib.raw or name.startswith(UNUSED_SYMBOL)):
+                continue
+            unit = instance.child("unit")
+            if unit is not None and unit.value(1) != "1":
+                continue
+            fields = {p.value(1): p.value(2) for p in instance.children("property") if len(p.atoms()) >= 3}
+            mpn = fields.get("Manufacturer PN", "").strip().casefold()
+            if not mpn:
+                continue
+            seen[mpn][key].append((rel.as_posix(), fields.get("Footprint", "").strip()))
+            if key not in texts or rel.as_posix() < texts[key][0]:
+                node = cached[key]
+                texts[key] = (rel.as_posix(), _reindent(text[node.start : node.end], -1))
+    symbols: dict[str, LibSymbol | None] = {}
+    out: dict[str, LibSymbol] = {}
+    for mpn, by_id in seen.items():
+        lib_id = min(by_id, key=lambda key: (-len(by_id[key]), key))
+        if lib_id not in symbols:
+            symbols[lib_id] = _board_symbol_of(lib, lib_id, texts[lib_id][1])
+        base = symbols[lib_id]
+        if base is None:
+            continue
+        placed = by_id[lib_id]
+        counts: dict[str, int] = defaultdict(int)
+        for _, footprint in placed:
+            if footprint:
+                counts[footprint] += 1
+        first = {fp: min(sheet for sheet, f in placed if f == fp) for fp in counts}
+        footprint = min(counts, key=lambda fp: (-counts[fp], first[fp], fp)) if counts else ""
+        out[mpn] = replace(base, source=min(sheet for sheet, _ in placed), footprint=footprint)
+    return out
+
+
+def _board_symbol_of(lib: Library, lib_id: str, raw: str) -> LibSymbol | None:
+    nickname, _, name = lib_id.partition(":")
+    if nickname == lib.symbol_nickname:
+        return read_symbol(name, lib.raw[name])  # the library's own text, not a sheet's older copy
+    head = f"(symbol {quoted(lib_id)}"
+    if not raw.startswith(head):
+        return None
+    symbol = read_symbol(name, f"(symbol {quoted(name)}" + raw[len(head) :])
+    symbol.nickname = nickname
+    return symbol
+
+
 def ensure_placeholder(library: Library) -> str | None:
     """The symbol library's text with the placeholder symbol added in name order, or ``None`` when it has it."""
     if PLACEHOLDER in library.raw:
@@ -714,28 +803,50 @@ def _own_symbol(lib: Library, row: dict[str, str]) -> str | None:
     return next(iter(_own_symbols(lib, row)), None)
 
 
-def _part_placement(lib: Library, row: dict[str, str], reference: str | None, findings: list[Finding]) -> Placement:
+def _board_symbol(lib: Library, row: dict[str, str]) -> LibSymbol | None:
+    return lib.board.get(row["mpn"].strip().casefold()) if row["mpn"].strip() else None
+
+
+def _row_symbol(lib: Library, row: dict[str, str] | None) -> LibSymbol | None:
+    """The symbol a row is drawn with by itself: the central library's, else the one a board uses."""
+    if row is None:
+        return None
     own = _own_symbol(lib, row)
+    return lib.symbol(own) if own is not None else _board_symbol(lib, row)
+
+
+def _part_placement(
+    lib: Library, row: dict[str, str], reference: LibSymbol | None, findings: list[Finding]
+) -> Placement:
+    own = _own_symbol(lib, row)
+    board = _board_symbol(lib, row) if own is None else None
     footprint = row.get("footprint", "")
-    if own is not None:
-        symbol, how = lib.symbol(own), "own"
-        default = symbol.value("Footprint")
+    if own is not None or board is not None:
+        symbol, how = (lib.symbol(own), "own") if own is not None else (board, "board")
+        shown = repr(own) if own is not None else f"{_lib_id(lib, symbol)} on {symbol.source}"
+        default = symbol.value("Footprint") if own is not None else symbol.footprint
+        if board is not None:
+            findings.append(Finding("board symbol", row["id"], shown))
         if not footprint and default:
             footprint = default
-            findings.append(Finding("footprint from symbol", row["id"], f"{default} from {own!r}"))
+            findings.append(Finding("footprint from symbol", row["id"], f"{default} from {shown}"))
         elif footprint and default and footprint != default:
-            findings.append(Finding("footprint differs", row["id"], f"row {footprint}; symbol {own!r} {default}"))
+            findings.append(Finding("footprint differs", row["id"], f"row {footprint}; symbol {shown} {default}"))
     elif reference is not None and row.get("compat") in DROP_IN:
-        symbol, how = lib.symbol(reference), "slot"
+        symbol, how = reference, "slot"
     else:
         symbol, how = lib.symbol(PLACEHOLDER), "placeholder"
         _, parked = _live(lib, row["mpn"])
-        detail = f"the library has it as {parked[0]!r}" if parked else f"no library symbol carries {row['mpn']}"
+        detail = f"the library has it as {parked[0]!r}" if parked else f"no symbol carries {row['mpn']}"
         findings.append(Finding("symbol #unused" if parked else "no symbol", row["id"], detail))
     value = symbol.value("Value") if how != "placeholder" else row["mpn"]
     middle = row.get("role", "") + (f" · {row['compat']}" if row.get("compat") not in ("", "reference") else "")
     note = "\n".join([row["id"], middle, _qualified(row, "lifecycle")])
     return Placement(row, symbol, how, value, footprint, row["mpn"], note)
+
+
+def _lib_id(lib: Library, symbol: LibSymbol) -> str:
+    return f"{symbol.nickname or lib.symbol_nickname}:{symbol.name}"
 
 
 def _further_placements(lib: Library, row: dict[str, str], findings: list[Finding]) -> list[Placement]:
@@ -806,7 +917,7 @@ def _slot_lines(rows: list[dict[str, str]], lib: Library, findings: list[Finding
     for slot, group in slots.items():
         group = sorted(group, key=lambda r: _ROLE_ORDER.get(r.get("role", ""), 9))
         reference_row = next((r for r in group if r.get("role") == "reference"), None)
-        reference = _own_symbol(lib, reference_row) if reference_row else None
+        reference = _row_symbol(lib, reference_row)
         function = (reference_row or group[0]).get("function", "")
         label = f"{slot} – {function}" if function else slot
         items: list[Placement] = []
@@ -1014,8 +1125,9 @@ def _unit_origins(placement: Placement) -> dict[int, tuple[float, float]]:
 def _symbol_instances(show: Showcase, sheet: Sheet, placement: Placement, flags: set[tuple[float, float]]) -> list[str]:
     symbol, out = placement.symbol, []
     overrides = {"Reference": placement.reference, "Value": placement.value, "Footprint": placement.footprint}
+    part_field = next((n for n, _, _ in symbol.properties if n.casefold() == "manufacturer pn"), None)
     if placement.mpn:
-        overrides["Manufacturer PN"] = placement.mpn
+        overrides[part_field or "Manufacturer PN"] = placement.mpn
     for unit, (x, y) in _unit_origins(placement).items():
         key = f"{placement.key}/{unit}"
         # The fields are laid out around the first unit; a further unit drawn elsewhere takes them along.
@@ -1023,7 +1135,7 @@ def _symbol_instances(show: Showcase, sheet: Sheet, placement: Placement, flags:
         shift = (_snap(box[0] - first[0]), _snap(box[1] - first[1]))
         lines = [
             "\t(symbol",
-            f"\t\t(lib_id {quoted(show.symbol_nickname + ':' + symbol.name)})",
+            f"\t\t(lib_id {quoted((symbol.nickname or show.symbol_nickname) + ':' + symbol.name)})",
             f"\t\t(at {_n(x)} {_n(y)} 0)",
             f"\t\t(unit {unit})",
             "\t\t(body_style 1)",
@@ -1038,6 +1150,12 @@ def _symbol_instances(show: Showcase, sheet: Sheet, placement: Placement, flags:
             if name.startswith("ki_"):
                 continue
             lines.append(_instance_property(raw, overrides.get(name, value), x + shift[0], y + shift[1]))
+        if placement.mpn and part_field is None:
+            lines.append(  # a stock symbol has no such field; the instance gets it, hidden, as a board's does
+                f'\t\t(property "Manufacturer PN" {quoted(placement.mpn)}\n\t\t\t(at {_n(x)} {_n(y)} 0)\n'
+                "\t\t\t(show_name no)\n\t\t\t(do_not_autoplace no)\n\t\t\t(hide yes)\n\t\t\t(effects\n"
+                "\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)"
+            )
         for pin in symbol.units[unit]:
             lines.append(
                 f"\t\t(pin {quoted(pin.number)}\n"
@@ -1063,14 +1181,14 @@ def _symbol_instances(show: Showcase, sheet: Sheet, placement: Placement, flags:
 def _sheet_text(show: Showcase, sheet: Sheet, lib: Library) -> str:
     used: dict[str, LibSymbol] = {}
     for item in sheet.items:
-        used.setdefault(item.symbol.name, item.symbol)
+        used.setdefault(_lib_id(lib, item.symbol), item.symbol)
     cache = []
-    for name in sorted(used):
-        raw = used[name].raw
+    for lib_id in sorted(used):
+        raw, name = used[lib_id].raw, used[lib_id].name
         head = f"(symbol {quoted(name)}"
         if not raw.startswith(head):
             raise ShowcaseError(f"Symbol {name!r} does not start as expected in the library.")
-        cache.append("\t\t" + _reindent(f"(symbol {quoted(show.symbol_nickname + ':' + name)}" + raw[len(head) :], 1))
+        cache.append("\t\t" + _reindent(f"(symbol {quoted(lib_id)}" + raw[len(head) :], 1))
     body: list[str] = []
     flags: set[tuple[float, float]] = set()
     for index, line in enumerate(sheet.lines):
@@ -1371,7 +1489,16 @@ def _table_text(kind: str, nickname: str, uri: str, what: str) -> str:
 
 
 _SECTIONS = (
-    ("no symbol", "Rows Without a Library Symbol", "Placed as `bac Catalog Placeholder`."),
+    (
+        "no symbol",
+        "Rows Without a Symbol",
+        "Neither the library nor a board has one; placed as `bac Catalog Placeholder`.",
+    ),
+    (
+        "board symbol",
+        "Rows Drawn With a Board's Symbol",
+        "No library symbol carries the part number; a board's sheet does.",
+    ),
     (
         "symbol #unused",
         "Rows Whose Symbol Is Parked",
@@ -1530,6 +1657,7 @@ def _build_one(catalog: str, folder: Path, rows: list[dict[str, str]], lib: Libr
         "Catalog rows": len(rows),
         "Placed in the schematic": len({p.id for p in placements}),
         "With their own library symbol": how["own"] + how["passive"],
+        "With a symbol from a board": how["board"],
         "With the slot reference's symbol": how["slot"],
         "As placeholder": how["placeholder"],
         "Further symbols of a part number": how["also"],
@@ -1577,6 +1705,8 @@ def build(root: Path, settings: Settings, only: list[str] | None = None) -> tupl
             "catalogs in [audit] names " + (", ".join(settings.audit_catalogs) or "nothing") + ".",
         )
     lib = load_library(root, settings)
+    if any(name != "passives" for name in wanted):
+        lib.board = load_board_symbols(root, lib, tuple(folder / "showcase" for folder in folders.values()))
     catalog = load_catalog(folders.get("passives"), folders.get("ics"), folders.get("other"))
     rows = {"passives": catalog.passives, "ics": catalog.ics, "other": catalog.other}
     return lib, [_build_one(name, folders[name], rows[name], lib, settings) for name in wanted]

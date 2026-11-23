@@ -665,3 +665,164 @@ def test_passives_need_no_placeholder_and_a_locked_project_stops_the_run(tmp_pat
     assert data["written_files"] == 1 and data["failed_files"] == 0
     done = [f["path"].rsplit("/", 1)[1] for f in data["catalogs"][0]["files"] if f["done"]]
     assert done == ["resistors-dev.kicad_sch"]
+
+
+# ---------------------------------------------------------------------------
+# Symbols from the boards (1.6.0)
+# ---------------------------------------------------------------------------
+
+
+def stock_sheet(lib_id: str, mpn: str, footprint: str, count: int = 1, generator: str = "eeschema") -> str:
+    """A board's sheet that draws ``mpn`` with a symbol of another library, as KiCad caches and places it."""
+    nickname, _, name = lib_id.partition(":")
+    cached = sc.PLACEHOLDER_SYMBOL.replace(f'(symbol "{sc.PLACEHOLDER}"', f'(symbol "{lib_id}"', 1)
+    cached = cached.replace(sc.PLACEHOLDER, name).replace('(property "Reference" "X"', '(property "Reference" "U"')
+    cached = cached.replace('(property "Value" "Catalog Placeholder"', f'(property "Value" "{name}"')
+    start = cached.index('\t\t(property "Manufacturer PN"')
+    cached = cached[:start] + cached[cached.index("\t\t(symbol ", start) :]  # a stock symbol has no such field
+    cached = "\n".join("\t" + line if line else line for line in cached.split("\n"))
+    placed = "".join(
+        f'\t(symbol\n\t\t(lib_id "{lib_id}")\n\t\t(at {20 * n} 50 0)\n\t\t(unit 1)\n'
+        f'\t\t(property "Reference" "U{n}"\n\t\t\t(at 0 0 0)\n\t\t)\n'
+        f'\t\t(property "Footprint" "{footprint}"\n\t\t\t(at 0 0 0)\n\t\t)\n'
+        f'\t\t(property "Manufacturer PN" "{mpn}"\n\t\t\t(at 0 0 0)\n\t\t)\n\t)\n'
+        for n in range(1, count + 1)
+    )
+    return (
+        f'(kicad_sch\n\t(version 20260306)\n\t(generator "{generator}")\n\t(lib_symbols\n\t{cached}\n\t)\n{placed})\n'
+    )
+
+
+def test_a_part_without_a_library_symbol_takes_the_one_a_board_draws_it_with(tmp_path):
+    root = make_root(tmp_path)
+    write(
+        stock_root := tmp_path / "stock", "Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod", footprint("SOT-23-5", None, 4)
+    )
+    assert stock_root.is_dir()
+    ldo = "Regulator_Linear:TLV75533PDBV"
+    write(root, "eps/kicad10/ldos.kicad_sch", stock_sheet(ldo, "tlv75533pdbvr", "Package_TO_SOT_SMD:SOT-23-5"))
+    write(root, "mcu/kicad10/power.kicad_sch", stock_sheet("Other_Lib:LDO", "TLV75533PDBVR", "x:y", count=2))
+    write(root, "mcu/kicad10/a.kicad_sch", stock_sheet(ldo, "TLV75533PDBVR", "Package_TO_SOT_SMD:SOT-23-5", count=2))
+    # Not sources: a frozen copy, and anything this tool generated (the showcase would feed itself).
+    write(root, "mcu/board-v1-frozen-dev/x.kicad_sch", stock_sheet("Frozen:STM", "STM32F405RGT7", ""))
+    write(root, "mcu/kicad10/gen.kicad_sch", stock_sheet("Gen:STM", "STM32F405RGT7", "", generator=sc.GENERATOR))
+    lib, shows = sc.build(root, settings(tmp_path), ["ics"])
+    show = shows[0]
+    how = {p.id: (p.how, sc._lib_id(lib, p.symbol)) for p in show.placements}
+    assert how["ldo-500ma-sot23-5.tlv75533p"] == ("board", ldo)  # three placements against two, case aside
+    assert lib.board["tlv75533pdbvr"].source == "eps/kicad10/ldos.kicad_sch"  # the first sheet by path
+    assert how["ldo-500ma-sot23-5.tlv73333p-q1"] == ("slot", ldo)  # the drop-ins follow their reference
+    assert how["mcu-lqfp64.stm32f405rgt7"][0] == "placeholder"
+    assert how["can-xcvr-sot23-8.tcan334g"] == ("own", "bac Library Symbols v1:TI TCAN334")  # the library first
+    found = kinds(show)
+    assert found["board symbol"] == ["ldo-500ma-sot23-5.tlv75533p"]
+    assert "ldo-500ma-sot23-5.tlv75533p" not in found.get("no symbol", []) + found.get("footprint missing", [])
+    assert show.counts["With a symbol from a board"] == 1
+    text = "".join(text_of(show, s.file) for s in show.sheets)
+    sheet = parse(next(text_of(show, s.file) for s in show.sheets if f'(lib_id "{ldo}")' in text_of(show, s.file)))
+    cache = [s.value(1) for s in sheet.child("lib_symbols").children("symbol")]
+    assert ldo in cache and '(symbol "TLV75533PDBV_1_1"' in text
+    instances = [s for s in sheet.children("symbol") if s.child("lib_id").value(1) == ldo]
+    parts = sorted({p.value(1): p.value(2) for p in s.children("property")}["Manufacturer PN"] for s in instances)
+    assert parts[0] == "TLV73333PQDBVRQ1" and "TLV75533PDBVR" in parts  # the field the stock symbol lacks
+    assert all(len([p for p in s.children("property") if p.value(1) == "Manufacturer PN"]) == 1 for s in instances)
+    board = parse(text_of(show, f"{show.project}.kicad_pcb"))
+    assert any(fp.value(1) == "Package_TO_SOT_SMD:SOT-23-5" for fp in board.children("footprint"))
+    write_all(shows)
+    _, again = sc.build(root, settings(tmp_path), ["ics"])
+    assert not again[0].pending  # the generated sheets are not read back as boards
+    _, passives = sc.build(root, settings(tmp_path), ["passives"])
+    assert passives[0].counts["With a symbol from a board"] == 0
+
+
+def test_a_board_instance_of_a_library_symbol_uses_the_library_text(tmp_path):
+    root = make_root(tmp_path)
+    lib_id = "bac Library Symbols v1:bac R"  # a generic library symbol a board gives a part number
+    write(root, "eps/kicad10/x.kicad_sch", stock_sheet(lib_id, "STM32F405RGT7", "Package_QFP:LQFP-64"))
+    lib, shows = sc.build(root, settings(tmp_path), ["ics"])
+    placed = next(p for p in shows[0].placements if p.id == "mcu-lqfp64.stm32f405rgt7")
+    assert placed.how == "board" and placed.symbol.nickname == "" and placed.symbol.raw == lib.symbol("bac R").raw
+    assert placed.footprint == "Package_QFP:LQFP-64"  # the row names none: the board's
+    assert "mcu-lqfp64.stm32f405rgt7" in kinds(shows[0])["footprint from symbol"]
+
+
+def cache_entry(text: str, lib_id: str) -> str:
+    node = next(s for s in parse(text).child("lib_symbols").children("symbol") if s.value(1) == lib_id)
+    return text[node.start : node.end]
+
+
+def test_a_board_symbol_is_copied_as_cached_and_its_pins_are_flagged(tmp_path):
+    root = make_root(tmp_path)
+    mcu = "MCU_ST_STM32F4:STM32F405RGTx"
+    source = stock_sheet(mcu, "STM32F405RGT7", "Package_QFP:LQFP-64").replace("(at -6.35 0 0)", "(at -8.89 0 0)")
+    write(root, "mcu/kicad10/mcu.kicad_sch", source)
+    _, shows = sc.build(root, settings(tmp_path), ["ics"])
+    show = shows[0]
+    text = next(text_of(show, s.file) for s in show.sheets if f'(lib_id "{mcu}")' in text_of(show, s.file))
+    assert cache_entry(text, mcu) == cache_entry(source, mcu)  # byte for byte, indentation included
+    sheet = parse(text)
+    placed = next(s for s in sheet.children("symbol") if s.child("lib_id").value(1) == mcu)
+    x, y = (float(v) for v in (placed.child("at").value(1), placed.child("at").value(2)))
+    flags = {(float(f.child("at").value(1)), float(f.child("at").value(2))) for f in sheet.children("no_connect")}
+    assert (round(x - 8.89, 4), y) in flags and (round(x + 6.35, 4), y) in flags
+
+
+def test_a_showcase_sheet_kicad_saved_is_not_a_board(tmp_path):
+    root = make_root(tmp_path)
+    _, shows = sc.build(root, settings(tmp_path), ["ics"])
+    write_all(shows)
+    before = dict(shows[0].counts)
+    for path in (root / "resources/catalog/ics/showcase").glob("*.kicad_sch"):
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text.replace(f'(generator "{sc.GENERATOR}")', '(generator "eeschema")'), encoding="utf-8")
+    # The placeholder with a part number on a sheet elsewhere is no source either.
+    write(root, "eps/kicad10/p.kicad_sch", stock_sheet(f"bac Library Symbols v1:{sc.PLACEHOLDER}", "STM32F405RGT7", ""))
+    lib, again = sc.build(root, settings(tmp_path), ["ics"])
+    assert not lib.board and dict(again[0].counts) == before
+
+
+def test_board_symbols_that_are_parked_modified_or_further_units_do_not_count(tmp_path):
+    root = make_root(tmp_path)
+    nick = "bac Library Symbols v1"
+    write(root, "a/kicad10/parked.kicad_sch", stock_sheet(f"{nick}:#unused ST STG3856QTR", "STG3856QTR", "x:y"))
+    write(root, "a/kicad10/stale.kicad_sch", stock_sheet(f"{nick}:ST STG3856QTR", "STG3856QTR", "x:y"))
+    modified = stock_sheet("Dev:MCU", "STM32F405RGT7", "x:y").replace("\t\t(unit 1)\n", '\t\t(lib_name "MCU_1")\n', 1)
+    write(root, "a/kicad10/modified.kicad_sch", modified)
+    units = stock_sheet("Dev:Quad", "TLV75533PDBVR", "x:y", count=3).replace("(unit 1)", "(unit 2)")
+    write(root, "a/kicad10/units.kicad_sch", units)
+    write(root, "b/kicad10/one.kicad_sch", stock_sheet("Dev:Single", "TLV75533PDBVR", "x:y"))
+    lib, shows = sc.build(root, settings(tmp_path), ["ics"])
+    assert sorted(lib.board) == ["tlv75533pdbvr"] and lib.board["tlv75533pdbvr"].name == "Single"
+    found = kinds(shows[0])
+    assert "mux-dual4-wqfn16.stg3856" in found["symbol #unused"] and "mcu-lqfp64.stm32f405rgt7" in found["no symbol"]
+
+
+def test_board_symbol_ties_text_and_footprint(tmp_path):
+    root = make_root(tmp_path)
+    # Equal counts: the first by name. One text per symbol: the first sheet's, for every part number drawn with it.
+    write(root, "a/kicad10/1.kicad_sch", stock_sheet("Dev:B", "STM32F405RGT7", "x:y"))
+    write(root, "a/kicad10/2.kicad_sch", stock_sheet("Dev:A", "STM32F405RGT7", "x:y"))
+    most = stock_sheet("Dev:A", "TLV75533PDBVR", "", count=3)
+    write(root, "b/kicad10/3.kicad_sch", most.replace('(property "Footprint" ""', '(property "Footprint" "p:most"', 2))
+    moved = stock_sheet("Dev:A", "TLV75533PDBVR", "p:aaa").replace("(at -6.35 0 0)", "(at -16.35 0 0)")
+    write(root, "b/kicad10/4.kicad_sch", moved)
+    lib, _ = sc.build(root, settings(tmp_path), ["ics"])
+    mcu, ldo = lib.board["stm32f405rgt7"], lib.board["tlv75533pdbvr"]
+    assert (mcu.nickname, mcu.name) == ("Dev", "A") and mcu.raw == ldo.raw and "-16.35" not in ldo.raw
+    assert ldo.footprint == "p:most" and ldo.source == "b/kicad10/3.kicad_sch"  # two of four, an empty one aside
+
+
+def test_board_symbol_fields_one_part_number_field_and_no_private_property(tmp_path):
+    root = make_root(tmp_path)
+    mcu = "Dev:MCU"
+    source = stock_sheet(mcu, "STM32F405RGT7", "x:y")
+    extra = '\t\t(property "manufacturer pn" "old"\n\t\t\t(at 0 0 0)\n\t\t)\n\t\t(property private "KLC_S3.3" "x"\n\t\t\t(at 0 0 0)\n\t\t)\n'
+    at = source.index("\t\t\t(symbol ")
+    write(root, "a/kicad10/m.kicad_sch", source[:at] + "\t" + extra.replace("\n\t", "\n\t\t")[:-1] + source[at:])
+    _, shows = sc.build(root, settings(tmp_path), ["ics"])
+    show = shows[0]
+    text = next(text_of(show, s.file) for s in show.sheets if f'(lib_id "{mcu}")' in text_of(show, s.file))
+    placed = next(s for s in parse(text).children("symbol") if s.child("lib_id").value(1) == mcu)
+    fields = [(p.value(1), p.value(2)) for p in placed.children("property")]
+    assert [f for f in fields if f[0].casefold() == "manufacturer pn"] == [("manufacturer pn", "STM32F405RGT7")]
+    assert not any(name == "private" for name, _ in fields)
