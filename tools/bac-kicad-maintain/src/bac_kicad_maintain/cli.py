@@ -694,7 +694,7 @@ def _showcase_show(root: Path, library: Library, shows: list[Showcase], add_symb
         slot = c["With the slot reference's symbol"]
         ui.step(
             f"  {c['Catalog rows']} rows on {len(show.sheets)} sheet(s): {c['With their own library symbol']} own, "
-            f"{slot} slot symbol, {c['As placeholder']} placeholder; "
+            f"{c['With a symbol from a board']} from a board, {slot} slot symbol, {c['As placeholder']} placeholder; "
             f"{c['On the board']} on the board, {c['Schematic only']} schematic only"
         )
         for f in show.findings:
