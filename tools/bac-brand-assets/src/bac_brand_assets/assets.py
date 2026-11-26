@@ -60,8 +60,8 @@ BADGES = {  # fill, mark, hairline (--border-strong light / dark)
 }
 
 COLORS = {"black": "#000000", "white": "#ffffff", "currentcolor": "currentColor"}
-KINDS = ("symbol", "wordmark", "logo", "logo-tagline", "logo-stacked")
-BADGE_KINDS = ("symbol-badge", "logo-badge", "logo-stacked-badge")
+KINDS = ("symbol", "wordmark", "logo", "logo-tagline", "logo-stacked", "logo-stacked-tagline")
+BADGE_KINDS = ("symbol-badge", "logo-badge", "logo-tagline-badge", "logo-stacked-badge", "logo-stacked-tagline-badge")
 
 
 def _f(v: float) -> str:
@@ -209,19 +209,43 @@ def wordmark_svg(fonts_dir: Path, color: str) -> str:
     return wrap("wordmark", group, width + 2 * PAD, height + 2 * PAD, construction)
 
 
-def logo_parts(fonts_dir: Path, color: str, tagline: bool = False) -> tuple[str, float, float, str]:
-    """Symbol and wordmark (and the tagline) on the logo canvas: (body, width, height, construction)."""
+def tagline_size(fonts_dir: Path, width: float) -> float:
+    """The tagline's font size, so its text takes TAGLINE_FILL of ``width``."""
+    from fontTools.ttLib import TTFont
+
+    mono = TTFont(fonts_dir / wordmark.MONO_FONT_FILE)
+    _, w_at_1 = wordmark.line(mono, TAGLINE, 1, 0, 0, TAGLINE_TRACKING)  # width per unit of size
+    return TAGLINE_FILL * width / w_at_1
+
+
+def tagline_group(fonts_dir: Path, color: str, size: float, cx: float, baseline: float, width: float) -> str:
+    """The tagline centered on ``cx``, rules filling out to ``width``."""
+    from fontTools.ttLib import TTFont
+
+    mono = TTFont(fonts_dir / wordmark.MONO_FONT_FILE)
+    frag, _ = wordmark.subtitle(mono, TAGLINE, size, TAGLINE_TRACKING, cx, baseline, width, color)
+    return f'  <g id="tagline">\n{frag}  </g>\n'
+
+
+TAGLINE_CONSTRUCTION = (
+    f' Tagline "{TAGLINE}" in IBM Plex Mono, tracking {TAGLINE_TRACKING:.3f} em, sized to {TAGLINE_FILL:.0%}'
+    " of the wordmark's width and centered under it, rules filling the rest, outlined."
+)
+
+
+def logo_parts(
+    fonts_dir: Path, color: str, tagline: bool = False
+) -> tuple[str, float, float, str, tuple[float, float, float, float]]:
+    """Symbol and wordmark (and the tagline) on the logo canvas.
+
+    Returns (body, width, height, construction, text box x, y, w, h); the text box spans the
+    wordmark and, with ``tagline``, the tagline's baseline under it.
+    """
     sym_w, sym_h = SYMBOL_CANVAS
     scale = 3 * EDGE * TEXT_FRACTION / (CAP + LEADING)
     block = (CAP + LEADING) * scale
     group, width, _ = wordmark_group(fonts_dir, color, sym_w + GAP, 0, scale)
-    tag_size = 0.0
-    if tagline:
-        from fontTools.ttLib import TTFont
-
-        mono = TTFont(fonts_dir / wordmark.MONO_FONT_FILE)
-        _, w_at_1 = wordmark.line(mono, TAGLINE, 1, 0, 0, TAGLINE_TRACKING)  # width per unit of size
-        tag_size = TAGLINE_FILL * width / w_at_1
+    tag_size = tagline_size(fonts_dir, width) if tagline else 0.0
     extra = TAGLINE_DROP * tag_size  # the tagline's baseline drop under the wordmark
     top = (sym_h - block - extra) / 2
     group, width, _ = wordmark_group(fonts_dir, color, sym_w + GAP, top, scale)
@@ -231,45 +255,50 @@ def logo_parts(fonts_dir: Path, color: str, tagline: bool = False) -> tuple[str,
         f" Nunito {FONT_WEIGHT}, tracking {TRACKING} em, outlined."
     )
     if tagline:
-        frag, _ = wordmark.subtitle(
-            mono, TAGLINE, tag_size, TAGLINE_TRACKING, sym_w + GAP + width / 2, top + block + extra, width, color
-        )
-        body += f'  <g id="tagline">\n{frag}  </g>\n'
-        construction += (
-            f' Tagline "{TAGLINE}" in IBM Plex Mono, tracking {TAGLINE_TRACKING:.3f} em, sized to {TAGLINE_FILL:.0%}'
-            f" of the wordmark's width and centered under it, rules filling the rest, outlined."
-        )
+        body += tagline_group(fonts_dir, color, tag_size, sym_w + GAP + width / 2, top + block + extra, width)
+        construction += TAGLINE_CONSTRUCTION
     canvas_w = sym_w + GAP + width + (sym_w - EDGE * math.sqrt(3)) / 2
-    return body, canvas_w, sym_h, construction
+    return body, canvas_w, sym_h, construction, (sym_w + GAP, top, width, block + extra)
 
 
 def logo_svg(fonts_dir: Path, color: str, tagline: bool = False) -> str:
     """The symbol on its own canvas, the wordmark centered on the cube to its right."""
-    body, w, h, construction = logo_parts(fonts_dir, color, tagline)
+    body, w, h, construction, _ = logo_parts(fonts_dir, color, tagline)
     return wrap("logo-tagline" if tagline else "logo", body, w, h, construction)
 
 
-def stacked_parts(fonts_dir: Path, color: str) -> tuple[str, float, float, str, tuple[float, float, float, float]]:
-    """The symbol centered above the wordmark: (body, width, height, construction, text box x, y, w, h)."""
+def stacked_parts(
+    fonts_dir: Path, color: str, tagline: bool = False
+) -> tuple[str, float, float, str, tuple[float, float, float, float]]:
+    """The symbol centered above the wordmark (and the tagline under it).
+
+    Returns (body, width, height, construction, text box x, y, w, h); with ``tagline`` the text
+    box reaches down to the tagline's baseline.
+    """
     sym_w, sym_h = SYMBOL_CANVAS
     half = EDGE * math.sqrt(3) / 2
     scale = 3 * EDGE * STACKED_TEXT_FRACTION / (CAP + LEADING)
     _, text_w, block = wordmark_group(fonts_dir, color, 0, 0, scale, STACKED_FONT_WEIGHT)
     width = max(text_w, 2 * half + STROKE) + 2 * PAD
     cube_bottom = (sym_h + 3 * EDGE) / 2 + STROKE / 2
-    text_box = ((width - text_w) / 2, cube_bottom + STACKED_GAP, text_w, block)
+    tag_size = tagline_size(fonts_dir, text_w) if tagline else 0.0
+    extra = TAGLINE_DROP * tag_size  # the tagline's baseline drop under the wordmark
+    text_box = ((width - text_w) / 2, cube_bottom + STACKED_GAP, text_w, block + extra)
     group, _, _ = wordmark_group(fonts_dir, color, text_box[0], text_box[1], scale, STACKED_FONT_WEIGHT)
     body = symbol_group(color, (width - sym_w) / 2) + group
     construction = (
         f"Stacked lockup: symbol centered above the wordmark at {STACKED_TEXT_FRACTION:.1%} of the cube height,"
         f" gap {STACKED_GAP}; Nunito {STACKED_FONT_WEIGHT}, tracking {TRACKING} em, outlined."
     )
-    return body, width, text_box[1] + block + PAD, construction, text_box
+    if tagline:
+        body += tagline_group(fonts_dir, color, tag_size, width / 2, text_box[1] + block + extra, text_w)
+        construction += TAGLINE_CONSTRUCTION
+    return body, width, text_box[1] + text_box[3] + PAD, construction, text_box
 
 
-def stacked_svg(fonts_dir: Path, color: str) -> str:
-    body, w, h, construction, _ = stacked_parts(fonts_dir, color)
-    return wrap("logo-stacked", body, w, h, construction)
+def stacked_svg(fonts_dir: Path, color: str, tagline: bool = False) -> str:
+    body, w, h, construction, _ = stacked_parts(fonts_dir, color, tagline)
+    return wrap("logo-stacked-tagline" if tagline else "logo-stacked", body, w, h, construction)
 
 
 def badge_outline(
@@ -313,10 +342,13 @@ def badge_path(
     return rounded(outline, BADGE_CORNER, BADGE_MERGE_FILLET)[0]
 
 
-def stacked_badge_svg(fonts_dir: Path, variant: str) -> str:
-    """The stacked logo on a filled badge: hexagon on a rectangle, the canvas fitted to the badge."""
+def stacked_badge_svg(fonts_dir: Path, variant: str, tagline: bool = False) -> str:
+    """The stacked logo (with or without the tagline) on a filled badge: hexagon on a rectangle.
+
+    The canvas is fitted to the badge; with ``tagline`` the rectangle reaches down to the tagline.
+    """
     fill, mark, hairline = BADGES[variant]
-    body, w, _, construction, text_box = stacked_parts(fonts_dir, mark)
+    body, w, _, construction, text_box = stacked_parts(fonts_dir, mark, tagline)
     cx, top = w / 2, (SYMBOL_CANVAS[1] - 3 * EDGE) / 2
     outline = badge_outline(cx, top, text_box, stacked=True)
     margin = BADGE_HAIRLINE + 10  # canvas edge to badge, as the symbol badge's tightest side
@@ -332,11 +364,17 @@ def stacked_badge_svg(fonts_dir: Path, variant: str) -> str:
         f" same offset around the wordmark and reaching up to the hexagon's lower corners, the merge filleted"
         f" {BADGE_MERGE_FILLET}, corners rounded {BADGE_CORNER}, hairline {BADGE_HAIRLINE}."
     )
-    return wrap("logo-stacked-badge", body, canvas_w, canvas_h, construction)
+    return wrap(
+        "logo-stacked-tagline-badge" if tagline else "logo-stacked-badge", body, canvas_w, canvas_h, construction
+    )
 
 
-def badge_svg(fonts_dir: Path, variant: str, logo: bool) -> str:
-    """The symbol or the logo on a filled badge; the canvas grows by the badge's overhang."""
+def badge_svg(fonts_dir: Path, variant: str, logo: bool, tagline: bool = False) -> str:
+    """The symbol or the logo (with or without the tagline) on a filled badge.
+
+    The canvas grows by the badge's overhang. For the tagline logo the rectangle around the text
+    reaches down to the tagline's baseline, so the badge covers the tagline with the same offset.
+    """
     fill, mark, hairline = BADGES[variant]
     sym_w, sym_h = SYMBOL_CANVAS
     cx, top = sym_w / 2, (sym_h - 3 * EDGE) / 2
@@ -346,15 +384,12 @@ def badge_svg(fonts_dir: Path, variant: str, logo: bool) -> str:
     over_x = BADGE_OFFSET + BADGE_HAIRLINE - (sym_w / 2 - half)
     pad = max(over_x, over_y, 0) + 10
     if logo:
-        body, w, h, construction = logo_parts(fonts_dir, mark)
+        body, w, h, construction, (tx, ty, text_w, text_h) = logo_parts(fonts_dir, mark, tagline)
         # the right side clears the wordmark by the same offset as the badge clears the cube
-        scale = 3 * EDGE * TEXT_FRACTION / (CAP + LEADING)
-        block = (CAP + LEADING) * scale
-        text_w = w - sym_w - GAP - (sym_w - 2 * half) / 2
-        text_box = (pad + sym_w + GAP, pad + (sym_h - block) / 2, text_w, block)
+        text_box = (pad + tx, pad + ty, text_w, text_h)
         margin = pad + sym_w / 2 - half - BADGE_OFFSET  # canvas edge to badge, as on the left
         canvas_w = text_box[0] + text_w + BADGE_OFFSET + margin
-        kind = "logo-badge"
+        kind = "logo-tagline-badge" if tagline else "logo-badge"
     else:
         body, w, h, construction = symbol_group(mark), sym_w, sym_h, f"Isometric 2U cube, stroke {STROKE}."
         text_box = None
@@ -387,17 +422,17 @@ class Asset:
             if part == "wordmark":
                 return rocinante.wordmark_svg(fonts_dir, self.color, wrap)
             return rocinante.logo_svg(fonts_dir, self.color, wrap)
-        if self.kind == "logo-stacked-badge":
-            return stacked_badge_svg(fonts_dir, self.color)
+        if self.kind.startswith("logo-stacked") and self.kind.endswith("-badge"):
+            return stacked_badge_svg(fonts_dir, self.color, tagline="tagline" in self.kind)
         if self.kind.endswith("-badge"):
-            return badge_svg(fonts_dir, self.color, logo=self.kind == "logo-badge")
+            return badge_svg(fonts_dir, self.color, logo=self.kind != "symbol-badge", tagline="tagline" in self.kind)
         hex_ = COLORS[self.color]
         if self.kind == "symbol":
             return symbol_svg(hex_)
         if self.kind == "wordmark":
             return wordmark_svg(fonts_dir, hex_)
-        if self.kind == "logo-stacked":
-            return stacked_svg(fonts_dir, hex_)
+        if self.kind.startswith("logo-stacked"):
+            return stacked_svg(fonts_dir, hex_, tagline="tagline" in self.kind)
         return logo_svg(fonts_dir, hex_, tagline=self.kind == "logo-tagline")
 
 
