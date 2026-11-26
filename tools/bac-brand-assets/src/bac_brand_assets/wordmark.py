@@ -47,12 +47,21 @@ def line(
 
 
 def subtitle(
-    font: TTFont, text: str, size: float, tracking_em: float, cx: float, baseline: float, fill_width: float, color: str
+    font: TTFont,
+    text: str,
+    size: float,
+    tracking_em: float,
+    cx: float,
+    baseline: float,
+    fill_width: float,
+    color: str,
+    rule_em: float = 0.086,
 ) -> tuple[str, float]:
     """``text`` centred on ``cx`` with a rule either side filling out to ``fill_width``.
 
     Returns (SVG fragment, width). The rules sit at half the cap height, ``gap`` (the tracking)
-    away from the text; when the text is wider than ``fill_width`` there are no rules.
+    away from the text, ``rule_em`` of the size thick; when the text is wider than ``fill_width``
+    there are no rules.
     """
     d, w = line(font, text, size, 0, 0, tracking_em * size)
     cap = size * font["OS/2"].sCapHeight / font["head"].unitsPerEm
@@ -64,5 +73,5 @@ def subtitle(
     if rule > gap:
         y = baseline - cap / 2
         rules = f"M{f(x - gap - rule)} {f(y)} H{f(x - gap)} M{f(x + w + gap)} {f(y)} H{f(x + w + gap + rule)}"
-        out += f'    <path id="rules" d="{rules}" fill="none" stroke="{color}" stroke-width="{f(size * 0.086)}"/>\n'
+        out += f'    <path id="rules" d="{rules}" fill="none" stroke="{color}" stroke-width="{f(size * rule_em)}"/>\n'
     return out, max(w, fill_width)

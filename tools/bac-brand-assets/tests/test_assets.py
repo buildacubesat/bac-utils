@@ -30,14 +30,14 @@ def test_list_prints_every_asset_once():
     names = r.stdout.split()
     svgs = [n for n in names if n.endswith(".svg")]
     assert svgs == [a.name for a in assets.assets()]
-    assert len(names) == len(set(names)) == 28 + 84  # 21 colored SVGs × two sizes × PNG and WebP
+    assert len(names) == len(set(names)) == 40 + 124  # 31 colored SVGs × two sizes × PNG and WebP
     assert all(
-        re.fullmatch(r"(png|webp)/(bac|rocinante)-[a-z-]+-v\d+r\d+-(512|2048)\.(png|webp)", n) for n in names[28:]
+        re.fullmatch(r"(png|webp)/(bac|rocinante)-[a-z-]+-v\d+r\d+-(512|2048)\.(png|webp)", n) for n in names[40:]
     )
     names = svgs
     pattern = (
-        r"bac-(symbol|wordmark|logo|logo-tagline)-(black|white|currentcolor)-v\d+r\d+\.svg"
-        r"|bac-(symbol|logo)-badge-(light|dark)-v\d+r\d+\.svg"
+        r"bac-(symbol|wordmark|logo|logo-tagline|logo-stacked|logo-stacked-tagline)-(black|white|currentcolor)-v\d+r\d+\.svg"
+        r"|bac-(symbol|logo|logo-tagline|logo-stacked|logo-stacked-tagline)-badge-(light|dark)-v\d+r\d+\.svg"
         r"|rocinante-(symbol|wordmark|logo)-(black|white|currentcolor|color)-v\d+r\d+\.svg"
     )
     assert all(re.fullmatch(pattern, n) for n in names), names
@@ -89,7 +89,7 @@ def test_wordmark_lines_are_justified_to_the_same_width():
 def test_the_written_files_are_current_and_check_reports_a_stale_one(tmp_path):
     out = tmp_path / "assets"
     r = invoke(cli._main, ["--design", str(DESIGN), "-o", str(out), "--no-raster"])
-    assert r.exit_code == 0 and r.output.count("Written") == 29
+    assert r.exit_code == 0 and r.output.count("Written") == 41
     r = invoke(cli._main, ["--design", str(DESIGN), "-o", str(out), "--check", "--no-raster"])
     assert r.exit_code == 0 and "Stale: " not in r.output
     stale = out / "bac-logo-black-v4r1.svg"
@@ -98,6 +98,30 @@ def test_the_written_files_are_current_and_check_reports_a_stale_one(tmp_path):
     assert r.exit_code == 1 and "Stale: bac-logo-black-v4r1.svg" in r.output
     r = invoke(cli._main, ["--design", str(DESIGN), "-o", str(out), "--dry-run", "--no-raster"])
     assert r.exit_code == 0 and "Would write" in r.output and "#111111" in stale.read_text(encoding="utf-8")
+
+
+@needs_font
+def test_tagline_badge_covers_the_tagline_with_the_badge_offset():
+    _, _, _, _, (x, y, w, h) = assets.logo_parts(DESIGN / "fonts", "#000000")
+    _, _, _, _, (tx, ty, tw, th) = assets.logo_parts(DESIGN / "fonts", "#000000", tagline=True)
+    assert (tx, tw) == (x, w) and th > h  # the text box grows down to the tagline's baseline
+    assert abs(ty + th / 2 - 325) < 0.01  # and stays centered on the cube
+    badge = assets.badge_svg(DESIGN / "fonts", "light", logo=True, tagline=True)
+    plain = assets.badge_svg(DESIGN / "fonts", "light", logo=True)
+    assert "Build a CubeSat Logo Tagline Badge v4r1" in badge and 'id="tagline"' in badge
+    assert re.search(r'viewBox="0 0 ([\d.]+)', badge).group(1) == re.search(r'viewBox="0 0 ([\d.]+)', plain).group(1)
+
+
+@needs_font
+def test_stacked_logo_centers_the_wordmark_under_the_cube():
+    body, width, height, construction, (x, y, w, h) = assets.stacked_parts(DESIGN / "fonts", "#000000")
+    assert abs(x + w / 2 - width / 2) < 0.01  # wordmark centered on the canvas, as the symbol is
+    assert y == 625 + assets.STROKE / 2 + assets.STACKED_GAP  # gap from the cube's lowest point
+    assert abs(h - 3 * assets.EDGE * assets.STACKED_TEXT_FRACTION) < 0.01
+    assert abs(height - (y + h + assets.PAD)) < 0.01
+    assert f"Nunito {assets.STACKED_FONT_WEIGHT}" in construction and 'id="symbol"' in body
+    badge = assets.stacked_badge_svg(DESIGN / "fonts", "dark")
+    assert "Build a CubeSat Logo Stacked Badge v4r1" in badge and "#1F1E1D" in badge
 
 
 def test_badge_encloses_the_symbol_and_rocinante_ring_has_three_gaps():
@@ -131,3 +155,18 @@ def test_a_raster_is_rendered_at_the_longest_side_with_transparency():
 def test_the_committed_assets_are_current():
     r = invoke(cli._main, ["--design", str(DESIGN), "--check"])
     assert r.exit_code == 0, r.output
+
+
+@needs_font
+def test_stacked_tagline_sits_under_the_wordmark_at_its_width():
+    _, w0, h0, _, (x, y, w, h) = assets.stacked_parts(DESIGN / "fonts", "#000000")
+    body, w1, h1, construction, (tx, ty, tw, th) = assets.stacked_parts(DESIGN / "fonts", "#000000", tagline=True)
+    assert (tx, ty, tw, w1) == (x, y, w, w0) and th > h  # same wordmark, the box reaches down to the tagline
+    assert abs(h1 - (ty + th + assets.PAD)) < 0.01 and 'id="tagline"' in body and "SPACE FOR EVERYONE" in construction
+    assert "IBM Plex Mono Medium" in construction  # heavier under the Nunito 500 wordmark
+    rule = float(re.search(r'id="rules"[^>]*stroke-width="([\d.]+)"', body).group(1))
+    assert abs(rule - assets.STACKED_TAGLINE_RULE * assets.tagline_size(DESIGN / "fonts", tw)) < 0.01
+    plain_tag = assets.logo_parts(DESIGN / "fonts", "#000000", tagline=True)[3]
+    assert "IBM Plex Mono Medium" not in plain_tag
+    badge = assets.stacked_badge_svg(DESIGN / "fonts", "light", tagline=True)
+    assert "Build a CubeSat Logo Stacked Tagline Badge v4r1" in badge and 'id="tagline"' in badge
