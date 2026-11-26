@@ -48,6 +48,11 @@ TAGLINE = "SPACE FOR EVERYONE"
 TAGLINE_FILL = 0.72  # the text takes this share of the wordmark's width; the rules fill the rest
 TAGLINE_TRACKING = 2 / 7  # em, as the Rocinante subtitle
 TAGLINE_DROP = 2.34  # wordmark baseline to tagline baseline, in tagline sizes (as Rocinante)
+TAGLINE_RULE = 0.086  # rule thickness in em, about Plex Mono Regular's hyphen
+# Under the stacked logo's Nunito 500 wordmark the tagline is set in Plex Mono Medium, the rules
+# thickened by the same ratio as Medium's hyphen to Regular's (109 / 84)
+STACKED_TAGLINE_FONT_FILE = "IBMPlexMono-Medium.ttf"
+STACKED_TAGLINE_RULE = 0.112
 
 # Badge – a filled, rounded hexagon behind the mark for stickers, avatars and busy backgrounds
 BADGE_OFFSET = 60  # from the cube's hexagon outwards
@@ -218,12 +223,21 @@ def tagline_size(fonts_dir: Path, width: float) -> float:
     return TAGLINE_FILL * width / w_at_1
 
 
-def tagline_group(fonts_dir: Path, color: str, size: float, cx: float, baseline: float, width: float) -> str:
-    """The tagline centered on ``cx``, rules filling out to ``width``."""
+def tagline_group(
+    fonts_dir: Path, color: str, size: float, cx: float, baseline: float, width: float, stacked: bool = False
+) -> str:
+    """The tagline centered on ``cx``, rules filling out to ``width``; Medium under the stacked wordmark.
+
+    Plex Mono's advance widths are the same in every weight, so the size and the rules' length
+    do not depend on the weight.
+    """
     from fontTools.ttLib import TTFont
 
-    mono = TTFont(fonts_dir / wordmark.MONO_FONT_FILE)
-    frag, _ = wordmark.subtitle(mono, TAGLINE, size, TAGLINE_TRACKING, cx, baseline, width, color)
+    font_file, rule = (
+        (STACKED_TAGLINE_FONT_FILE, STACKED_TAGLINE_RULE) if stacked else (wordmark.MONO_FONT_FILE, TAGLINE_RULE)
+    )
+    mono = TTFont(fonts_dir / font_file)
+    frag, _ = wordmark.subtitle(mono, TAGLINE, size, TAGLINE_TRACKING, cx, baseline, width, color, rule)
     return f'  <g id="tagline">\n{frag}  </g>\n'
 
 
@@ -291,8 +305,8 @@ def stacked_parts(
         f" gap {STACKED_GAP}; Nunito {STACKED_FONT_WEIGHT}, tracking {TRACKING} em, outlined."
     )
     if tagline:
-        body += tagline_group(fonts_dir, color, tag_size, width / 2, text_box[1] + block + extra, text_w)
-        construction += TAGLINE_CONSTRUCTION
+        body += tagline_group(fonts_dir, color, tag_size, width / 2, text_box[1] + block + extra, text_w, True)
+        construction += TAGLINE_CONSTRUCTION.replace("IBM Plex Mono,", "IBM Plex Mono Medium,")
     return body, width, text_box[1] + text_box[3] + PAD, construction, text_box
 
 

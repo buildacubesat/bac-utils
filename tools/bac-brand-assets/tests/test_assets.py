@@ -163,5 +163,10 @@ def test_stacked_tagline_sits_under_the_wordmark_at_its_width():
     body, w1, h1, construction, (tx, ty, tw, th) = assets.stacked_parts(DESIGN / "fonts", "#000000", tagline=True)
     assert (tx, ty, tw, w1) == (x, y, w, w0) and th > h  # same wordmark, the box reaches down to the tagline
     assert abs(h1 - (ty + th + assets.PAD)) < 0.01 and 'id="tagline"' in body and "SPACE FOR EVERYONE" in construction
+    assert "IBM Plex Mono Medium" in construction  # heavier under the Nunito 500 wordmark
+    rule = float(re.search(r'id="rules"[^>]*stroke-width="([\d.]+)"', body).group(1))
+    assert abs(rule - assets.STACKED_TAGLINE_RULE * assets.tagline_size(DESIGN / "fonts", tw)) < 0.01
+    plain_tag = assets.logo_parts(DESIGN / "fonts", "#000000", tagline=True)[3]
+    assert "IBM Plex Mono Medium" not in plain_tag
     badge = assets.stacked_badge_svg(DESIGN / "fonts", "light", tagline=True)
     assert "Build a CubeSat Logo Stacked Tagline Badge v4r1" in badge and 'id="tagline"' in badge
